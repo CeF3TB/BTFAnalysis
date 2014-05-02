@@ -842,7 +842,6 @@ float getMeanposHodo( std::vector<float> hodo_corr, int& nHodoFibers, int& nHodo
 
 }
 
-<<<<<<< HEAD
 float gethodointercalib(TString axis, int n){
 
   float res=1;
@@ -860,7 +859,6 @@ float gethodointercalib(TString axis, int n){
   return 1./res;
   
 };
-=======
 
 
 std::vector<HodoCluster*> getHodoClusters( std::vector<float> hodo_corr, int nClusterMax ) {
@@ -955,4 +953,4 @@ float getSingleCef3Position( float en, bool takemin ) {
   return returnX;
 
 }
->>>>>>> pandolfhome/master
+
