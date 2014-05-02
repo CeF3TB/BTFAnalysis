@@ -301,8 +301,8 @@ int main( int argc, char* argv[] ) {
     float nSigma_hodo = 4.;
     std::vector<float>  bgo_corr = subtractPedestals( bgo , pedestals_bgo, 4. );
     std::vector<float> cef3_corr = subtractPedestals( cef3, pedestals,     4. );
-    std::vector<float> hodox_corr = subtractPedestals( hodox, pedestals_hodox,     nSigma_hodo );
-    std::vector<float> hodoy_corr = subtractPedestals( hodoy, pedestals_hodoy,     nSigma_hodo );
+    std::vector<float> hodox_corr = subtractPedestals( hodox, pedestals_hodox, nSigma_hodo );
+    std::vector<float> hodoy_corr = subtractPedestals( hodoy, pedestals_hodoy, nSigma_hodo );
     for (int i=0; i<HODOX_CHANNELS; i++) hodox_corr.at(i) = hodox_corr.at(i)*gethodointercalib("X",i);
     for (int i=0; i<HODOY_CHANNELS; i++) hodoy_corr.at(i) = hodoy_corr.at(i)*gethodointercalib("Y",i);
 
@@ -312,10 +312,6 @@ int main( int argc, char* argv[] ) {
 
 
     // FIRST GET POSITION FROM HODOSCOPE:
-
-
-    bool hodox_ok = checkVector(hodox, 99999.);
-    bool hodoy_ok = checkVector(hodoy, 99999.);
 
     int clusterSize=2;
     std::vector<HodoCluster*> hodoxFibres   = getHodoClusters( hodox_corr, 1 ); // fibres are just clusters with size = 1
