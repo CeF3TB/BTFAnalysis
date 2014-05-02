@@ -21,12 +21,18 @@ std::vector<float> subtractPedestals( std::vector<float> raw, std::vector< std::
 float sumVector( std::vector<float> v );
 bool checkVector( std::vector<float> v, float theMax=4095. );
 
-//float getMeanposHodo( std::vector<float> hodo, int& nHodoFibers, int& nHodoClusters );
 float getMeanposHodo( std::vector<HodoCluster*> clusters );
 std::vector<HodoCluster*> getHodoClusters( std::vector<float> hodo_corr, int nClusterMax );
 void getCeF3Position( std::vector<float> cef3, float& xPos, float& yPos );
 float getSingleCef3Position( float en, bool takemin=false );
 float gethodointercalib(TString axis, int n);
+
+
+
+
+
+
+
 
 int main( int argc, char* argv[] ) {
 
@@ -948,7 +954,24 @@ float getSingleCef3Position( float en, bool takemin ) {
   float x2 = ( theSqrt>0. ) ? (-b - sqrt( theSqrt ))/(2.*a) : 0.;
 
 
-  float returnX = (takemin) ? TMath::Min(x1,x2) : TMath::Max(x1,x2);
+  //float returnX = (takemin) ? TMath::Min(x1,x2) : TMath::Max(x1,x2);
+
+
+  float returnX;
+
+  if( takemin ) {
+    if( fabs(x1)<fabs(x2) ) {
+      returnX = x1;
+    } else {
+      returnX = x2;
+    }
+  } else {
+    if( fabs(x1)<fabs(x2) ) {
+      returnX = x2;
+    } else {
+      returnX = x1;
+    }
+  }
 
   return returnX;
 
