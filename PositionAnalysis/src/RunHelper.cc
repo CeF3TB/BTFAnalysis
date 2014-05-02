@@ -178,6 +178,61 @@ void RunHelper::getBeamPosition( const std::string& runName, float& beamX, float
   else if( runName_tstr.BeginsWith("BTF_237_") ) { xTable = 534.0; yTable = 200.1; }
   else if( runName_tstr.BeginsWith("BTF_238_") ) { xTable = 534.0; yTable = 222.1; }
   else if( runName_tstr.BeginsWith("BTF_239_") ) { xTable = 534.0; yTable = 222.1; }
+  else if( runName_tstr.BeginsWith("BTF_239_") ) { xTable = 534.0; yTable = 222.1; }
+  else if( runName_tstr.BeginsWith("BTF_240_") ) { xTable = 512.0; yTable = 224.1; }
+  else if( runName_tstr.BeginsWith("BTF_241_") ) { xTable = 512.0; yTable = 224.1; }
+  else if( runName_tstr.BeginsWith("BTF_242_") ) { xTable = 512.0; yTable = 224.1; }
+  else if( runName_tstr.BeginsWith("BTF_243_") ) { xTable = 490.0; yTable = 224.1; }
+  else if( runName_tstr.BeginsWith("BTF_244_") ) { xTable = 511.0; yTable = 201.1; }
+  else if( runName_tstr.BeginsWith("BTF_245_") ) { xTable = 511.0; yTable = 201.1; }
+  else if( runName_tstr.BeginsWith("BTF_246_") ) { xTable = 511.0; yTable = 201.1; }
+  else if( runName_tstr.BeginsWith("BTF_247_") ) { xTable = 511.0; yTable = 201.1; }
+  else if( runName_tstr.BeginsWith("BTF_248_") ) { xTable = 504.0; yTable = 203.6; }
+  else if( runName_tstr.BeginsWith("BTF_249_") ) { xTable = 504.0; yTable = 200.6; }
+  else if( runName_tstr.BeginsWith("BTF_250_") ) { xTable = 504.0; yTable = 206.6; }
+  else if( runName_tstr.BeginsWith("BTF_251_") ) { xTable = 501.0; yTable = 203.6; }
+  else if( runName_tstr.BeginsWith("BTF_252_") ) { xTable = 501.0; yTable = 203.6; }
+  else if( runName_tstr.BeginsWith("BTF_253_") ) { xTable = 507.0; yTable = 203.6; }
+  else if( runName_tstr.BeginsWith("BTF_254_") ) { xTable = 507.0; yTable = 203.6; }
+  else if( runName_tstr.BeginsWith("BTF_255_") ) { xTable = 507.0; yTable = 203.6; }
+  else if( runName_tstr.BeginsWith("BTF_256_") ) { xTable = 507.0; yTable = 203.6; }
+  else if( runName_tstr.BeginsWith("BTF_257_") ) { xTable = 511.0; yTable = 201.1; }
+  else if( runName_tstr.BeginsWith("BTF_258_") ) { xTable = 511.0; yTable = 201.1; }
+  else if( runName_tstr.BeginsWith("BTF_259_") ) { xTable = 511.0; yTable = 201.1; }
+  else if( runName_tstr.BeginsWith("BTF_260_") ) { xTable = 511.0; yTable = 201.1; }
+  else if( runName_tstr.BeginsWith("BTF_261_") ) { xTable = 501.2; yTable = 190.2; }
+  else if( runName_tstr.BeginsWith("BTF_262_") ) { xTable = 501.2; yTable = 190.2; }
+  else if( runName_tstr.BeginsWith("BTF_263_") ) { xTable = 502  ; yTable = 196.5; }
+  else if( runName_tstr.BeginsWith("BTF_264_") ) { xTable = 506.5; yTable = 192; }
+  else if( runName_tstr.BeginsWith("BTF_265_") ) { xTable = 522.3; yTable = 188.7; }
+  else if( runName_tstr.BeginsWith("BTF_266_") ) { xTable = 522.3; yTable = 188.7; }
+  else if( runName_tstr.BeginsWith("BTF_267_") ) { xTable = 522.3; yTable = 212.3; }
+  else if( runName_tstr.BeginsWith("BTF_268_") ) { xTable = 522.3; yTable = 212.3; }
+  else if( runName_tstr.BeginsWith("BTF_269_") ) { xTable = 499.7; yTable = 212.3; }
+  else if( runName_tstr.BeginsWith("BTF_270_") ) { xTable = 499.7; yTable = 212.3; }
+  else if( runName_tstr.BeginsWith("BTF_271_") ) { xTable = 499.2; yTable = 211.8; }
+  else if( runName_tstr.BeginsWith("BTF_272_") ) { xTable = 499.2; yTable = 211.8; }
+  else if( runName_tstr.BeginsWith("BTF_273_") ) { xTable = 499.2; yTable = 212.8; }
+  else if( runName_tstr.BeginsWith("BTF_274_") ) { xTable = 499.2; yTable = 212.8; }
+  else if( runName_tstr.BeginsWith("BTF_275_") ) { xTable = 500.2; yTable = 212.8; }
+  else if( runName_tstr.BeginsWith("BTF_276_") ) { xTable = 500.2; yTable = 212.8; }
+  else if( runName_tstr.BeginsWith("BTF_277_") ) { xTable = 500.2; yTable = 211.8; }
+  else if( runName_tstr.BeginsWith("BTF_278_") ) { xTable = 500.2; yTable = 211.8; }
+  else if( runName_tstr.BeginsWith("BTF_279_") ) { xTable = 511.0; yTable = 201; }
+  else if( runName_tstr.BeginsWith("BTF_280_") ) { xTable = 511.0; yTable = 201; }
+  else if( runName_tstr.BeginsWith("BTF_281_") ) { xTable = 511.0; yTable = 201; }
+  else if( runName_tstr.BeginsWith("BTF_282_") ) { xTable = 511.0; yTable = 201; }
+  else if( runName_tstr.BeginsWith("BTF_283_") ) { xTable = 511.0; yTable = 201; }
+  else if( runName_tstr.BeginsWith("BTF_284_") ) { xTable = 511.0; yTable = 201; }
+  else if( runName_tstr.BeginsWith("BTF_285_") ) { xTable = 511.0; yTable = 201; }
+  else if( runName_tstr.BeginsWith("BTF_286_") ) { xTable = 511.0; yTable = 201; }
+  else if( runName_tstr.BeginsWith("BTF_287_") ) { xTable = 511.0; yTable = 201; }
+  else if( runName_tstr.BeginsWith("BTF_288_") ) { xTable = 514.0; yTable = 201; }
+  else if( runName_tstr.BeginsWith("BTF_289_") ) { xTable = 508.0; yTable = 201; }
+  else if( runName_tstr.BeginsWith("BTF_290_") ) { xTable = 511.0; yTable = 198; }
+  else if( runName_tstr.BeginsWith("BTF_291_") ) { xTable = 511.0; yTable = 204; }
+  else if( runName_tstr.BeginsWith("BTF_292_") ) { xTable = 511.0; yTable = 201; }
+  else if( runName_tstr.BeginsWith("BTF_293_") ) { xTable = 511.0; yTable = 201; }
 
 
   beamX = -xTable + 511.;
