@@ -1,0 +1,41 @@
+./positionAnalysis BTF_94_20140430-073300_beam
+./positionAnalysis BTF_96_20140430-083733_beam
+./positionAnalysis BTF_98_20140430-092026_beam
+./positionAnalysis BTF_100_20140430-101607_beam
+./positionAnalysis BTF_118_20140430-151237_beam
+./positionAnalysis BTF_136_20140430-171004_beam
+./positionAnalysis BTF_138_20140430-175224_beam
+./positionAnalysis BTF_141_20140430-183508_beam
+./positionAnalysis BTF_143_20140430-191455_beam
+
+./drawPositionAnalysis BTF_94_20140430-073300_beam
+./drawPositionAnalysis BTF_96_20140430-083733_beam
+./drawPositionAnalysis BTF_98_20140430-092026_beam
+./drawPositionAnalysis BTF_100_20140430-101607_beam
+./drawPositionAnalysis BTF_118_20140430-151237_beam
+./drawPositionAnalysis BTF_136_20140430-171004_beam
+./drawPositionAnalysis BTF_138_20140430-175224_beam
+./drawPositionAnalysis BTF_141_20140430-183508_beam
+./drawPositionAnalysis BTF_143_20140430-191455_beam
+
+
+mkdir -p DiagonalScan
+cp Plots_BTF_94_20140430-073300_beam/xyPos.pdf   DiagonalScan/xyPos_BTF_94_20140430-073300_beam.pdf
+cp Plots_BTF_96_20140430-083733_beam/xyPos.pdf   DiagonalScan/xyPos_BTF_96_20140430-083733_beam.pdf
+cp Plots_BTF_98_20140430-092026_beam/xyPos.pdf   DiagonalScan/xyPos_BTF_98_20140430-092026_beam.pdf
+cp Plots_BTF_100_20140430-101607_beam/xyPos.pdf  DiagonalScan/xyPos_BTF_100_20140430-101607_beam.pdf
+cp Plots_BTF_118_20140430-151237_beam/xyPos.pdf  DiagonalScan/xyPos_BTF_118_20140430-151237_beam.pdf
+cp Plots_BTF_136_20140430-171004_beam/xyPos.pdf  DiagonalScan/xyPos_BTF_136_20140430-171004_beam.pdf
+cp Plots_BTF_138_20140430-175224_beam/xyPos.pdf  DiagonalScan/xyPos_BTF_138_20140430-175224_beam.pdf
+cp Plots_BTF_141_20140430-183508_beam/xyPos.pdf  DiagonalScan/xyPos_BTF_141_20140430-183508_beam.pdf
+cp Plots_BTF_143_20140430-191455_beam/xyPos.pdf  DiagonalScan/xyPos_BTF_143_20140430-191455_beam.pdf
+
+cp Plots_BTF_94_20140430-073300_beam/xyPos_singleEle.pdf   DiagonalScan/xyPos_singleEle_BTF_94_20140430-073300_beam.pdf
+cp Plots_BTF_96_20140430-083733_beam/xyPos_singleEle.pdf   DiagonalScan/xyPos_singleEle_BTF_96_20140430-083733_beam.pdf
+cp Plots_BTF_98_20140430-092026_beam/xyPos_singleEle.pdf   DiagonalScan/xyPos_singleEle_BTF_98_20140430-092026_beam.pdf
+cp Plots_BTF_100_20140430-101607_beam/xyPos_singleEle.pdf  DiagonalScan/xyPos_singleEle_BTF_100_20140430-101607_beam.pdf
+cp Plots_BTF_118_20140430-151237_beam/xyPos_singleEle.pdf  DiagonalScan/xyPos_singleEle_BTF_118_20140430-151237_beam.pdf
+cp Plots_BTF_136_20140430-171004_beam/xyPos_singleEle.pdf  DiagonalScan/xyPos_singleEle_BTF_136_20140430-171004_beam.pdf
+cp Plots_BTF_138_20140430-175224_beam/xyPos_singleEle.pdf  DiagonalScan/xyPos_singleEle_BTF_138_20140430-175224_beam.pdf
+cp Plots_BTF_141_20140430-183508_beam/xyPos_singleEle.pdf  DiagonalScan/xyPos_singleEle_BTF_141_20140430-183508_beam.pdf
+cp Plots_BTF_143_20140430-191455_beam/xyPos_singleEle.pdf  DiagonalScan/xyPos_singleEle_BTF_143_20140430-191455_beam.pdf

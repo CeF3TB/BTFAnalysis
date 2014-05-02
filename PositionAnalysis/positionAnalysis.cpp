@@ -8,8 +8,11 @@
 #include "TH2D.h"
 #include "TFile.h"
 #include "TTree.h"
+#include "TVector2.h"
 
 #include "fastDQM_CeF3_BTF.h"
+#include "interface/HodoCluster.h"
+
 
 #include "hodo_efficiency.dat"
 
@@ -17,9 +20,13 @@ std::vector< std::pair<float, float> > getPedestals( const std::string& type, co
 std::vector<float> subtractPedestals( std::vector<float> raw, std::vector< std::pair<float, float> > pedestals, float nSigma );
 float sumVector( std::vector<float> v );
 bool checkVector( std::vector<float> v, float theMax=4095. );
-float getMeanposHodo( std::vector<float> hodo, int& nHodoFibers, int& nHodoFibersCorr );
-float gethodointercalib(TString axis, int n);
 
+//float getMeanposHodo( std::vector<float> hodo, int& nHodoFibers, int& nHodoClusters );
+float getMeanposHodo( std::vector<HodoCluster*> clusters );
+std::vector<HodoCluster*> getHodoClusters( std::vector<float> hodo_corr, int nClusterMax );
+void getCeF3Position( std::vector<float> cef3, float& xPos, float& yPos );
+float getSingleCef3Position( float en, bool takemin=false );
+float gethodointercalib(TString axis, int n);
 
 int main( int argc, char* argv[] ) {
 
@@ -81,8 +88,8 @@ int main( int argc, char* argv[] ) {
   float xMax = xySize*3./2.;
   int nHodoFibersX;
   int nHodoFibersY;
-  int nHodoFibersCorrX;
-  int nHodoFibersCorrY;
+  int nHodoClustersX;
+  int nHodoClustersY;
 
 
   TH1D* h1_xPos = new TH1D("xPos", "", nBins, -xMax, xMax);
@@ -92,6 +99,14 @@ int main( int argc, char* argv[] ) {
   TH1D* h1_xPos_singleEle = new TH1D("xPos_singleEle", "", nBins, -xMax, xMax);
   TH1D* h1_yPos_singleEle = new TH1D("yPos_singleEle", "", nBins, -xMax, xMax);
   TH2D* h2_xyPos_singleEle = new TH2D("xyPos_singleEle", "", nBins, -xMax, xMax, nBins, -xMax, xMax);
+
+  TH1D* h1_xPos_new = new TH1D("xPos_new", "", nBins, -xMax, xMax);
+  TH1D* h1_yPos_new = new TH1D("yPos_new", "", nBins, -xMax, xMax);
+  TH2D* h2_xyPos_new = new TH2D("xyPos_new", "", nBins, -xMax, xMax, nBins, -xMax, xMax);
+
+  TH1D* h1_xPos_new_singleEle = new TH1D("xPos_new_singleEle", "", nBins, -xMax, xMax);
+  TH1D* h1_yPos_new_singleEle = new TH1D("yPos_new_singleEle", "", nBins, -xMax, xMax);
+  TH2D* h2_xyPos_new_singleEle = new TH2D("xyPos_new_singleEle", "", nBins, -xMax, xMax, nBins, -xMax, xMax);
 
   TH1D* h1_cef3_0   = new TH1D("cef3_0",   "", 5000, 0., 5000.);
   TH1D* h1_cef3_1   = new TH1D("cef3_1",   "", 5000, 0., 5000.);
@@ -127,9 +142,17 @@ int main( int argc, char* argv[] ) {
   TH1D* h1_yPos_hodo = new TH1D("yPos_hodo", "", nBins, -xMax, xMax);
   TH2D* h2_xyPos_hodo = new TH2D("xyPos_hodo", "", nBins, -xMax, xMax, nBins, -xMax, xMax);
 
+  TH1D* h1_xPos_hodoClust = new TH1D("xPos_hodoClust", "", nBins, -xMax, xMax);
+  TH1D* h1_yPos_hodoClust = new TH1D("yPos_hodoClust", "", nBins, -xMax, xMax);
+  TH2D* h2_xyPos_hodoClust = new TH2D("xyPos_hodoClust", "", nBins, -xMax, xMax, nBins, -xMax, xMax);
+
   TH1D* h1_xPos_singleEle_hodo = new TH1D("xPos_singleEle_hodo", "", nBins, -xMax, xMax);
   TH1D* h1_yPos_singleEle_hodo = new TH1D("yPos_singleEle_hodo", "", nBins, -xMax, xMax);
   TH2D* h2_xyPos_singleEle_hodo = new TH2D("xyPos_singleEle_hodo", "", nBins, -xMax, xMax, nBins, -xMax, xMax);
+
+  TH1D* h1_xPos_singleEle_hodoClust = new TH1D("xPos_singleEle_hodoClust", "", nBins, -xMax, xMax);
+  TH1D* h1_yPos_singleEle_hodoClust = new TH1D("yPos_singleEle_hodoClust", "", nBins, -xMax, xMax);
+  TH2D* h2_xyPos_singleEle_hodoClust = new TH2D("xyPos_singleEle_hodoClust", "", nBins, -xMax, xMax, nBins, -xMax, xMax);
 
 
 
@@ -173,8 +196,8 @@ int main( int argc, char* argv[] ) {
   outTree->Branch( "adcChannel", adcChannel,"adcChannel/i" );
   outTree->Branch( "nHodoFibersX", &nHodoFibersX, "nHodoFibersX/I" );
   outTree->Branch( "nHodoFibersY", &nHodoFibersY, "nHodoFibersY/I" );
-  outTree->Branch( "nHodoFibersCorrX", &nHodoFibersCorrX, "nHodoFibersCorrX/I" );
-  outTree->Branch( "nHodoFibersCorrY", &nHodoFibersCorrY, "nHodoFibersCorrY/I" );
+  outTree->Branch( "nHodoClustersX", &nHodoClustersX, "nHodoClustersX/I" );
+  outTree->Branch( "nHodoClustersY", &nHodoClustersY, "nHodoClustersY/I" );
   outTree->Branch( "hodox_chan", &hodox_chan, "hodox_chan/I" );
   outTree->Branch( "hodoy_chan", &hodoy_chan, "hodoy_chan/I" );
   outTree->Branch( "cef3_chan", &cef3_chan, "cef3_chan/I" );
@@ -193,12 +216,12 @@ int main( int argc, char* argv[] ) {
 
     nHodoFibersX=0;
     nHodoFibersY=0;
-    nHodoFibersCorrX=0;
-    nHodoFibersCorrY=0;
+    nHodoClustersX=0;
+    nHodoClustersY=0;
 
     tree->GetEntry(iEntry);
 
-    if( iEntry % 1000 == 0 ) std::cout << "Entry: " << iEntry << " / " << nentries << std::endl;
+    if( iEntry % 5000 == 0 ) std::cout << "Entry: " << iEntry << " / " << nentries << std::endl;
 
 
     // CeF3 fibres
@@ -276,32 +299,66 @@ int main( int argc, char* argv[] ) {
 
     // FIRST GET POSITION FROM HODOSCOPE:
 
+
     bool hodox_ok = checkVector(hodox, 99999.);
     bool hodoy_ok = checkVector(hodoy, 99999.);
 
-    float xPos_hodo = getMeanposHodo(hodox_corr, nHodoFibersX, nHodoFibersCorrX);
-    float yPos_hodo = getMeanposHodo(hodoy_corr, nHodoFibersY, nHodoFibersCorrY);
+    int clusterSize=2;
+    std::vector<HodoCluster*> hodoxFibres   = getHodoClusters( hodox_corr, 1 ); // fibres are just clusters with size = 1
+    std::vector<HodoCluster*> hodoxClusters = getHodoClusters( hodox_corr, clusterSize );
+
+    std::vector<HodoCluster*> hodoyFibres   = getHodoClusters( hodoy_corr, 1 );
+    std::vector<HodoCluster*> hodoyClusters = getHodoClusters( hodoy_corr, clusterSize );
+
+    nHodoFibersX = hodoxFibres.size();
+    nHodoFibersY = hodoyFibres.size();
+
+    nHodoClustersX = hodoxClusters.size();
+    nHodoClustersY = hodoyClusters.size();
+
+    float xPos_hodo = getMeanposHodo(hodoxFibres);
+    float yPos_hodo = getMeanposHodo(hodoyFibres);
+
+    float xPos_hodoClust = getMeanposHodo(hodoxClusters);
+    float yPos_hodoClust = getMeanposHodo(hodoyClusters);
+
 
     bool isSingleElectron = ((nHodoFibersX==1) && (nHodoFibersY==1));
 
-    if( hodox_ok )
+    if( xPos_hodo>-100. )
       h1_xPos_hodo->Fill(xPos_hodo);
-    if( hodoy_ok )
+    if( yPos_hodo>-100. )
       h1_yPos_hodo->Fill(yPos_hodo);
 
-    if( hodox_ok && hodoy_ok ) 
+    if( xPos_hodo>-100. && yPos_hodo>-100. ) 
       h2_xyPos_hodo->Fill(xPos_hodo, yPos_hodo);
+
+    if( xPos_hodoClust>-100. )
+      h1_xPos_hodoClust->Fill(xPos_hodoClust);
+    if( yPos_hodoClust>-100. )
+      h1_yPos_hodoClust->Fill(yPos_hodoClust);
+
+    if( xPos_hodoClust>-100. && yPos_hodoClust>-100. ) 
+      h2_xyPos_hodoClust->Fill(xPos_hodoClust, yPos_hodoClust);
 
 
     if( isSingleElectron ) {
 
-      if( hodox_ok )
+      if( xPos_hodo>-100. )
         h1_xPos_singleEle_hodo->Fill(xPos_hodo);
-      if( hodoy_ok )
+      if( yPos_hodo>-100. )
         h1_yPos_singleEle_hodo->Fill(yPos_hodo);
 
-      if( hodox_ok && hodoy_ok ) 
+      if( xPos_hodo>-100. && yPos_hodo>-100. ) 
         h2_xyPos_singleEle_hodo->Fill(xPos_hodo, yPos_hodo);
+
+      if( xPos_hodoClust>-100. )
+        h1_xPos_singleEle_hodoClust->Fill(xPos_hodoClust);
+      if( yPos_hodoClust>-100. )
+        h1_yPos_singleEle_hodoClust->Fill(yPos_hodoClust);
+
+      if( xPos_hodoClust>-100. && yPos_hodoClust>-100. ) 
+        h2_xyPos_singleEle_hodoClust->Fill(xPos_hodoClust, yPos_hodoClust);
 
     }
 
@@ -432,14 +489,16 @@ int main( int argc, char* argv[] ) {
       h1_cef3_3->Fill( cef3[3] );
       h1_cef3_tot->Fill( eTot );
 
-      h1_cef3_corr_0->Fill( cef3_corr[0] );
-      h1_cef3_corr_1->Fill( cef3_corr[1] );
-      h1_cef3_corr_2->Fill( cef3_corr[2] );
-      h1_cef3_corr_3->Fill( cef3_corr[3] );
-      h1_cef3_corr_tot->Fill( eTot_corr );
       
 
       if( cef3_corr_ok ) {
+
+        h1_cef3_corr_0->Fill( cef3_corr[0] );
+        h1_cef3_corr_1->Fill( cef3_corr[1] );
+        h1_cef3_corr_2->Fill( cef3_corr[2] );
+        h1_cef3_corr_3->Fill( cef3_corr[3] );
+        h1_cef3_corr_tot->Fill( eTot_corr );
+
 
         //   0      1
         //          
@@ -447,9 +506,11 @@ int main( int argc, char* argv[] ) {
         //   3      2
 
 
-        float chamfer = 2.1; // in mm
+        //float chamfer = 2.1; // in mm
+        //float position = xySize/2. - chamfer/4.;
+        float position = 12. - 0.696; // using FN's infallible trigonometry
 
-        float position = xySize/2. - chamfer/4.;
+        //std::vector
 
         std::vector<float> xPosW;
         xPosW.push_back(cef3_corr[0]*(-position));
@@ -464,6 +525,9 @@ int main( int argc, char* argv[] ) {
         yPosW.push_back(cef3_corr[3]*(-position));
 
 
+        float xPos_new, yPos_new;
+        getCeF3Position( cef3_corr, xPos_new, yPos_new );
+
         float xPos = sumVector(xPosW)/eTot_corr;
         float yPos = sumVector(yPosW)/eTot_corr;
 
@@ -471,6 +535,11 @@ int main( int argc, char* argv[] ) {
         h1_yPos->Fill( yPos );
 
         h2_xyPos->Fill( xPos, yPos );
+
+        h1_xPos_new->Fill( xPos_new );
+        h1_yPos_new->Fill( yPos_new );
+
+        h2_xyPos_new->Fill( xPos_new, yPos_new );
 
 
         // CORRELATIONS BETWEEN CALO AND HODO:
@@ -486,6 +555,11 @@ int main( int argc, char* argv[] ) {
           h1_yPos_singleEle->Fill( yPos );
   
           h2_xyPos_singleEle->Fill( xPos, yPos );
+
+          h1_xPos_new_singleEle->Fill( xPos_new );
+          h1_yPos_new_singleEle->Fill( yPos_new );
+  
+          h2_xyPos_new_singleEle->Fill( xPos_new, yPos_new );
 
           h2_correlation_cef3_hodo_xPos_singleEle->Fill( xPos, xPos_hodo );
           h2_correlation_cef3_hodo_yPos_singleEle->Fill( yPos, yPos_hodo );
@@ -539,6 +613,14 @@ int main( int argc, char* argv[] ) {
   h1_yPos_singleEle->Write();
   h2_xyPos_singleEle->Write();
 
+  h1_xPos_new->Write();
+  h1_yPos_new->Write();
+  h2_xyPos_new->Write();
+
+  h1_xPos_new_singleEle->Write();
+  h1_yPos_new_singleEle->Write();
+  h2_xyPos_new_singleEle->Write();
+
   h1_cef3_0->Write();
   h1_cef3_1->Write();
   h1_cef3_2->Write();
@@ -560,6 +642,10 @@ int main( int argc, char* argv[] ) {
   h1_yPos_hodo->Write();
   h2_xyPos_hodo->Write();
 
+  h1_xPos_hodoClust->Write();
+  h1_yPos_hodoClust->Write();
+  h2_xyPos_hodoClust->Write();
+
   h2_correlation_cef3_hodo_xPos->Write();
   h2_correlation_cef3_hodo_yPos->Write();
 
@@ -576,6 +662,10 @@ int main( int argc, char* argv[] ) {
   h1_xPos_singleEle_hodo->Write();
   h1_yPos_singleEle_hodo->Write();
   h2_xyPos_singleEle_hodo->Write();
+
+  h1_xPos_singleEle_hodoClust->Write();
+  h1_yPos_singleEle_hodoClust->Write();
+  h2_xyPos_singleEle_hodoClust->Write();
 
   h2_correlation_cef3_hodo_xPos_singleEle->Write();
   h2_correlation_cef3_hodo_yPos_singleEle->Write();
@@ -697,11 +787,37 @@ bool checkVector( std::vector<float> v, float theMax ) {
 
 }
 
-float getMeanposHodo( std::vector<float> hodo_corr, int& nHodoFibers, int& nHodoFibersCorr ) {
+
+
+float getMeanposHodo( std::vector<HodoCluster*> clusters ) {
+
+  if( clusters.size()==0 ) return -999.;
+
+  float meanpos = 0.;
+
+  for( unsigned i=0; i<clusters.size(); ++i ) {
+    meanpos += clusters[i]->getPosition();
+  }
+
+  meanpos /= clusters.size();
+
+  return meanpos;
+
+}
+
+
+
+
+float getMeanposHodo( std::vector<float> hodo_corr, int& nHodoFibers, int& nHodoClusters ) {
+
+  // initialize
+  nHodoFibers=0;
+  nHodoClusters=0;
 
   float mean = 0.;
   float eTot = 0.;
-  bool start = false;
+  int nClustered  = 0;
+  int nClusterMax = 3; // maximal number of clustered fibres
 
   for( unsigned i=0; i<hodo_corr.size(); ++i ) {
 
@@ -709,15 +825,15 @@ float getMeanposHodo( std::vector<float> hodo_corr, int& nHodoFibers, int& nHodo
       mean += -(i-3.5);
       eTot += 1.;
       nHodoFibers++;
-      if( !start ) {
-        start = true;
-        nHodoFibersCorr+=1;
+      if( nClustered<=nClusterMax ) {
+        if( nClustered==0 ) nHodoClusters+=1;
+        nClustered+=1;
       } else {
-        start = false;
+        nClustered = 0;
       }
 
     } else { // whenever you find a hole: reset
-      start = false;
+      nClustered=0;
     }
 
   }
@@ -726,6 +842,7 @@ float getMeanposHodo( std::vector<float> hodo_corr, int& nHodoFibers, int& nHodo
 
 }
 
+<<<<<<< HEAD
 float gethodointercalib(TString axis, int n){
 
   float res=1;
@@ -743,3 +860,99 @@ float gethodointercalib(TString axis, int n){
   return 1./res;
   
 };
+=======
+
+
+std::vector<HodoCluster*> getHodoClusters( std::vector<float> hodo_corr, int nClusterMax ) {
+
+  std::vector<HodoCluster*> clusters;
+
+  HodoCluster* currentCluster = new HodoCluster();
+
+  for( unsigned i=0; i<hodo_corr.size(); ++i ) {
+
+    if( hodo_corr[i] > 0.) { // hit
+
+      if( currentCluster->getSize() < nClusterMax ) {
+
+        currentCluster->addFibre( i );
+
+      } else {
+
+        clusters.push_back( currentCluster ); // store old one
+        currentCluster = new HodoCluster();   // create a new one
+        currentCluster->addFibre( i );        // get that fibre!
+
+      }
+
+    } else { // as soon as you find a hole
+      
+      if( currentCluster->getSize() > 0 ) {
+     
+        clusters.push_back( currentCluster ); // store old one
+        currentCluster = new HodoCluster();   // create a new one
+
+      }
+
+    }
+
+
+  } // for fibres
+
+
+  if( currentCluster->getSize()>0 )
+    clusters.push_back( currentCluster ); // store last cluster
+
+
+  return clusters;
+
+}
+
+
+
+void getCeF3Position( std::vector<float> cef3, float& xPos, float& yPos ) {
+
+  xPos=0.;
+  yPos=0.;
+
+  float offset02 = 0.;
+  //float offset02 = 0.0170062;
+  float offset13 = 0.0594743;
+  float r02 = cef3[0]/cef3[2] - offset02;
+  float r13 = cef3[1]/cef3[3] - offset13;
+  float diag02 = (r02>1.) ? getSingleCef3Position( r02, false ) : -getSingleCef3Position( 1./r02, false );
+  float diag13 = (r13>1.) ? getSingleCef3Position( r13, false ) : -getSingleCef3Position( 1./r13, false );
+
+  TVector2 v( diag13, diag02 );
+  float pi = 3.14159;
+  float theta = pi/4.; // 45 degrees 
+  TVector2 d = v.Rotate(theta);
+
+  xPos = d.X();
+  yPos = d.Y();
+
+}
+
+
+float getSingleCef3Position( float en, bool takemin ) {
+
+  float c = 1. - en;
+  //float b = 1.32340e-02;
+  //float a = 1.45209e-03;
+  //float b = 1.89382e-02;
+  //float a = 1.50157e-03;
+  float b = 1.40598e-02;
+  float a = 1.82353e-03;
+
+  float theSqrt = b*b - 4.*a*c;
+
+  float x1 = ( theSqrt>0. ) ? (-b + sqrt( theSqrt ))/(2.*a) : 0.;
+  float x2 = ( theSqrt>0. ) ? (-b - sqrt( theSqrt ))/(2.*a) : 0.;
+
+
+  float returnX = (takemin) ? TMath::Min(x1,x2) : TMath::Max(x1,x2);
+
+  return returnX;
+
+}
+>>>>>>> pandolfhome/master
