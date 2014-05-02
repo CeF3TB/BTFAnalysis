@@ -303,8 +303,6 @@ int main( int argc, char* argv[] ) {
     std::vector<float> cef3_corr = subtractPedestals( cef3, pedestals,     4. );
     std::vector<float> hodox_corr = subtractPedestals( hodox, pedestals_hodox, nSigma_hodo );
     std::vector<float> hodoy_corr = subtractPedestals( hodoy, pedestals_hodoy, nSigma_hodo );
-    for (int i=0; i<HODOX_CHANNELS; i++) hodox_corr.at(i) = hodox_corr.at(i)*gethodointercalib("X",i);
-    for (int i=0; i<HODOY_CHANNELS; i++) hodoy_corr.at(i) = hodoy_corr.at(i)*gethodointercalib("Y",i);
 
     bool cef3_ok = checkVector(cef3);
     bool cef3_corr_ok = checkVector(cef3_corr);
