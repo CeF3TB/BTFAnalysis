@@ -15,7 +15,7 @@ all: positionAnalysis drawPositionAnalysis
 
 
 
-positionAnalysis: positionAnalysis.cpp
+positionAnalysis: positionAnalysis.cpp hodo_efficiency.dat
 	$(CC) -Wall $(INCLUDES) -o positionAnalysis positionAnalysis.cpp $(ROOTFLAG) $(EXTRALIBS)
 
 drawPositionAnalysis: drawPositionAnalysis.cpp

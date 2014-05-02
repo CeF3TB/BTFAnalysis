@@ -2,6 +2,7 @@
 #include <fstream>
 #include <iostream>
 #include <cmath>
+#include <assert.h>
 
 #include "TH1D.h"
 #include "TH2D.h"
@@ -10,16 +11,14 @@
 
 #include "fastDQM_CeF3_BTF.h"
 
-
-
-
+#include "hodo_efficiency.dat"
 
 std::vector< std::pair<float, float> > getPedestals( const std::string& type, const std::string& fileName );
 std::vector<float> subtractPedestals( std::vector<float> raw, std::vector< std::pair<float, float> > pedestals, float nSigma );
 float sumVector( std::vector<float> v );
 bool checkVector( std::vector<float> v, float theMax=4095. );
 float getMeanposHodo( std::vector<float> hodo, int& nHodoFibers, int& nHodoFibersCorr );
-
+float gethodointercalib(TString axis, int n);
 
 
 int main( int argc, char* argv[] ) {
@@ -267,7 +266,8 @@ int main( int argc, char* argv[] ) {
     std::vector<float> cef3_corr = subtractPedestals( cef3, pedestals,     4. );
     std::vector<float> hodox_corr = subtractPedestals( hodox, pedestals_hodox,     nSigma_hodo );
     std::vector<float> hodoy_corr = subtractPedestals( hodoy, pedestals_hodoy,     nSigma_hodo );
-
+    for (int i=0; i<HODOX_CHANNELS; i++) hodox_corr.at(i) = hodox_corr.at(i)*gethodointercalib("X",i);
+    for (int i=0; i<HODOY_CHANNELS; i++) hodoy_corr.at(i) = hodoy_corr.at(i)*gethodointercalib("Y",i);
 
     bool cef3_ok = checkVector(cef3);
     bool cef3_corr_ok = checkVector(cef3_corr);
@@ -726,3 +726,20 @@ float getMeanposHodo( std::vector<float> hodo_corr, int& nHodoFibers, int& nHodo
 
 }
 
+float gethodointercalib(TString axis, int n){
+
+  float res=1;
+
+  if (axis==TString("X")){
+    if (n>=0 && n<=7) return hodo_efficiency_vector_X[n];
+    else assert(false);
+  }
+  else if (axis==TString("Y")){
+    if (n>=0 && n<=7) return hodo_efficiency_vector_Y[n];
+    else assert(false);
+  }
+  else assert(false);
+  
+  return 1./res;
+  
+};

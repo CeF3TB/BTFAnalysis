@@ -159,5 +159,12 @@ for (int fib=0; fib<nfibers; fib++){
  cout << endl << "Hodoscope efficiency rel. to average, along " << (dox ? "X" : "Y") << endl;
  for (int fib=0; fib<nfibers; fib++) cout << "Fiber " << fib << " = " << integral[fib]/sum << endl;
 
+ cout << endl << "Copy/paste this line in hodo_efficiency.dat to use them in the analysis:" << endl;
+ cout << "float hodo_efficiency_vector_" << (dox?"X":"Y") << "[8]={";
+ for (int fib=0; fib<nfibers; fib++) {
+   cout << integral[fib]/sum;
+   if (fib!=nfibers-1) cout << ",";
+ }
+ cout << "};" << endl;
 
 }
