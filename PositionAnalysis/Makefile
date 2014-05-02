@@ -18,8 +18,8 @@ all: positionAnalysis drawPositionAnalysis hodoscopeAnalysis calibrateCeF3 drawH
 positionAnalysis: HodoCluster.o positionAnalysis.cpp hodo_efficiency.dat
 	$(CC) -Wall $(INCLUDES) -o positionAnalysis positionAnalysis.cpp HodoCluster.o $(ROOTFLAG) $(EXTRALIBS)
 
-drawPositionAnalysis: DrawTools.o drawPositionAnalysis.cpp
-	$(CC) -Wall $(INCLUDES) -o drawPositionAnalysis drawPositionAnalysis.cpp DrawTools.o $(ROOTFLAG) $(EXTRALIBS)
+drawPositionAnalysis: DrawTools.o RunHelper.o drawPositionAnalysis.cpp 
+	$(CC) -Wall $(INCLUDES) -o drawPositionAnalysis drawPositionAnalysis.cpp DrawTools.o RunHelper.o $(ROOTFLAG) $(EXTRALIBS)
 
 calibrateCeF3: calibrateCeF3.cpp
 	$(CC) -Wall $(INCLUDES) -o calibrateCeF3 calibrateCeF3.cpp $(ROOTFLAG) $(EXTRALIBS)
@@ -41,6 +41,9 @@ HodoCluster.o: src/HodoCluster.cc
 
 DrawTools.o: src/DrawTools.cc
 	$(CC) $(CFLAGS) -c src/DrawTools.cc $(ROOTFLAG) $(EXTRALIBS)
+
+RunHelper.o: src/RunHelper.cc
+	$(CC) $(CFLAGS) -c src/RunHelper.cc $(ROOTFLAG) $(EXTRALIBS)
 
 
 
