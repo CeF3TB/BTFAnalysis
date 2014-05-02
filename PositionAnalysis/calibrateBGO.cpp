@@ -1,19 +1,29 @@
 #include "TFile.h"
 #include "TTree.h"
 #include "TH1D.h"
+#include "TH2D.h"
 #include "TCanvas.h"
 #include "TF1.h"
+#include "TLegend.h"
+#include "TPaveText.h"
 #include <vector>
 #include <string>
+#include <fstream>
+
+#include "interface/DrawTools.h"
 
 
 
-TH1D* fitSingleChannel( const std::string& outputdir, const std::string& runName, int iChannel );
+TH1D* fitSingleChannel( const std::string& outputdir, const std::string& name, const std::string& runName, int iChannel, float calibConst=1. );
+void drawHistos( const std::string& outputdir, std::vector<TH1D*> histos, const std::string& name, float yMax );
+float sumVector( std::vector<float> v );
 
 
 
 int main() {
 
+
+  DrawTools::setStyle();
 
   std::vector<std::string> runs;
   runs.push_back( "BTF_229_20140501-155939_beam" ); // 0
@@ -30,13 +40,42 @@ int main() {
   std::string mkdir_command = "mkdir -p " + outputdir;
   system(mkdir_command.c_str());
 
-  std::vector<TH1D*> calib;
 
-  for( unsigned i=0; i<runs.size(); ++i )
-     calib.push_back(fitSingleChannel( outputdir, runs[i], i ) );
+  std::vector<TH1D*> rawHistos;
+  std::vector<TH1D*> calibHistos;
+  std::vector<float> calibConstants;
+  float yMax = 0.;
+
+  for( unsigned i=0; i<runs.size(); ++i ) {
+    TH1D* h1_raw = fitSingleChannel( outputdir, "raw", runs[i], i, 1. );
+    rawHistos.push_back(h1_raw);
+    TF1* thisFunc = (TF1*)(h1_raw->GetListOfFunctions()->FindObject(Form("gaussian_%s", runs[i].c_str())));
+    calibConstants.push_back(thisFunc->GetParameter(1));
+    float thisMax = h1_raw->GetMaximum()/h1_raw->Integral();
+    if( thisMax>yMax )
+      yMax = thisMax;
+  }
 
 
+  float calibAve = sumVector(calibConstants)/calibConstants.size();
 
+
+  std::string constantsFileName = outputdir + "/constants.txt";
+  ofstream ofs(constantsFileName.c_str());
+
+  for( unsigned i=0; i<runs.size(); ++i ) {
+    float thisCalib = calibConstants[i]/calibAve;
+    calibHistos.push_back(fitSingleChannel( outputdir, "calib", runs[i], i, thisCalib ));
+    ofs << i << "\t" << thisCalib << std::endl;
+  }
+
+  ofs.close();
+
+  drawHistos( outputdir, rawHistos,   "rawSpectra"  , yMax );
+  drawHistos( outputdir, calibHistos, "calibSpectra", yMax );
+
+  std::cout << std::endl;
+  std::cout << "-> Calibration constants saved in: " << constantsFileName << std::endl;
 
   return 0;
 
@@ -45,18 +84,72 @@ int main() {
 
 
 
-TH1D* fitSingleChannel( const std::string& outputdir, const std::string& runName, int iChannel ) {
+void drawHistos( const std::string& outputdir, std::vector<TH1D*> histos, const std::string& name, float yMax ) {
+
+  std::vector<int> colors;
+  colors.push_back( kRed );
+  colors.push_back( 38 );
+  colors.push_back( 30 );
+  colors.push_back( 42 );
+  colors.push_back( 29 );
+  colors.push_back( kBlack );
+  colors.push_back( kGreen );
+  colors.push_back( kBlue  );
+
+  TCanvas* c2 = new TCanvas("c2", "", 600, 600);
+  c2->cd();
+
+  TLegend* legend = new TLegend( 0.2, 0.55, 0.5, 0.9 );
+  legend->SetFillColor(0);
+  legend->SetTextSize(0.035);
+
+  TH2D* h2_axes = new TH2D("axes", "", 10, 0., 4000., 10, 0., 1.1*yMax );
+  h2_axes->SetXTitle( "BGO ADC Channel" );
+  h2_axes->SetYTitle( "Normalized to Unity" );
+  h2_axes->Draw("");
+
+  for( unsigned i=0; i<histos.size(); ++i ) {
+
+    histos[i]->SetLineColor( colors[i] );
+    histos[i]->SetLineWidth( 2 );
+    histos[i]->DrawNormalized( "histo same" );
+    legend->AddEntry( histos[i], Form("Channel %d", i), "L" );
+
+  }
+
+
+  TPaveText* labelTop = DrawTools::getLabelTop(); 
+  labelTop->Draw("same");
+
+  legend->Draw("same");
+
+  c2->SaveAs( Form("%s/%s.eps", outputdir.c_str(), name.c_str()) );
+  c2->SaveAs( Form("%s/%s.png", outputdir.c_str(), name.c_str()) );
+  c2->SaveAs( Form("%s/%s.pdf", outputdir.c_str(), name.c_str()) );
+
+  delete c2;
+  delete h2_axes;
+
+}
+
+
+
+
+
+
+
+TH1D* fitSingleChannel( const std::string& outputdir, const std::string& name, const std::string& runName, int iChannel, float calibConst ) {
 
 
   TFile* file = TFile::Open(Form("PosAn_%s.root", runName.c_str()));
   TTree* tree = (TTree*)file->Get("tree_passedEvents");
 
   std::string histoName = "bgo_"+runName;
-  TH1D* h1_bgo = new TH1D(histoName.c_str(), "", 100, 0., 4000.);
+  TH1D* h1_bgo = new TH1D(histoName.c_str(), "", 50, 0., 4000.);
 
-  tree->Project( histoName.c_str(), Form("bgo_corr[%d]", iChannel), "scintFront>500. && scintFront<2000.");
+  tree->Project( histoName.c_str(), Form("bgo_corr[%d]/%f", iChannel, calibConst), "scintFront>500. && scintFront<2000.");
 
-  TF1* f1 = new TF1( "gaussian", "gaus(0)" );
+  TF1* f1 = new TF1( Form("gaussian_%s", runName.c_str()), "gaus(0)" );
   f1->SetRange(1800., 3200.);
   f1->SetParameter(1, 2500.);
   f1->SetParameter(2, 200.);
@@ -88,8 +181,17 @@ TH1D* fitSingleChannel( const std::string& outputdir, const std::string& runName
   f1->SetLineColor(kRed);
   f1->Draw("same");
 
-  c1->SaveAs( Form("%s/fit_%s.eps", outputdir.c_str(), runName.c_str()) );
-  c1->SaveAs( Form("%s/fit_%s.png", outputdir.c_str(), runName.c_str()) );
+  TPaveText* label = DrawTools::getLabelTop();
+  label->Draw("same");
+
+  TPaveText* labelChan = new TPaveText( 0.2, 0.55, 0.5, 0.9, "brNDC");
+  labelChan->SetFillColor(0);
+  labelChan->SetTextSize(0.038);
+  labelChan->AddText( Form("Channel %d", iChannel) );
+  labelChan->Draw("same");
+
+  c1->SaveAs( Form("%s/fit_%s_%s.eps", outputdir.c_str(), name.c_str(), runName.c_str()) );
+  c1->SaveAs( Form("%s/fit_%s_%s.png", outputdir.c_str(), name.c_str(), runName.c_str()) );
 
   delete c1;
 
@@ -97,3 +199,16 @@ TH1D* fitSingleChannel( const std::string& outputdir, const std::string& runName
   return h1_bgo;
 
 }
+
+
+
+float sumVector( std::vector<float> v ) {
+
+  float sum=0.;
+  for( unsigned i=0; i<v.size(); ++i ) sum += v[i];
+
+  return sum;
+
+}
+
+
