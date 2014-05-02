@@ -100,6 +100,7 @@ void drawSinglePositionPlot( const std::string& outputdir, TFile* file, const st
   TH2D* h2_xyPos_hodo = (TH2D*)file->Get(Form("xyPos%s_hodo", suffix.c_str())); 
   //TH2D* h2_xyPos_hodo = (TH2D*)file->Get(Form("xyPos%s_hodo", suffix.c_str())); 
   TH2D* h2_xyPos_bgo  = (TH2D*)file->Get(Form("xyPos%s_bgo", suffix.c_str())); 
+  TH2D* h2_xyPos_calo  = (TH2D*)file->Get(Form("xyPos%s_calo", suffix.c_str())); 
 
   float xySize = 25.;
   float xMax = xySize*3./2.;
@@ -113,6 +114,7 @@ void drawSinglePositionPlot( const std::string& outputdir, TFile* file, const st
   TGraphErrors* gr_xyCenter      = get_xyCenter( h2_xyPos );
   TGraphErrors* gr_xyCenter_hodo = get_xyCenter( h2_xyPos_hodo );
   TGraphErrors* gr_xyCenter_bgo  = get_xyCenter( h2_xyPos_bgo  );
+  TGraphErrors* gr_xyCenter_calo  = get_xyCenter( h2_xyPos_calo  );
 
   gr_xyCenter->SetMarkerColor(kRed+2);
   gr_xyCenter->SetLineColor(kRed+2);
@@ -128,6 +130,11 @@ void drawSinglePositionPlot( const std::string& outputdir, TFile* file, const st
   gr_xyCenter_bgo->SetLineColor(kGreen+3);
   gr_xyCenter_bgo->SetMarkerStyle(20);
   gr_xyCenter_bgo->SetMarkerSize(1.6);
+
+  gr_xyCenter_calo->SetMarkerColor(kBlue);
+  gr_xyCenter_calo->SetLineColor(kBlue);
+  gr_xyCenter_calo->SetMarkerStyle(20);
+  gr_xyCenter_calo->SetMarkerSize(1.6);
 
 
   //TGraphErrors* gr_xyPos_fit = getFitPositionCeF3(file);
@@ -191,15 +198,17 @@ void drawSinglePositionPlot( const std::string& outputdir, TFile* file, const st
   TLegend* legend = new TLegend( 0.75, 0.21, 0.9, 0.39 );
   legend->SetFillColor(0);
   legend->SetTextSize(0.038);
-  legend->AddEntry( gr_xyCenter, "CeF3", "P" );
-  legend->AddEntry( gr_xyCenter_bgo, "BGO", "P" );
   legend->AddEntry( gr_xyCenter_hodo_fit, "Hodo", "P" );
+  //legend->AddEntry( gr_xyCenter, "CeF3", "P" );
+  legend->AddEntry( gr_xyCenter_bgo, "BGO", "P" );
+  legend->AddEntry( gr_xyCenter_calo, "Calo", "P" );
   legend->Draw("same");
 
 
   h2_xyPos_hodo->SetMarkerColor(14);
   h2_xyPos->SetMarkerColor(46);
   h2_xyPos_bgo->SetMarkerColor(30);
+  h2_xyPos_calo->SetMarkerColor(38);
 
   float hodoSize = 8.;
   TLine* lineHodo_x1 = new TLine( -hodoSize/2., -hodoSize/2., +hodoSize/2., -hodoSize/2. );
@@ -224,8 +233,9 @@ void drawSinglePositionPlot( const std::string& outputdir, TFile* file, const st
 
 
   h2_xyPos_bgo->Draw("same");
-  h2_xyPos->Draw("same");
+  //h2_xyPos->Draw("same");
   h2_xyPos_hodo->Draw("same");
+  h2_xyPos_calo->Draw("same");
 
 
   TEllipse* beamPos = new TEllipse( beamX, beamY, beamRX, beamRY );
@@ -236,7 +246,8 @@ void drawSinglePositionPlot( const std::string& outputdir, TFile* file, const st
   //gr_xyCenter_hodo->Draw("p same");  // now using hodo_fit
   gr_xyCenter_hodo_fit->Draw("p same");
   gr_xyCenter_bgo->Draw("p same");
-  gr_xyCenter->Draw("p same");
+  //gr_xyCenter->Draw("p same"); // don't draw for now
+  gr_xyCenter_calo->Draw("p same");
   //gr_xyPos_fit->Draw("p same");
 
 
@@ -261,7 +272,8 @@ void drawSinglePositionPlot( const std::string& outputdir, TFile* file, const st
 
   h2_xyPos_bgo->Draw("same");
   h2_xyPos_hodo->Draw("same");
-  h2_xyPos->Draw("same");
+  h2_xyPos_calo->Draw("same");
+  //h2_xyPos->Draw("same");
 
 
   lineHodo_x1->Draw("same");
@@ -274,7 +286,8 @@ void drawSinglePositionPlot( const std::string& outputdir, TFile* file, const st
   //gr_xyCenter_hodo->Draw("p same"); // now using hodo_fit
   gr_xyCenter_hodo_fit->Draw("p same");
   gr_xyCenter_bgo->Draw("p same");
-  gr_xyCenter->Draw("p same");
+  //gr_xyCenter->Draw("p same");
+  gr_xyCenter_calo->Draw("p same");
   //gr_xyPos_fit->Draw("p same");
 
 
