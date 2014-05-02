@@ -160,6 +160,14 @@ int main( int argc, char* argv[] ) {
   TH1D* h1_yPos_singleEle_hodoClust = new TH1D("yPos_singleEle_hodoClust", "", nBins, -xMax, xMax);
   TH2D* h2_xyPos_singleEle_hodoClust = new TH2D("xyPos_singleEle_hodoClust", "", nBins, -xMax, xMax, nBins, -xMax, xMax);
 
+  TH1D* h1_xPos_calo = new TH1D("xPos_calo", "", nBins, -xMax, xMax);
+  TH1D* h1_yPos_calo = new TH1D("yPos_calo", "", nBins, -xMax, xMax);
+  TH2D* h2_xyPos_calo = new TH2D("xyPos_calo", "", nBins, -xMax, xMax, nBins, -xMax, xMax);
+
+  TH1D* h1_xPos_singleEle_calo = new TH1D("xPos_singleEle_calo", "", nBins, -xMax, xMax);
+  TH1D* h1_yPos_singleEle_calo = new TH1D("yPos_singleEle_calo", "", nBins, -xMax, xMax);
+  TH2D* h2_xyPos_singleEle_calo = new TH2D("xyPos_singleEle_calo", "", nBins, -xMax, xMax, nBins, -xMax, xMax);
+
 
 
   TH2D* h2_correlation_cef3_hodo_xPos = new TH2D("correlation_cef3_hodo_xPos", "", 100, -xySize/2., xySize/2.,  100, -xySize/2., xySize/2.);
@@ -376,6 +384,11 @@ int main( int argc, char* argv[] ) {
     float xPos_bgo;
     float yPos_bgo;
 
+    std::vector<float> xPosW_bgo;
+    std::vector<float> yPosW_bgo;
+
+    float eTot_bgo_corr;
+
     if( bgo_ok && bgo_corr_ok ) {
 
 
@@ -398,7 +411,7 @@ int main( int argc, char* argv[] ) {
         bgo_corr[i] /= bgo_precalibration[i]; //correct
       }
 
-      float eTot_bgo_corr  = sumVector(bgo_corr);
+      eTot_bgo_corr  = sumVector(bgo_corr);
 
       h1_bgo_corr_0->Fill( bgo_corr[0] );
       h1_bgo_corr_1->Fill( bgo_corr[1] );
@@ -422,7 +435,6 @@ int main( int argc, char* argv[] ) {
       float position_bgo = xySize; // in mm
       //float position_bgo = 22.; // in mm
       
-      std::vector<float> xPosW_bgo;
       xPosW_bgo.push_back(bgo_corr[0]*(-position_bgo));
       xPosW_bgo.push_back(0.);
       xPosW_bgo.push_back(bgo_corr[2]*(+position_bgo));
@@ -432,7 +444,6 @@ int main( int argc, char* argv[] ) {
       xPosW_bgo.push_back(0.);
       xPosW_bgo.push_back(bgo_corr[7]*(+position_bgo));
       
-      std::vector<float> yPosW_bgo;
       yPosW_bgo.push_back(bgo_corr[0]*(+position_bgo));
       yPosW_bgo.push_back(bgo_corr[1]*(+position_bgo));
       yPosW_bgo.push_back(bgo_corr[2]*(+position_bgo));
@@ -548,11 +559,23 @@ int main( int argc, char* argv[] ) {
         h2_xyPos_new->Fill( xPos_new, yPos_new );
 
 
-        // CORRELATIONS BETWEEN CALO AND HODO:
+        // positioning with all 9 calorimeter channels:
+        float xPos_calo = sumVector( xPosW_bgo )/(eTot_bgo_corr + eTot_corr); // cef3 is in 0,0
+        float yPos_calo = sumVector( yPosW_bgo )/(eTot_bgo_corr + eTot_corr); // so counts only in denominator
+
   
         if( bgo_ok && bgo_corr_ok ) {
+
+          h1_xPos_calo->Fill( xPos_calo );
+          h1_yPos_calo->Fill( yPos_calo );
+          h2_xyPos_calo->Fill( xPos_calo, yPos_calo );
+
+
+          // CORRELATIONS BETWEEN CALO AND HODO:
+
           h2_correlation_cef3_bgo_xPos->Fill( xPos, xPos_bgo );
           h2_correlation_cef3_bgo_yPos->Fill( yPos, yPos_bgo );
+
         }
 
         if( isSingleElectron) {
@@ -572,8 +595,14 @@ int main( int argc, char* argv[] ) {
 
   
           if( bgo_ok && bgo_corr_ok ) {
+
+            h1_xPos_singleEle_calo->Fill( xPos_calo );
+            h1_yPos_singleEle_calo->Fill( yPos_calo );
+            h2_xyPos_singleEle_calo->Fill( xPos_calo, yPos_calo );
+
             h2_correlation_cef3_bgo_xPos_singleEle->Fill( xPos, xPos_bgo );
             h2_correlation_cef3_bgo_yPos_singleEle->Fill( yPos, yPos_bgo );
+
           }
 
         }
@@ -672,6 +701,15 @@ int main( int argc, char* argv[] ) {
   h1_xPos_singleEle_hodoClust->Write();
   h1_yPos_singleEle_hodoClust->Write();
   h2_xyPos_singleEle_hodoClust->Write();
+
+  h1_xPos_calo->Write();
+  h1_yPos_calo->Write();
+  h2_xyPos_calo->Write();
+  
+  h1_xPos_singleEle_calo->Write();
+  h1_yPos_singleEle_calo->Write();
+  h2_xyPos_singleEle_calo->Write();
+  
 
   h2_correlation_cef3_hodo_xPos_singleEle->Write();
   h2_correlation_cef3_hodo_yPos_singleEle->Write();
