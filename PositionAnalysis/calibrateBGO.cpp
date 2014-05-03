@@ -14,8 +14,11 @@
 
 
 
-TH1D* fitSingleChannel( const std::string& outputdir, const std::string& name, const std::string& runName, int iChannel, float calibConst=1. );
-void drawHistos( const std::string& outputdir, std::vector<TH1D*> histos, const std::string& name, float yMax );
+//TH1D* fitSingleChannel( const std::string& outputdir, const std::string& name, const std::string& runName, int iChannel, float calibConst=1. );
+TH1D* fitSingleChannelBGO( const std::string& outputdir, const std::string& name, const std::string& runName, int iChannel, float calibConst=1. );
+TH1D* fitCeF3( const std::string& outputdir, const std::string& name, const std::string& runName );
+TH1D* fitSingleChannel( const std::string& outputdir, const std::string& name, const std::string& runName,  const std::string& varName, const std::string& plotName, int nBins, float xMin, float xMax );
+void drawHistos( const std::string& outputdir, std::vector<TH1D*> histos, const std::string& name, float yMax, float xMax = 4000. );
 float sumVector( std::vector<float> v );
 
 
@@ -47,7 +50,7 @@ int main() {
   float yMax = 0.;
 
   for( unsigned i=0; i<runs.size(); ++i ) {
-    TH1D* h1_raw = fitSingleChannel( outputdir, "raw", runs[i], i, 1. );
+    TH1D* h1_raw = fitSingleChannelBGO( outputdir, "raw", runs[i], i, 1. );
     rawHistos.push_back(h1_raw);
     TF1* thisFunc = (TF1*)(h1_raw->GetListOfFunctions()->FindObject(Form("gaussian_%s", runs[i].c_str())));
     calibConstants.push_back(thisFunc->GetParameter(1));
@@ -64,8 +67,8 @@ int main() {
   ofstream ofs(constantsFileName.c_str());
 
   for( unsigned i=0; i<runs.size(); ++i ) {
-    float thisCalib = calibConstants[i]/calibAve;
-    calibHistos.push_back(fitSingleChannel( outputdir, "calib", runs[i], i, thisCalib ));
+    float thisCalib = calibAve/calibConstants[i];
+    calibHistos.push_back(fitSingleChannelBGO( outputdir, "calib", runs[i], i, thisCalib ));
     ofs << i << "\t" << thisCalib << std::endl;
   }
 
@@ -74,9 +77,19 @@ int main() {
   drawHistos( outputdir, rawHistos,   "rawSpectra"  , yMax );
   drawHistos( outputdir, calibHistos, "calibSpectra", yMax );
 
+
   std::cout << std::endl;
   std::cout << "-> Calibration constants saved in: " << constantsFileName << std::endl;
 
+  std::cout << "Calibration average for BGO: " << calibAve << std::endl;
+
+
+  std::string run_cef3 = "BTF_227_20140501-151233_beam";
+  TH1D* h1_cef3 = fitCeF3( outputdir, "cef3_raw", run_cef3 );
+  TF1* f1_cef3 = (TF1*)(h1_cef3->GetListOfFunctions()->FindObject(Form("gaussian_%s", run_cef3.c_str())));
+
+  std::cout << "BGO/CeF3 relative calibration: " << calibAve/f1_cef3->GetParameter(1) << std::endl;
+  
   return 0;
 
 }
@@ -84,7 +97,7 @@ int main() {
 
 
 
-void drawHistos( const std::string& outputdir, std::vector<TH1D*> histos, const std::string& name, float yMax ) {
+void drawHistos( const std::string& outputdir, std::vector<TH1D*> histos, const std::string& name, float yMax, float xMax ) {
 
   std::vector<int> colors;
   colors.push_back( kRed );
@@ -103,7 +116,7 @@ void drawHistos( const std::string& outputdir, std::vector<TH1D*> histos, const 
   legend->SetFillColor(0);
   legend->SetTextSize(0.035);
 
-  TH2D* h2_axes = new TH2D("axes", "", 10, 0., 4000., 10, 0., 1.1*yMax );
+  TH2D* h2_axes = new TH2D("axes", "", 10, 0., xMax, 10, 0., 1.1*yMax );
   h2_axes->SetXTitle( "BGO ADC Channel" );
   h2_axes->SetYTitle( "Normalized to Unity" );
   h2_axes->Draw("");
@@ -138,16 +151,31 @@ void drawHistos( const std::string& outputdir, std::vector<TH1D*> histos, const 
 
 
 
-TH1D* fitSingleChannel( const std::string& outputdir, const std::string& name, const std::string& runName, int iChannel, float calibConst ) {
+TH1D* fitSingleChannelBGO( const std::string& outputdir, const std::string& name, const std::string& runName, int iChannel, float calibConst ) {
+
+  return fitSingleChannel( outputdir, name, runName, Form("bgo_corr[%d]*%f", iChannel, calibConst), Form("Channel %d", iChannel), 50, 0., 4000. );
+
+}
+
+TH1D* fitCeF3( const std::string& outputdir, const std::string& name, const std::string& runName ) {
+
+  return fitSingleChannel( outputdir, name, runName, "cef3_corr[0]+cef3_corr[1]+cef3_corr[2]+cef3_corr[3]", "CeF3", 200, 0., 16000. );
+
+}
+
+
+
+TH1D* fitSingleChannel( const std::string& outputdir, const std::string& name, const std::string& runName,  const std::string& varName, const std::string& plotName, int nBins, float xMin, float xMax ) {
 
 
   TFile* file = TFile::Open(Form("PosAn_%s.root", runName.c_str()));
   TTree* tree = (TTree*)file->Get("tree_passedEvents");
 
-  std::string histoName = "bgo_"+runName;
-  TH1D* h1_bgo = new TH1D(histoName.c_str(), "", 50, 0., 4000.);
+  std::string histoName = runName;
+  TH1D* h1_bgo = new TH1D(histoName.c_str(), "", nBins, xMin, xMax );
 
-  tree->Project( histoName.c_str(), Form("bgo_corr[%d]/%f", iChannel, calibConst), "scintFront>500. && scintFront<2000.");
+  //tree->Project( histoName.c_str(), Form("bgo_corr[%d]*%f", iChannel, calibConst), "scintFront>500. && scintFront<2000.");
+  tree->Project( histoName.c_str(), varName.c_str(), "scintFront>500. && scintFront<2000.");
 
   TF1* f1 = new TF1( Form("gaussian_%s", runName.c_str()), "gaus(0)" );
   f1->SetRange(1800., 3200.);
@@ -184,10 +212,12 @@ TH1D* fitSingleChannel( const std::string& outputdir, const std::string& name, c
   TPaveText* label = DrawTools::getLabelTop();
   label->Draw("same");
 
-  TPaveText* labelChan = new TPaveText( 0.2, 0.55, 0.5, 0.9, "brNDC");
+  float xMin_label = (plotName=="CeF3") ? 0.6 : 0.2;
+  float xMax_label = (plotName=="CeF3") ? 0.9 : 0.5;
+  TPaveText* labelChan = new TPaveText( xMin_label, 0.55, xMax_label, 0.9, "brNDC");
   labelChan->SetFillColor(0);
   labelChan->SetTextSize(0.038);
-  labelChan->AddText( Form("Channel %d", iChannel) );
+  labelChan->AddText( plotName.c_str() );
   labelChan->Draw("same");
 
   c1->SaveAs( Form("%s/fit_%s_%s.eps", outputdir.c_str(), name.c_str(), runName.c_str()) );
