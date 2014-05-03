@@ -12,6 +12,7 @@
 
 #include "fastDQM_CeF3_BTF.h"
 #include "interface/HodoCluster.h"
+#include "interface/RunHelper.h"
 
 
 #include "hodo_efficiency.dat"
@@ -78,6 +79,62 @@ int main( int argc, char* argv[] ) {
     std::cout << "Channel " << i << ":  X: " << pedestals_hodox[i].first << " (+- " << pedestals_hodox[i].second << ") Y: " << pedestals_hodoy[i].first << " (+- " << pedestals_hodoy[i].second << ")" << std::endl;
 
   std::cout << std::endl << std::endl;
+
+
+
+
+  // first: BGO precalibration*calibration:
+
+  std::vector<float> bgo_calibration;
+
+  // good, dont touch
+  //bgo_calibration.push_back(1.24251419*1.02018 ); // 0
+  //bgo_calibration.push_back(0.78909836*0.91473 ); // 1
+  //bgo_calibration.push_back(0.91233889*1.07665 ); // 2
+  //bgo_calibration.push_back(0.81254220*1.07697 ); // 3
+  //bgo_calibration.push_back(1.19382440*0.956594); // 4
+  //bgo_calibration.push_back(1.23486403*0.992715); // 5
+  //bgo_calibration.push_back(1.05052378*0.996411); // 6
+  //bgo_calibration.push_back(0.99823724*0.987254); // 7
+
+  // test
+  bgo_calibration.push_back(1.24251419*1.02018 ); // 0
+  bgo_calibration.push_back(0.78909836*0.91473 ); // 1
+  bgo_calibration.push_back(0.91233889*1.07665 ); // 2
+  bgo_calibration.push_back(0.81254220*1.07697/0.73 ); // 3
+  bgo_calibration.push_back(1.19382440*0.956594*0.5); // 4
+  bgo_calibration.push_back(1.23486403*0.992715); // 5
+  bgo_calibration.push_back(1.05052378*0.996411); // 6
+  bgo_calibration.push_back(0.99823724*0.987254); // 7
+
+  //float bgoCalibrationAverage = sumVector(bgo_calibration)/bgo_calibration.size();
+
+
+
+  // CeF3 calibration:
+  std::vector<float> cef3_calibration;
+  cef3_calibration.push_back(848.317);
+  cef3_calibration.push_back(995.703);
+  cef3_calibration.push_back(891.56 );
+  cef3_calibration.push_back(928.443);
+
+  float cef3CalibrationAverage = sumVector(cef3_calibration)/cef3_calibration.size();
+
+  for(unsigned i=0; i<cef3_calibration.size(); ++i )
+    cef3_calibration[i] = cef3CalibrationAverage/cef3_calibration[i];
+
+
+
+
+
+  std::vector<float> xbgo, ybgo;
+  for( unsigned i=0; i<BGO_CHANNELS; ++i ) {
+    float x,y;
+    RunHelper::getBGOCoordinates( i, x, y );
+    xbgo.push_back( x );
+    ybgo.push_back( y );
+  }
+
 
   UInt_t evtNumber;
   tree->SetBranchAddress( "evtNumber", &evtNumber );
@@ -199,6 +256,7 @@ int main( int argc, char* argv[] ) {
   TTree* outTree = new TTree("tree_passedEvents","tree_passedEvents");
   float cef3_[CEF3_CHANNELS],bgo_[BGO_CHANNELS],hodox_[HODOX_CHANNELS],hodoy_[HODOY_CHANNELS];
   float cef3_corr_[CEF3_CHANNELS],bgo_corr_[BGO_CHANNELS],hodox_corr_[HODOX_CHANNELS],hodoy_corr_[HODOY_CHANNELS];
+  float scintFront_;
   int cef3_chan=CEF3_CHANNELS;
   int bgo_chan=BGO_CHANNELS;
   int hodox_chan=HODOX_CHANNELS;
@@ -224,6 +282,7 @@ int main( int argc, char* argv[] ) {
   outTree->Branch( "cef3_corr", cef3_corr_, "cef3_corr_[cef3_chan]/F" );
   outTree->Branch( "hodox_corr", hodox_corr_, "hodox_corr_[hodox_chan]/F" );
   outTree->Branch( "hodoy_corr", hodoy_corr_, "hodoy_corr_[hodoy_chan]/F" );
+  outTree->Branch( "scintFront", &scintFront_, "scintFront_/F" );
 
 
   for( unsigned iEntry=0; iEntry<nentries; ++iEntry ) {
@@ -296,7 +355,9 @@ int main( int argc, char* argv[] ) {
         else if( channel==(HODOY_ADC_START_CHANNEL+6) ) hodoy[6] = adcData[i];
         else if( channel==(HODOY_ADC_START_CHANNEL+7) ) hodoy[7] = adcData[i];
       }
+      if( board==SCINT_FRONT_ADC_BOARD && channel==SCINT_FRONT_ADC_CHANNEL ) scintFront_ = adcData[i];
     }
+
 
     float nSigma_hodo = 4.;
     std::vector<float>  bgo_corr = subtractPedestals( bgo , pedestals_bgo, 4. );
@@ -331,7 +392,8 @@ int main( int argc, char* argv[] ) {
     float yPos_hodoClust = getMeanposHodo(hodoyClusters);
 
 
-    bool isSingleElectron = ((nHodoFibersX==1) && (nHodoFibersY==1));
+    //bool isSingleElectron = ((nHodoFibersX==1) && (nHodoFibersY==1));
+    bool isSingleElectron = (scintFront_>500. && scintFront_<2000.);
 
     if( xPos_hodo>-100. )
       h1_xPos_hodo->Fill(xPos_hodo);
@@ -386,24 +448,9 @@ int main( int argc, char* argv[] ) {
     if( bgo_ok && bgo_corr_ok ) {
 
 
-      // first: BGO precalibration:
+      for(unsigned i=0; i<bgo_calibration.size(); ++i ) 
+        bgo_corr[i] *= bgo_calibration[i]; //correct
 
-      std::vector<float> bgo_precalibration;
-      bgo_precalibration.push_back(193.7);
-      bgo_precalibration.push_back(305.0);
-      bgo_precalibration.push_back(263.8);
-      bgo_precalibration.push_back(296.2);
-      bgo_precalibration.push_back(201.6);
-      bgo_precalibration.push_back(194.9);
-      bgo_precalibration.push_back(229.1);
-      bgo_precalibration.push_back(241.1);
-
-      float bgoCalibrationAverage = sumVector(bgo_precalibration)/bgo_precalibration.size();
-
-      for(unsigned i=0; i<bgo_precalibration.size(); ++i ) {
-        bgo_precalibration[i] /= bgoCalibrationAverage;
-        bgo_corr[i] /= bgo_precalibration[i]; //correct
-      }
 
       eTot_bgo_corr  = sumVector(bgo_corr);
 
@@ -425,27 +472,24 @@ int main( int argc, char* argv[] ) {
       //   3     4
       //   5  6  7
 
-
-      float position_bgo = xySize; // in mm
-      //float position_bgo = 22.; // in mm
+      xPosW_bgo.push_back(bgo_corr[0]*xbgo[0]);
+      xPosW_bgo.push_back(bgo_corr[1]*xbgo[1]);
+      xPosW_bgo.push_back(bgo_corr[2]*xbgo[2]);
+      xPosW_bgo.push_back(bgo_corr[3]*xbgo[3]);
+      xPosW_bgo.push_back(bgo_corr[4]*xbgo[4]);
+      xPosW_bgo.push_back(bgo_corr[5]*xbgo[5]);
+      xPosW_bgo.push_back(bgo_corr[6]*xbgo[6]);
+      xPosW_bgo.push_back(bgo_corr[7]*xbgo[7]);
       
-      xPosW_bgo.push_back(bgo_corr[0]*(-position_bgo));
-      xPosW_bgo.push_back(0.);
-      xPosW_bgo.push_back(bgo_corr[2]*(+position_bgo));
-      xPosW_bgo.push_back(bgo_corr[3]*(-position_bgo));
-      xPosW_bgo.push_back(bgo_corr[4]*(+position_bgo));
-      xPosW_bgo.push_back(bgo_corr[5]*(-position_bgo));
-      xPosW_bgo.push_back(0.);
-      xPosW_bgo.push_back(bgo_corr[7]*(+position_bgo));
+      yPosW_bgo.push_back(bgo_corr[0]*ybgo[0]);
+      yPosW_bgo.push_back(bgo_corr[1]*ybgo[1]);
+      yPosW_bgo.push_back(bgo_corr[2]*ybgo[2]);
+      yPosW_bgo.push_back(bgo_corr[3]*ybgo[3]);
+      yPosW_bgo.push_back(bgo_corr[4]*ybgo[4]);
+      yPosW_bgo.push_back(bgo_corr[5]*ybgo[5]);
+      yPosW_bgo.push_back(bgo_corr[6]*ybgo[6]);
+      yPosW_bgo.push_back(bgo_corr[7]*ybgo[7]);
       
-      yPosW_bgo.push_back(bgo_corr[0]*(+position_bgo));
-      yPosW_bgo.push_back(bgo_corr[1]*(+position_bgo));
-      yPosW_bgo.push_back(bgo_corr[2]*(+position_bgo));
-      yPosW_bgo.push_back(0.);
-      yPosW_bgo.push_back(0.);
-      yPosW_bgo.push_back(bgo_corr[5]*(-position_bgo));
-      yPosW_bgo.push_back(bgo_corr[6]*(-position_bgo));
-      yPosW_bgo.push_back(bgo_corr[7]*(-position_bgo));
 
       xPos_bgo = sumVector( xPosW_bgo )/eTot_bgo_corr;
       yPos_bgo = sumVector( yPosW_bgo )/eTot_bgo_corr;
@@ -471,27 +515,19 @@ int main( int argc, char* argv[] ) {
     }  // if bgo ok
 
 
+
+    // THEN USE CeF3 DATA:
+
     if( cef3_ok ) {
-
-      // THEN USE CeF3 DATA:
-
-      float eTot      = sumVector(cef3);
-      float eTot_corr = sumVector(cef3_corr);
 
       // intercalibration:
 
-      std::vector<float> cef3_calibration;
-      cef3_calibration.push_back(848.317);
-      cef3_calibration.push_back(995.703);
-      cef3_calibration.push_back(891.56 );
-      cef3_calibration.push_back(928.443);
+      for(unsigned i=0; i<cef3_calibration.size(); ++i )
+        cef3_corr[i] *= cef3_calibration[i]; //correct
 
-      float cef3CalibrationAverage = sumVector(cef3_calibration)/cef3_calibration.size();
 
-      for(unsigned i=0; i<cef3_calibration.size(); ++i ) {
-        cef3_calibration[i] /= cef3CalibrationAverage;
-        cef3_corr[i] /= cef3_calibration[i]; //correct
-      }
+      float eTot      = sumVector(cef3);
+      float eTot_corr = sumVector(cef3_corr);
 
 
       h1_cef3_0->Fill( cef3[0] );
@@ -554,8 +590,10 @@ int main( int argc, char* argv[] ) {
 
 
         // positioning with all 9 calorimeter channels:
-        float xPos_calo = sumVector( xPosW_bgo )/(eTot_bgo_corr + eTot_corr); // cef3 is in 0,0
-        float yPos_calo = sumVector( yPosW_bgo )/(eTot_bgo_corr + eTot_corr); // so counts only in denominator
+        float xPos_calo = sumVector( xPosW_bgo )/(eTot_bgo_corr + eTot_corr*0.1); // cef3 is in 0,0
+        float yPos_calo = sumVector( yPosW_bgo )/(eTot_bgo_corr + eTot_corr*0.1); // so counts only in denominator
+        //float xPos_calo = sumVector( xPosW_bgo )/(eTot_bgo_corr + eTot_corr*0.791577); // cef3 is in 0,0
+        //float yPos_calo = sumVector( yPosW_bgo )/(eTot_bgo_corr + eTot_corr*0.791577); // so counts only in denominator
 
   
         if( bgo_ok && bgo_corr_ok ) {
