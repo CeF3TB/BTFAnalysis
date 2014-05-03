@@ -90,3 +90,5 @@ cp Plots_BTF_162_20140430-205129_beam/xyPos_singleEle.pdf ./CrossScan/xyPos_sing
 cp Plots_BTF_163_20140430-205337_beam/xyPos_singleEle.pdf ./CrossScan/xyPos_singleEle_BTF_163_20140430-205337_beam.pdf
 cp Plots_BTF_164_20140430-205542_beam/xyPos_singleEle.pdf ./CrossScan/xyPos_singleEle_BTF_164_20140430-205542_beam.pdf
 cp Plots_BTF_165_20140430-205756_beam/xyPos_singleEle.pdf ./CrossScan/xyPos_singleEle_BTF_165_20140430-205756_beam.pdf
+
+open CrossScan
