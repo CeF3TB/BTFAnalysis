@@ -33,8 +33,8 @@ hodoscopeAnalysis: hodoscopeAnalysis.cpp
 drawHodoClustersVsEnergy: DrawTools.o drawHodoClustersVsEnergy.cpp
 	$(CC) -Wall $(INCLUDES) -o drawHodoClustersVsEnergy drawHodoClustersVsEnergy.cpp DrawTools.o $(ROOTFLAG) $(EXTRALIBS)
 
-drawShitVsDiagonal: drawShitVsDiagonal.cpp
-	$(CC) -Wall $(INCLUDES) -o drawShitVsDiagonal drawShitVsDiagonal.cpp $(ROOTFLAG) $(EXTRALIBS)
+drawShitVsDiagonal: drawShitVsDiagonal.cpp DrawTools.o
+	$(CC) -Wall $(INCLUDES) -o drawShitVsDiagonal drawShitVsDiagonal.cpp DrawTools.o $(ROOTFLAG) $(EXTRALIBS)
 
 
 
