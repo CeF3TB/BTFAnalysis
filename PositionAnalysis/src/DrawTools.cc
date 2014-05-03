@@ -20,9 +20,9 @@ TPaveText* DrawTools::getLabelRun( const std::string& runName, bool top ) {
 
   float yMin = (top) ? 0.86 : 0.18;
   float yMax = (top) ? 0.91 : 0.23;
-  TPaveText* label_run = new TPaveText(0.34,yMin,0.9,yMax, "brNDC");
+  TPaveText* label_run = new TPaveText(0.4,yMin,0.95,yMax, "brNDC");
   label_run->SetFillColor(kWhite);
-  label_run->SetTextSize(0.033);
+  label_run->SetTextSize(0.03);
   label_run->SetTextAlign(11); // align right
   label_run->SetTextFont(42);
   label_run->AddText(Form("Run %s", runName.c_str()));
