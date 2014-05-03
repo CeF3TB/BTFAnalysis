@@ -39,3 +39,5 @@ cp Plots_BTF_136_20140430-171004_beam/xyPos_singleEle.pdf  DiagonalScan/xyPos_si
 cp Plots_BTF_138_20140430-175224_beam/xyPos_singleEle.pdf  DiagonalScan/xyPos_singleEle_BTF_138_20140430-175224_beam.pdf
 cp Plots_BTF_141_20140430-183508_beam/xyPos_singleEle.pdf  DiagonalScan/xyPos_singleEle_BTF_141_20140430-183508_beam.pdf
 cp Plots_BTF_143_20140430-191455_beam/xyPos_singleEle.pdf  DiagonalScan/xyPos_singleEle_BTF_143_20140430-191455_beam.pdf
+
+open DiagonalScan
