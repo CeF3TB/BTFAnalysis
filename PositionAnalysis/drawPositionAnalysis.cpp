@@ -18,6 +18,9 @@
 #include "interface/DrawTools.h"
 #include "interface/RunHelper.h"
 
+#include "fastDQM_CeF3_BTF.h"
+
+
 
 
 std::string runName;
@@ -159,41 +162,24 @@ void drawSinglePositionPlot( const std::string& outputdir, TFile* file, const st
 
 
 
-  TGraph* gr_beamPos = new TGraph(0);
-  gr_beamPos->SetMarkerStyle(24);
-  gr_beamPos->SetMarkerSize(4);
-  TLegend* legend2 = new TLegend( 0.18, 0.21, 0.52, 0.25 );
-  legend2->SetFillColor(0);
-  legend2->SetTextSize(0.035);
-  legend2->AddEntry( gr_beamPos, "Beam Position", "P" );
-  if( drawBeam ) 
-    legend2->Draw("same");
-
-
-  TPaveText* label_top = DrawTools::getLabelTop();
-  TPaveText* label_run = DrawTools::getLabelRun(runName);
-  label_top->Draw("same");
-  label_run->Draw("same");
-
 
   int lineColor = 17;
 
-  TLine* line_x1 = new TLine( -xMax, -xySize/2., +xMax, -xySize/2. );
-  line_x1->SetLineColor(lineColor);
-  line_x1->Draw("same");
+  //TLine* line_x1 = new TLine( -xMax, -xySize/2., +xMax, -xySize/2. );
+  //line_x1->SetLineColor(lineColor);
+  //line_x1->Draw("same");
 
-  TLine* line_x2 = new TLine( -xMax, +xySize/2., +xMax, +xySize/2. );
-  line_x2->SetLineColor(lineColor);
-  line_x2->Draw("same");
+  //TLine* line_x2 = new TLine( -xMax, +xySize/2., +xMax, +xySize/2. );
+  //line_x2->SetLineColor(lineColor);
+  //line_x2->Draw("same");
 
-  TLine* line_y1 = new TLine( -xySize/2., -xMax, -xySize/2., +xMax );
-  line_y1->SetLineColor(lineColor);
-  line_y1->Draw("same");
+  //TLine* line_y1 = new TLine( -xySize/2., -xMax, -xySize/2., +xMax );
+  //line_y1->SetLineColor(lineColor);
+  //line_y1->Draw("same");
 
-  TLine* line_y2 = new TLine( +xySize/2., -xMax, +xySize/2., +xMax );
-  line_y2->SetLineColor(lineColor);
-  line_y2->Draw("same");
-
+  //TLine* line_y2 = new TLine( +xySize/2., -xMax, +xySize/2., +xMax );
+  //line_y2->SetLineColor(lineColor);
+  //line_y2->Draw("same");
 
   TLegend* legend = new TLegend( 0.75, 0.21, 0.9, 0.39 );
   legend->SetFillColor(0);
@@ -203,6 +189,50 @@ void drawSinglePositionPlot( const std::string& outputdir, TFile* file, const st
   legend->AddEntry( gr_xyCenter_bgo, "BGO", "P" );
   legend->AddEntry( gr_xyCenter_calo, "Calo", "P" );
   legend->Draw("same");
+
+  float bgoFrontSize = 22.;
+  std::vector<TBox*> b_bgo;
+
+  for( unsigned i=0; i<BGO_CHANNELS; ++i ) {
+
+    float x,y;
+    RunHelper::getBGOCoordinates( i, x, y );
+    TBox* b_bgo0 = new TBox( x-bgoFrontSize/2., y-bgoFrontSize/2., x+bgoFrontSize/2., y+bgoFrontSize/2. );
+    b_bgo0->SetFillColor(0);
+    b_bgo0->SetFillStyle(0);
+    b_bgo0->SetLineColor(lineColor);
+    b_bgo0->SetLineWidth(1.);
+    b_bgo0->Draw("L same");
+
+    b_bgo.push_back(b_bgo0);
+ 
+  }
+
+
+  TGraph* gr_beamPos = new TGraph(0);
+  gr_beamPos->SetMarkerStyle(24);
+  gr_beamPos->SetMarkerSize(4);
+  TLegend* legend2 = new TLegend( 0.18, 0.225, 0.5, 0.255 );
+  legend2->SetFillColor(0);
+  legend2->SetFillStyle(0);
+  legend2->SetLineColor(0);
+  legend2->SetLineWidth(0);
+  legend2->SetTextSize(0.035);
+  legend2->AddEntry( gr_beamPos, "Beam Position", "P" );
+  if( drawBeam ) 
+    legend2->Draw("same");
+
+
+
+  TPaveText* label_top = DrawTools::getLabelTop();
+  TPaveText* label_run = DrawTools::getLabelRun(runName);
+  label_top->Draw("same");
+  label_run->SetFillStyle(0);
+  label_run->SetLineColor(0);
+  label_run->SetLineWidth(0);
+  label_run->Draw("same");
+
+
 
 
   h2_xyPos_hodo->SetMarkerColor(14);
