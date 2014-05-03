@@ -15,8 +15,8 @@ EXTRALIBS := -L$(ROOTSYS)/lib  -lHtml -lMathCore -lGenVector -lMinuit -lEG -lRoo
 all: positionAnalysis drawPositionAnalysis hodoscopeAnalysis calibrateCeF3 drawHodoClustersVsEnergy drawShitVsDiagonal calibrateBGO
 
 
-positionAnalysis: HodoCluster.o positionAnalysis.cpp hodo_efficiency.dat
-	$(CC) -Wall $(INCLUDES) -o positionAnalysis positionAnalysis.cpp HodoCluster.o $(ROOTFLAG) $(EXTRALIBS)
+positionAnalysis: HodoCluster.o RunHelper.o positionAnalysis.cpp hodo_efficiency.dat
+	$(CC) -Wall $(INCLUDES) -o positionAnalysis positionAnalysis.cpp HodoCluster.o RunHelper.o $(ROOTFLAG) $(EXTRALIBS)
 
 drawPositionAnalysis: DrawTools.o RunHelper.o drawPositionAnalysis.cpp 
 	$(CC) -Wall $(INCLUDES) -o drawPositionAnalysis drawPositionAnalysis.cpp DrawTools.o RunHelper.o $(ROOTFLAG) $(EXTRALIBS)
@@ -24,8 +24,8 @@ drawPositionAnalysis: DrawTools.o RunHelper.o drawPositionAnalysis.cpp
 calibrateCeF3: calibrateCeF3.cpp
 	$(CC) -Wall $(INCLUDES) -o calibrateCeF3 calibrateCeF3.cpp $(ROOTFLAG) $(EXTRALIBS)
 
-calibrateBGO: calibrateBGO.cpp
-	$(CC) -Wall $(INCLUDES) -o calibrateBGO calibrateBGO.cpp $(ROOTFLAG) $(EXTRALIBS)
+calibrateBGO: DrawTools.o calibrateBGO.cpp
+	$(CC) -Wall $(INCLUDES) -o calibrateBGO calibrateBGO.cpp DrawTools.o $(ROOTFLAG) $(EXTRALIBS)
 
 hodoscopeAnalysis: hodoscopeAnalysis.cpp
 	$(CC) -Wall $(INCLUDES) -o hodoscopeAnalysis hodoscopeAnalysis.cpp $(ROOTFLAG) $(EXTRALIBS)
