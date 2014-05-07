@@ -12,7 +12,7 @@ EXTRALIBS := -L$(ROOTSYS)/lib  -lHtml -lMathCore -lGenVector -lMinuit -lEG -lRoo
 
 
 
-all: positionAnalysis drawPositionAnalysis hodoscopeAnalysis calibrateCeF3 drawHodoClustersVsEnergy drawShitVsDiagonal calibrateBGO
+all: positionAnalysis drawPositionAnalysis hodoscopeAnalysis calibrateCeF3 drawHodoClustersVsEnergy drawShitVsDiagonal calibrateBGO drawEnergyScan
 
 
 positionAnalysis: HodoCluster.o RunHelper.o positionAnalysis.cpp hodo_efficiency.dat
@@ -36,6 +36,9 @@ drawHodoClustersVsEnergy: DrawTools.o drawHodoClustersVsEnergy.cpp
 drawShitVsDiagonal: drawShitVsDiagonal.cpp DrawTools.o
 	$(CC) -Wall $(INCLUDES) -o drawShitVsDiagonal drawShitVsDiagonal.cpp DrawTools.o $(ROOTFLAG) $(EXTRALIBS)
 
+drawEnergyScan: drawEnergyScan.cpp DrawTools.o
+	$(CC) -Wall $(INCLUDES) -o drawEnergyScan drawEnergyScan.cpp DrawTools.o $(ROOTFLAG) $(EXTRALIBS)
+
 
 
 
@@ -58,4 +61,5 @@ clean:
 	rm calibrateBGO
 	rm drawHodoClustersVsEnergy
 	rm drawShitVsDiagonal
+	rm drawEnergyScan
 	rm *.o
