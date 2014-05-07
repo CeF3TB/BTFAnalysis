@@ -13,7 +13,7 @@ class DrawTools {
 
   static TStyle* setStyle();
 
-  static TPaveText* getLabelTop( int beamEnergy=500 );
+  static TPaveText* getLabelTop( int beamEnergy=491 );
   static TPaveText* getLabelRun( const std::string& runName, bool top=true );
 
 
