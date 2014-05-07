@@ -1,1 +1,1 @@
-scp cmsdaq@192.168.189.82:"~/DQM/dataTree/run_*beam.root" ./data/
+scp cmsdaq@pccmsdaq.roma1.infn.it:"~/DQM/dataTree/run_*beam.root" ./data/
