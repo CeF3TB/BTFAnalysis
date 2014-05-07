@@ -47,8 +47,6 @@ int main() {
   runs.push_back("BTF_246_20140501-212512_beam");
   beamEnergy.push_back(491.4);
 
-  //runs.push_back("BTF_259_20140502-012847_beam");
-  //beamEnergy.push_back(491.4);
 
 
 
@@ -87,7 +85,7 @@ int main() {
     float Sres = reso*sqrt(energyGeV);
     //float Sres_error = sqrt( rmsErr*rmsErr*energyGeV );
     //float Sres_error = sqrt( rms*rms*0.5*0.5*energyGeVErr*energyGeVErr/energyGeV );
-    float Sres_error = sqrt( rmsErr*rmsErr*energyGeV + rms*rms*0.5*0.5*energyGeVErr*energyGeVErr/energyGeV );
+    float Sres_error = sqrt( resoErr*resoErr*energyGeV + reso*reso*0.5*0.5*energyGeVErr*energyGeVErr/energyGeV );
     gr_Sres_vs_energy->SetPoint( i, energy, Sres );
     gr_Sres_vs_energy->SetPointError( i, energyErr, Sres_error );
 
@@ -115,9 +113,10 @@ int main() {
   f1_line->Draw("L same");
 
   //TF1* f1_line2 = new TF1("line2", "[0] + [1]*x", 250., xMax );
-  //gr_reso_vs_energy->Fit(f1_line2, "R");
+  //gr_resp_vs_energy->Fit(f1_line2, "RN");
   //f1_line2->SetLineWidth(1.);
   //f1_line2->SetLineColor(46);
+  //f1_line2->SetRange(0., xMax);
   //f1_line2->Draw("L same");
 
   c1->SaveAs( Form( "%s/resp_vs_energy.eps", outputdir.c_str() ) );
@@ -173,7 +172,7 @@ TF1* fitSingleElectronPeak( const std::string& outputdir, const std::string& run
   f1->SetParError(1, h1->GetMeanError() );
   f1->SetParError(2, h1->GetRMSError() );
 
-  //doSingleFit( h1, f1, outputdir, runName );
+  doSingleFit( h1, f1, outputdir, runName );
 
   return f1;
 
