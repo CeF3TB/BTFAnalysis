@@ -9,6 +9,8 @@
 #include "TF1.h"
 #include "TCanvas.h"
 
+#include "interface/DrawTools.h"
+
 
 
 void doSingleFit( TH1D* h1, TF1* f1, const std::string& outputdir, const std::string& name );
@@ -25,6 +27,7 @@ int main( int argc, char* argv[] ) {
     runName = runName_str;
   }
 
+  DrawTools::setStyle();
 
 
   TFile* file = TFile::Open(Form("PosAn_%s.root", runName.c_str()) );
@@ -71,7 +74,8 @@ TF1* fitSingleElectronPeak( const std::string& outputdir, int i, TTree* tree ) {
 
   std::string histoName(Form("h1_%d", i));
   TH1D* h1 = new TH1D(histoName.c_str(), "", 100, 0., 3000.);
-  tree->Project( histoName.c_str(), Form("cef3_corr[%d]", i), "(nHodoFibersCorrX==1 && nHodoFibersCorrY==1)");
+  //tree->Project( histoName.c_str(), Form("cef3_corr[%d]", i), "");
+  tree->Project( histoName.c_str(), Form("cef3_corr[%d]", i), "(scintFront>500. && scintFront<2000. && nHodoClustersX==1 && nHodoClustersY==1)");
 
   TF1* f1 = new TF1( Form("gaus_%d", i), "gaus", 400., 1200.);
   f1->SetParameter(0, 3000.);
@@ -90,7 +94,8 @@ TF1* checkTotalResolution( const std::string& outputdir, TTree* tree ) {
 
   std::string histoName("h1_tot");
   TH1D* h1 = new TH1D(histoName.c_str(), "", 500, 0., 12000.);
-  tree->Project( histoName.c_str(), "cef3_corr[0]+cef3_corr[1]+cef3_corr[2]+cef3_corr[3]", "(nHodoFibersCorrX==1 && nHodoFibersCorrY==1)");
+  //tree->Project( histoName.c_str(), "cef3_corr[0]+cef3_corr[1]+cef3_corr[2]+cef3_corr[3]", "");
+  tree->Project( histoName.c_str(), "cef3_corr[0]+cef3_corr[1]+cef3_corr[2]+cef3_corr[3]", "(scintFront>500. && scintFront<2000. && nHodoClustersX==1 && nHodoClustersY==1)");
 
   TF1* f1 = new TF1("gaus_tot", "gaus", 1600., 4800.);
   f1->SetParameter(0, 3000.);
