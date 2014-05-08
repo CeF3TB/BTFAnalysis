@@ -21,8 +21,8 @@ positionAnalysis: HodoCluster.o RunHelper.o positionAnalysis.cpp hodo_efficiency
 drawPositionAnalysis: DrawTools.o RunHelper.o drawPositionAnalysis.cpp 
 	$(CC) -Wall $(INCLUDES) -o drawPositionAnalysis drawPositionAnalysis.cpp DrawTools.o RunHelper.o $(ROOTFLAG) $(EXTRALIBS)
 
-calibrateCeF3: calibrateCeF3.cpp
-	$(CC) -Wall $(INCLUDES) -o calibrateCeF3 calibrateCeF3.cpp $(ROOTFLAG) $(EXTRALIBS)
+calibrateCeF3: calibrateCeF3.cpp DrawTools.o
+	$(CC) -Wall $(INCLUDES) -o calibrateCeF3 calibrateCeF3.cpp DrawTools.o  $(ROOTFLAG) $(EXTRALIBS)
 
 calibrateBGO: DrawTools.o calibrateBGO.cpp
 	$(CC) -Wall $(INCLUDES) -o calibrateBGO calibrateBGO.cpp DrawTools.o $(ROOTFLAG) $(EXTRALIBS)
