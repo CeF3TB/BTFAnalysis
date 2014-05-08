@@ -14,8 +14,8 @@
 #include "interface/HodoCluster.h"
 #include "interface/RunHelper.h"
 
-
 #include "hodo_efficiency.dat"
+
 
 std::vector< std::pair<float, float> > getPedestals( const std::string& type, const std::string& fileName );
 std::vector<float> subtractPedestals( std::vector<float> raw, std::vector< std::pair<float, float> > pedestals, float nSigma );
@@ -25,11 +25,12 @@ bool checkVector( std::vector<float> v, float theMax=4095. );
 float getMeanposHodo( std::vector<HodoCluster*> clusters );
 std::vector<HodoCluster*> getHodoClusters( std::vector<float> hodo_corr, int nClusterMax );
 void getCeF3Position( std::vector<float> cef3, float& xPos, float& yPos );
-float getSingleCef3Position( float en, bool takemin=false );
+float getSingleCef3Position( float en, bool takemin, float trueX );
 float gethodointercalib(TString axis, int n);
 
 
-
+//TFile* fileprova = TFile::Open("prova.root", "recreate");
+//TH1D* h1_diag = new TH1D("diag", "", 100, -20., 50.);
 
 
 
@@ -372,7 +373,7 @@ int main( int argc, char* argv[] ) {
 
     // FIRST GET POSITION FROM HODOSCOPE:
 
-    int clusterSize=2;
+    int clusterSize=4;
     std::vector<HodoCluster*> hodoxFibres   = getHodoClusters( hodox_corr, 1 ); // fibres are just clusters with size = 1
     std::vector<HodoCluster*> hodoxClusters = getHodoClusters( hodox_corr, clusterSize );
 
@@ -765,6 +766,10 @@ int main( int argc, char* argv[] ) {
   outfile->Close();
   std::cout << "-> Histograms saved in: " << outfile->GetName() << std::endl;
 
+//fileprova->cd();
+//h1_diag->Write();
+//fileprova->Close();
+
   return 0;
 
 }
@@ -989,13 +994,19 @@ void getCeF3Position( std::vector<float> cef3, float& xPos, float& yPos ) {
   xPos=0.;
   yPos=0.;
 
-  float offset02 = 0.;
-  //float offset02 = 0.0170062;
+  //float offset02 = 0.;
+  float offset02 = 0.0170062;
   float offset13 = 0.0594743;
   float r02 = cef3[0]/cef3[2] - offset02;
   float r13 = cef3[1]/cef3[3] - offset13;
-  float diag02 = (r02>1.) ? getSingleCef3Position( r02, false ) : -getSingleCef3Position( 1./r02, false );
-  float diag13 = (r13>1.) ? getSingleCef3Position( r13, false ) : -getSingleCef3Position( 1./r13, false );
+float trueX = sqrt(2)*(9.);
+  float diag02 = (r02>1.) ? getSingleCef3Position( r02, false, trueX ) : -getSingleCef3Position( 1./r02, false, -trueX );
+  float diag13 = (r13>1.) ? getSingleCef3Position( r13, false, 0.    ) : -getSingleCef3Position( 1./r13, false, 0. );
+
+  //float diag02 = (r02>1.) ? getSingleCef3Position( r02, false, 0. )    : -getSingleCef3Position( 1./r02, false, 0. );
+  //float diag13 = (r13>1.) ? getSingleCef3Position( r13, false, trueX ) : -getSingleCef3Position( 1./r13, false, -trueX );
+
+//h1_diag->Fill(diag02/sqrt(2.));
 
   TVector2 v( diag13, diag02 );
   float pi = 3.14159;
@@ -1008,15 +1019,17 @@ void getCeF3Position( std::vector<float> cef3, float& xPos, float& yPos ) {
 }
 
 
-float getSingleCef3Position( float en, bool takemin ) {
+float getSingleCef3Position( float en, bool takemin, float trueX ) {
 
   float c = 1. - en;
   //float b = 1.32340e-02;
   //float a = 1.45209e-03;
   //float b = 1.89382e-02;
   //float a = 1.50157e-03;
-  float b = 1.40598e-02;
-  float a = 1.82353e-03;
+  //float b = 1.40598e-02;
+  //float a = 1.82353e-03;
+  float b = 9.75553e-03;
+  float a = 2.18352e-03;
 
   float theSqrt = b*b - 4.*a*c;
 
@@ -1028,20 +1041,33 @@ float getSingleCef3Position( float en, bool takemin ) {
 
 
   float returnX;
-
-  if( takemin ) {
-    if( fabs(x1)<fabs(x2) ) {
-      returnX = x1;
-    } else {
-      returnX = x2;
-    }
+  if( TMath::Min(x1,x2) < 0. ) {
+    returnX = TMath::Max(x1,x2);
   } else {
-    if( fabs(x1)<fabs(x2) ) {
-      returnX = x2;
-    } else {
-      returnX = x1;
-    }
+    returnX = TMath::Min(x1,x2);
   }
+
+  returnX = TMath::Max(x1,x2);
+
+//if( takemin ) {
+//  if( fabs(x1)<fabs(x2) ) {
+//    returnX = x1;
+//  } else {
+//    returnX = x2;
+//  }
+//} else {
+//  if( fabs(x1)<fabs(x2) ) {
+//    returnX = x2;
+//  } else {
+//    returnX = x1;
+//  }
+//}
+
+
+  if( fabs(x1-trueX)<fabs(x2-trueX) )
+    returnX = x1;
+  else
+    returnX = x2;
 
   return returnX;
 
