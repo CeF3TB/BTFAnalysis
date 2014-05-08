@@ -28,7 +28,8 @@ std::string runName;
 
 TGraphErrors* get_xyCenter( TH2D* h2_xyPos );
 void drawSinglePositionPlot( const std::string& outputdir, TFile* file, const std::string& runName, const std::string& suffix );
-void drawSinglePlot( const std::string& outputdir, const std::string& saveName, TFile* file, const std::string& name, const std::string& axisName, int nChannels, float xMin=0, float xMax=4095, int rebin=1, bool plotLog=false );
+//void drawSinglePlot( const std::string& outputdir, const std::string& saveName, TFile* file, const std::string& name, const std::string& axisName, int nChannels, float xMin=0, float xMax=4095, int rebin=1, bool plotLog=false );
+void drawSinglePlot( const std::string& outputdir, const std::string& saveName, TFile* file, const std::string& varName, const std::string& selection, const std::string& axisName, int nChannels, int nBins, float xMin=0, float xMax=4095, bool plotLog=false );
 void fitHodoWithBeam( const std::string& outputdir, const std::string& suffix, TH1D* h1, float r, float& pos, float& pos_err );
 //TGraphErrors* getFitPositionCeF3( TFile* file );
 
@@ -69,8 +70,23 @@ int main( int argc, char* argv[] ) {
   //drawSinglePlot( outputdir, "cef3_spectrum"      , file, "cef3"     , "ADC Counts", 4, 0., 3500., 10, true );
   //drawSinglePlot( outputdir, "cef3_corr_spectrum" , file, "cef3_corr", "ADC Counts", 4, 0., 3500., 10, true );
 
-  drawSinglePlot( outputdir, "cef3_spectrum_lin"      , file, "cef3"     , "ADC Counts", 4, 0., 3500., 10, false );
-  drawSinglePlot( outputdir, "cef3_corr_spectrum_lin" , file, "cef3_corr", "ADC Counts", 4, 0., 3500., 10, false );
+  if( runName=="BTF_000001_cosmics" ) {
+
+    drawSinglePlot( outputdir, "cef3_spectrum"      , file, "cef3"     , "", "ADC Counts", 4, 50, 0., 200., false );
+    drawSinglePlot( outputdir, "cef3_corr_spectrum" , file, "cef3_corr", "", "ADC Counts", 4, 50, 0., 200., false );
+  
+  } else {
+
+    drawSinglePlot( outputdir, "cef3_spectrum"      , file, "cef3"     , "", "ADC Counts", 4, 200, 0., 3500., false );
+    drawSinglePlot( outputdir, "cef3_corr_spectrum" , file, "cef3_corr", "", "ADC Counts", 4, 200, 0., 3500., false );
+  
+    drawSinglePlot( outputdir, "cef3_spectrum_singleEle"      , file, "cef3"     , "scintFront>500. && scintFront<2000.", "ADC Counts", 4, 200, 0., 3500., false );
+    drawSinglePlot( outputdir, "cef3_corr_spectrum_singleEle" , file, "cef3_corr", "scintFront>500. && scintFront<2000.", "ADC Counts", 4, 200, 0., 3500., false );
+  
+    drawSinglePlot( outputdir, "cef3_spectrum_singleEle_hodo"      , file, "cef3"     , "scintFront>500. && scintFront<2000. && nHodoClustersX==1 && nHodoClustersY==1", "ADC Counts", 4, 200, 0., 3500., false );
+    drawSinglePlot( outputdir, "cef3_corr_spectrum_singleEle_hodo" , file, "cef3_corr", "scintFront>500. && scintFront<2000. && nHodoClustersX==1 && nHodoClustersY==1", "ADC Counts", 4, 200, 0., 3500., false );
+
+  }
 
 
   return 0;
@@ -263,7 +279,7 @@ void drawSinglePositionPlot( const std::string& outputdir, TFile* file, const st
 
 
   h2_xyPos_bgo->Draw("same");
-  //h2_xyPos->Draw("same");
+  h2_xyPos->Draw("same");
   h2_xyPos_hodo->Draw("same");
   h2_xyPos_calo->Draw("same");
 
@@ -276,7 +292,7 @@ void drawSinglePositionPlot( const std::string& outputdir, TFile* file, const st
   //gr_xyCenter_hodo->Draw("p same");  // now using hodo_fit
   gr_xyCenter_hodo_fit->Draw("p same");
   gr_xyCenter_bgo->Draw("p same");
-  //gr_xyCenter->Draw("p same"); // don't draw for now
+  gr_xyCenter->Draw("p same"); // don't draw for now
   gr_xyCenter_calo->Draw("p same");
   //gr_xyPos_fit->Draw("p same");
 
@@ -335,7 +351,10 @@ void drawSinglePositionPlot( const std::string& outputdir, TFile* file, const st
 
 
 
-void drawSinglePlot( const std::string& outputdir, const std::string& saveName, TFile* file, const std::string& name, const std::string& axisName, int nChannels, float xMin, float xMax, int rebin, bool plotLog ) {
+void drawSinglePlot( const std::string& outputdir, const std::string& saveName, TFile* file, const std::string& varName, const std::string& selection, const std::string& axisName, int nChannels, int nBins, float xMin, float xMax, bool plotLog ) {
+
+
+  TTree* tree = (TTree*)file->Get("tree_passedEvents");
 
 
   std::vector<int> colors;
@@ -354,15 +373,22 @@ void drawSinglePlot( const std::string& outputdir, const std::string& saveName, 
   legend->SetTextSize(0.035);
   legend->SetFillColor(0);
 
-  float yMax;
+  float yMax=0.;
   std::vector<TH1D*> histos;
 
   for(unsigned i=0; i<nChannels; ++i ) {
 
-    TH1D* h1 = (TH1D*)file->Get(Form("%s_%d", name.c_str(), i));
+    std::string histoName( Form("histo_%d", i) );
+    TH1D* h1 = new TH1D( histoName.c_str(), "", nBins, xMin, xMax );
+    tree->Project( histoName.c_str(), Form("%s[%d]", varName.c_str(), i), selection.c_str() );
+
     h1->SetLineColor( colors[i] );
     h1->SetLineWidth( 2 );
-    h1->Rebin(rebin);
+
+    TF1* f1 = new TF1( Form("gaus_%d", i), "gaus", 10., 45. );
+    f1->SetLineColor( colors[i] );
+    f1->SetLineWidth( 2 );
+    h1->Fit( f1, "R+" );
   
     histos.push_back(h1);
 
@@ -374,16 +400,17 @@ void drawSinglePlot( const std::string& outputdir, const std::string& saveName, 
 
   }
 
-  if( !plotLog ) yMax = 3000.;
+  
+
 
   TCanvas* c1 = new TCanvas( "c1_new", "", 600, 600 );
   c1->cd();
   if( plotLog ) c1->SetLogy();
 
 
-  float yScaleFactor = 1.3;
-  //float yScaleFactor = (plotLog) ? 5.  : 1.3;
-  float yMin         = (plotLog) ? 10. :  0.;
+  float yScaleFactor = (plotLog) ? 5.  : 1.1;
+  float yMin         = (plotLog) ? 1. :  0.;
+
 
   TH2D* h2_axes = new TH2D("axes_new", "", 10, xMin, xMax, 10, yMin, yMax*yScaleFactor );
   h2_axes->SetXTitle( axisName.c_str() );
@@ -429,6 +456,8 @@ void drawSinglePlot( const std::string& outputdir, const std::string& saveName, 
     c1->SaveAs( Form("%s/%s_%d.eps", outputdir.c_str(), saveName.c_str(), i) );
     c1->SaveAs( Form("%s/%s_%d.pdf", outputdir.c_str(), saveName.c_str(), i) );
     c1->SaveAs( Form("%s/%s_%d.png", outputdir.c_str(), saveName.c_str(), i) );
+
+    delete histos[i];
 
   }
 
