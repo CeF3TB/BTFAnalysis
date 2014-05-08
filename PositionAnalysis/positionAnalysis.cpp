@@ -263,7 +263,7 @@ int main( int argc, char* argv[] ) {
   int hodox_chan=HODOX_CHANNELS;
   int hodoy_chan=HODOY_CHANNELS; 
 
-  outTree->Branch( "evtNumber", &evtNumber,"evtNumber/F" );
+  outTree->Branch( "evtNumber", &evtNumber,"evtNumber/i" );
   outTree->Branch( "adcData", adcData, "adcData/i" );
   outTree->Branch( "adcBoard", adcBoard, "adcBoard/i" );
   outTree->Branch( "adcChannel", adcChannel,"adcChannel/i" );
