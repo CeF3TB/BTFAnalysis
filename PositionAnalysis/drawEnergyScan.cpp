@@ -11,6 +11,7 @@
 #include "TF1.h"
 #include "TGraphErrors.h"
 #include "TVector2.h"
+#include "TMath.h"
 
 #include "interface/DrawTools.h"
 
@@ -32,20 +33,23 @@ int main() {
   std::vector<float> beamEnergy; 
 
 
-  runs.push_back("BTF_314_20140503-024715_beam");
-  beamEnergy.push_back(98.3);
+  //runs.push_back("BTF_314_20140503-024715_beam");
+  //beamEnergy.push_back(98.3);
 
-  runs.push_back("BTF_308_20140503-002534_beam");
-  beamEnergy.push_back(147.4);
+  //runs.push_back("BTF_308_20140503-002534_beam");
+  //beamEnergy.push_back(147.4);
 
-  runs.push_back("BTF_293_20140502-180258_beam");
-  beamEnergy.push_back(196.5);
+  //runs.push_back("BTF_293_20140502-180258_beam");
+  //beamEnergy.push_back(196.5);
 
   runs.push_back("BTF_286_287");
-  beamEnergy.push_back(294.8);
+  beamEnergy.push_back(294.8-2.);
 
-  runs.push_back("BTF_246_20140501-212512_beam");
-  beamEnergy.push_back(491.4);
+  runs.push_back("BTF_259_20140502-012847_beam");
+  beamEnergy.push_back(491.4-2.);
+
+  //runs.push_back("BTF_246_20140501-212512_beam");
+  //beamEnergy.push_back(491.4);
 
 
 
@@ -63,7 +67,8 @@ int main() {
     TF1* thisFunc = fitSingleElectronPeak( outputdir, runs[i], tree );
 
     float energy = beamEnergy[i];
-    float energyErr = (energy>200.) ? 0.005*energy : 0.05*energy;
+    float energyErr = (energy>200.) ? 0.01*energy : 0.05*energy;
+    //float energyErr = (energy>200.) ? 0.005*energy : 0.05*energy;
 
     float mean = thisFunc->GetParameter(1);
     float meanErr = thisFunc->GetParError(1);
@@ -108,11 +113,15 @@ int main() {
   gr_resp_vs_energy->Draw("p same");
 
   TF1* f1_line = new TF1("line", "[0] + [1]*x", 0., xMax );
+  //f1_line->FixParameter(0, 0.);
   gr_resp_vs_energy->Fit(f1_line, "RN");
   f1_line->SetLineWidth(1.);
   f1_line->Draw("L same");
 
-  //TF1* f1_line2 = new TF1("line2", "[0] + [1]*x", 250., xMax );
+  std::cout << "Chi2: " << f1_line->GetChisquare() << std::endl;
+  std::cout << "Prob: " << TMath::Prob(f1_line->GetChisquare(), 2 ) << std::endl;
+
+  //TF1* f1_line2 = new TF1("line2", "[0] + [1]*x", 0., xMax );
   //gr_resp_vs_energy->Fit(f1_line2, "RN");
   //f1_line2->SetLineWidth(1.);
   //f1_line2->SetLineColor(46);
