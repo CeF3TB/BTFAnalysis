@@ -12,7 +12,7 @@ class HodoCluster {
 
   ~HodoCluster() {};
 
-  float getSize() { return size_; };
+  int getSize() { return size_; };
   float getPosition() { return pos_; };
 
   void addFibre( int i );
