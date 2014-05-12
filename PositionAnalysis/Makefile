@@ -8,11 +8,11 @@ ROOTSYS ?= ERROR_RootSysIsNotDefined
 
 ROOTFLAG = `${ROOTSYS}/bin/root-config --cflags --libs`
 
-EXTRALIBS := -L$(ROOTSYS)/lib  -lHtml -lMathCore -lGenVector -lMinuit -lEG -lRooFitCore -lRooFit
+EXTRALIBS := -L$(ROOTSYS)/lib  -lHtml -lMathCore -lGenVector -lMinuit 
 
 
 
-all: positionAnalysis drawPositionAnalysis hodoscopeAnalysis calibrateCeF3 drawHodoClustersVsEnergy drawShitVsDiagonal calibrateBGO drawEnergyScan
+all: positionAnalysis drawPositionAnalysis hodoscopeAnalysis calibrateCeF3 drawHodoClustersVsEnergy drawShitVsDiagonal calibrateBGO drawEnergyScan calibrateCaloPositioning
 
 
 positionAnalysis: HodoCluster.o RunHelper.o positionAnalysis.cpp hodo_efficiency.dat
@@ -26,6 +26,9 @@ calibrateCeF3: calibrateCeF3.cpp DrawTools.o
 
 calibrateBGO: DrawTools.o calibrateBGO.cpp
 	$(CC) -Wall $(INCLUDES) -o calibrateBGO calibrateBGO.cpp DrawTools.o $(ROOTFLAG) $(EXTRALIBS)
+
+calibrateCaloPositioning: RunHelper.o calibrateCaloPositioning.cpp
+	$(CC) -Wall $(INCLUDES) -o calibrateCaloPositioning calibrateCaloPositioning.cpp RunHelper.o $(ROOTFLAG) $(EXTRALIBS)
 
 hodoscopeAnalysis: hodoscopeAnalysis.cpp
 	$(CC) -Wall $(INCLUDES) -o hodoscopeAnalysis hodoscopeAnalysis.cpp $(ROOTFLAG) $(EXTRALIBS)
@@ -54,12 +57,13 @@ RunHelper.o: src/RunHelper.cc
 
 
 clean:
+	rm *.o
 	rm positionAnalysis
 	rm drawPositionAnalysis 
 	rm hodoscopeAnalysis
 	rm calibrateCeF3
 	rm calibrateBGO
+	rm calibrateCaloPositioning
 	rm drawHodoClustersVsEnergy
 	rm drawShitVsDiagonal
 	rm drawEnergyScan
-	rm *.o
