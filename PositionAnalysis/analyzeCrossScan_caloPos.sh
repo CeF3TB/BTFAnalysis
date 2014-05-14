@@ -1,0 +1,52 @@
+#./calibrateCaloPositioning BTF_144_20140430-200741_beam
+#./calibrateCaloPositioning BTF_145_20140430-201024_beam
+#./calibrateCaloPositioning BTF_146_20140430-201243_beam
+#./calibrateCaloPositioning BTF_147_20140430-201509_beam
+#./calibrateCaloPositioning BTF_148_20140430-201719_beam
+#./calibrateCaloPositioning BTF_149_20140430-201913_beam
+#./calibrateCaloPositioning BTF_150_20140430-202236_beam
+#./calibrateCaloPositioning BTF_151_20140430-202639_beam
+#./calibrateCaloPositioning BTF_152_20140430-202852_beam
+#./calibrateCaloPositioning BTF_153_20140430-203054_beam
+#./calibrateCaloPositioning BTF_154_20140430-203255_beam
+#./calibrateCaloPositioning BTF_155_20140430-203551_beam
+#./calibrateCaloPositioning BTF_156_20140430-203818_beam
+#./calibrateCaloPositioning BTF_157_20140430-204053_beam
+#./calibrateCaloPositioning BTF_158_20140430-204306_beam
+#./calibrateCaloPositioning BTF_159_20140430-204525_beam
+#./calibrateCaloPositioning BTF_160_20140430-204719_beam
+#./calibrateCaloPositioning BTF_161_20140430-204931_beam
+#./calibrateCaloPositioning BTF_162_20140430-205129_beam
+#./calibrateCaloPositioning BTF_163_20140430-205337_beam
+#./calibrateCaloPositioning BTF_164_20140430-205542_beam
+#./calibrateCaloPositioning BTF_165_20140430-205756_beam
+
+./positionAnalysis BTF_179_20140501-002629_beam
+./positionAnalysis BTF_180_20140501-003051_beam
+./positionAnalysis BTF_181_20140501-003544_beam
+./positionAnalysis BTF_182_20140501-004020_beam
+./positionAnalysis BTF_183_20140501-004521_beam
+./positionAnalysis BTF_184_20140501-005306_beam
+./positionAnalysis BTF_185_20140501-005854_beam
+./positionAnalysis BTF_186_20140501-010447_beam
+./positionAnalysis BTF_187_20140501-011129_beam
+./positionAnalysis BTF_188_20140501-011720_beam
+./positionAnalysis BTF_189_20140501-012157_beam
+./positionAnalysis BTF_190_20140501-012655_beam
+./positionAnalysis BTF_191_20140501-013148_beam
+
+./calibrateCaloPositioning BTF_179_20140501-002629_beam
+./calibrateCaloPositioning BTF_180_20140501-003051_beam
+./calibrateCaloPositioning BTF_181_20140501-003544_beam
+./calibrateCaloPositioning BTF_182_20140501-004020_beam
+./calibrateCaloPositioning BTF_183_20140501-004521_beam
+./calibrateCaloPositioning BTF_184_20140501-005306_beam
+./calibrateCaloPositioning BTF_185_20140501-005854_beam
+./calibrateCaloPositioning BTF_186_20140501-010447_beam
+./calibrateCaloPositioning BTF_187_20140501-011129_beam
+./calibrateCaloPositioning BTF_188_20140501-011720_beam
+./calibrateCaloPositioning BTF_189_20140501-012157_beam
+./calibrateCaloPositioning BTF_190_20140501-012655_beam
+./calibrateCaloPositioning BTF_191_20140501-013148_beam
+
+
