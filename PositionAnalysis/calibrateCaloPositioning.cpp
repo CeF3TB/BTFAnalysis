@@ -76,6 +76,10 @@ int main( int argc, char* argv[] ) {
 
 
 
+  std::string outfileName = "CaloPos_" + runName + ".root";
+  TFile* outfile = TFile::Open( outfileName.c_str(), "recreate" );
+  outfile->cd();
+
 
   TH1D* h1_cef3CalibX = new TH1D("cef3CalibX", "", 200, -3., 3.);
   TH1D* h1_cef3CalibY = new TH1D("cef3CalibY", "", 200, -3., 3.);
@@ -154,18 +158,25 @@ int main( int argc, char* argv[] ) {
 
   }
 
-
-  TCanvas* c1 = new TCanvas("c1", "", 600, 600);
-  c1->cd();
-  
-  h1_cef3CalibX->Draw();
-  h1_cef3CalibY->SetLineColor(kRed);
-  h1_cef3CalibY->Draw("same");
-
   std::cout << "X: " << h1_cef3CalibX->GetMean() << " +/- " << h1_cef3CalibX->GetMeanError() << std::endl;
   std::cout << "Y: " << h1_cef3CalibY->GetMean() << " +/- " << h1_cef3CalibY->GetMeanError() << std::endl;
   
-  c1->SaveAs("prova.eps");
+
+  outfile->cd();
+  h1_cef3CalibX->Write();
+  h1_cef3CalibY->Write();
+
+  outfile->Close();
+
+
+  //TCanvas* c1 = new TCanvas("c1", "", 600, 600);
+  //c1->cd();
+  //
+  //h1_cef3CalibX->Draw();
+  //h1_cef3CalibY->SetLineColor(kRed);
+  //h1_cef3CalibY->Draw("same");
+
+  //c1->SaveAs("prova.eps");
 
 
   return 0;
