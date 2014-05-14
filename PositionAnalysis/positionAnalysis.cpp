@@ -226,6 +226,23 @@ int main( int argc, char* argv[] ) {
   TH1D* h1_yPos_singleEle_calo = new TH1D("yPos_singleEle_calo", "", nBins, -xMax, xMax);
   TH2D* h2_xyPos_singleEle_calo = new TH2D("xyPos_singleEle_calo", "", nBins, -xMax, xMax, nBins, -xMax, xMax);
 
+  TH1D* h1_xPos_calo_vs_hodo = new TH1D("xPos_calo_vs_hodo", "", nBins, -xMax, xMax);
+  TH1D* h1_yPos_calo_vs_hodo = new TH1D("yPos_calo_vs_hodo", "", nBins, -xMax, xMax);
+
+  TH1D* h1_xPos_calo_vs_beam = new TH1D("xPos_calo_vs_beam", "", nBins, -xMax, xMax);
+  TH1D* h1_yPos_calo_vs_beam = new TH1D("yPos_calo_vs_beam", "", nBins, -xMax, xMax);
+
+  TH1D* h1_xPos_calo_vs_hodo_singleElectron = new TH1D("xPos_calo_vs_hodo_singleElectron", "", nBins, -xMax, xMax);
+  TH1D* h1_yPos_calo_vs_hodo_singleElectron = new TH1D("yPos_calo_vs_hodo_singleElectron", "", nBins, -xMax, xMax);
+
+  TH1D* h1_xPos_calo_vs_beam_singleElectron = new TH1D("xPos_calo_vs_beam_singleElectron", "", nBins, -xMax, xMax);
+  TH1D* h1_yPos_calo_vs_beam_singleElectron = new TH1D("yPos_calo_vs_beam_singleElectron", "", nBins, -xMax, xMax);
+
+  TH1D* h1_xPos_calo_vs_hodo_singleElectron_HR = new TH1D("xPos_calo_vs_hodo_singleElectron_HR", "", nBins, -xMax, xMax);
+  TH1D* h1_yPos_calo_vs_hodo_singleElectron_HR = new TH1D("yPos_calo_vs_hodo_singleElectron_HR", "", nBins, -xMax, xMax);
+
+  TH1D* h1_xPos_calo_vs_beam_singleElectron_HR = new TH1D("xPos_calo_vs_beam_singleElectron_HR", "", nBins, -xMax, xMax);
+  TH1D* h1_yPos_calo_vs_beam_singleElectron_HR = new TH1D("yPos_calo_vs_beam_singleElectron_HR", "", nBins, -xMax, xMax);
 
 
   TH2D* h2_correlation_cef3_hodo_xPos = new TH2D("correlation_cef3_hodo_xPos", "", 100, -xySize/2., xySize/2.,  100, -xySize/2., xySize/2.);
@@ -262,6 +279,11 @@ int main( int argc, char* argv[] ) {
   int bgo_chan=BGO_CHANNELS;
   int hodox_chan=HODOX_CHANNELS;
   int hodoy_chan=HODOY_CHANNELS; 
+  float xBeam_, yBeam_;
+  float pos_hodoClustX_[HODOX_CHANNELS];
+  float pos_hodoClustY_[HODOY_CHANNELS];
+  int nFibres_hodoClustX_[HODOX_CHANNELS];
+  int nFibres_hodoClustY_[HODOY_CHANNELS];
 
   outTree->Branch( "evtNumber", &evtNumber,"evtNumber/i" );
   outTree->Branch( "adcData", adcData, "adcData/i" );
@@ -270,7 +292,11 @@ int main( int argc, char* argv[] ) {
   outTree->Branch( "nHodoFibersX", &nHodoFibersX, "nHodoFibersX/I" );
   outTree->Branch( "nHodoFibersY", &nHodoFibersY, "nHodoFibersY/I" );
   outTree->Branch( "nHodoClustersX", &nHodoClustersX, "nHodoClustersX/I" );
+  outTree->Branch( "pos_hodoClustX", pos_hodoClustX_, "pos_hodoClustX_[nHodoClustersX]/F" );
+  outTree->Branch( "nFibres_hodoClustX", nFibres_hodoClustX_, "nFibres_hodoClustX_[nHodoClustersX]/I" );
   outTree->Branch( "nHodoClustersY", &nHodoClustersY, "nHodoClustersY/I" );
+  outTree->Branch( "pos_hodoClustY", pos_hodoClustY_, "pos_hodoClustY_[nHodoClustersY]/F" );
+  outTree->Branch( "nFibres_hodoClustY", nFibres_hodoClustY_, "nFibres_hodoClustY_[nHodoClustersY]/I" );
   outTree->Branch( "hodox_chan", &hodox_chan, "hodox_chan/I" );
   outTree->Branch( "hodoy_chan", &hodoy_chan, "hodoy_chan/I" );
   outTree->Branch( "cef3_chan", &cef3_chan, "cef3_chan/I" );
@@ -284,6 +310,11 @@ int main( int argc, char* argv[] ) {
   outTree->Branch( "hodox_corr", hodox_corr_, "hodox_corr_[hodox_chan]/F" );
   outTree->Branch( "hodoy_corr", hodoy_corr_, "hodoy_corr_[hodoy_chan]/F" );
   outTree->Branch( "scintFront", &scintFront_, "scintFront_/F" );
+  outTree->Branch( "xBeam", &xBeam_, "xBeam_/F" );
+  outTree->Branch( "yBeam", &yBeam_, "yBeam_/F" );
+
+
+  RunHelper::getBeamPosition( runName, xBeam_, yBeam_ );
 
 
   for( unsigned iEntry=0; iEntry<nentries; ++iEntry ) {
@@ -292,6 +323,16 @@ int main( int argc, char* argv[] ) {
     nHodoFibersY=0;
     nHodoClustersX=0;
     nHodoClustersY=0;
+
+    for( unsigned i=0; i<HODOX_CHANNELS; ++i ) {
+      nFibres_hodoClustX_[i] = -1.;
+      pos_hodoClustX_[i] = -9999.;
+    }
+
+    for( unsigned i=0; i<HODOY_CHANNELS; ++i ) {
+      nFibres_hodoClustY_[i] = -1.;
+      pos_hodoClustY_[i] = -9999.;
+    }
 
     tree->GetEntry(iEntry);
 
@@ -385,6 +426,16 @@ int main( int argc, char* argv[] ) {
 
     nHodoClustersX = hodoxClusters.size();
     nHodoClustersY = hodoyClusters.size();
+
+    for( unsigned i=0; i<hodoxClusters.size(); ++i ) {
+      nFibres_hodoClustX_[i] = hodoxClusters[i]->getSize();
+      pos_hodoClustX_[i] = hodoxClusters[i]->getPosition();
+    }
+
+    for( unsigned i=0; i<hodoyClusters.size(); ++i ) {
+      nFibres_hodoClustY_[i] = hodoyClusters[i]->getSize();
+      pos_hodoClustY_[i] = hodoyClusters[i]->getPosition();
+    }
 
     float xPos_hodo = getMeanposHodo(hodoxFibres);
     float yPos_hodo = getMeanposHodo(hodoyFibres);
@@ -591,8 +642,12 @@ int main( int argc, char* argv[] ) {
 
 
         // positioning with all 9 calorimeter channels:
-        float xPos_calo = sumVector( xPosW_bgo )/(eTot_bgo_corr + eTot_corr*0.1); // cef3 is in 0,0
-        float yPos_calo = sumVector( yPosW_bgo )/(eTot_bgo_corr + eTot_corr*0.1); // so counts only in denominator
+        float xPos_calo = sumVector( xPosW_bgo )/(eTot_bgo_corr + eTot_corr*0.44); // cef3 is in 0,0
+        float yPos_calo = sumVector( yPosW_bgo )/(eTot_bgo_corr + eTot_corr*0.36); // so counts only in denominator
+        //float xPos_calo = sumVector( xPosW_bgo )/(eTot_bgo_corr + eTot_corr*0.07); // cef3 is in 0,0
+        //float yPos_calo = sumVector( yPosW_bgo )/(eTot_bgo_corr + eTot_corr*0.08); // so counts only in denominator
+        //float xPos_calo = sumVector( xPosW_bgo )/(eTot_bgo_corr + eTot_corr*0.06); // cef3 is in 0,0
+        //float yPos_calo = sumVector( yPosW_bgo )/(eTot_bgo_corr + eTot_corr*0.10); // so counts only in denominator
         //float xPos_calo = sumVector( xPosW_bgo )/(eTot_bgo_corr + eTot_corr*0.791577); // cef3 is in 0,0
         //float yPos_calo = sumVector( yPosW_bgo )/(eTot_bgo_corr + eTot_corr*0.791577); // so counts only in denominator
 
@@ -603,6 +658,11 @@ int main( int argc, char* argv[] ) {
           h1_yPos_calo->Fill( yPos_calo );
           h2_xyPos_calo->Fill( xPos_calo, yPos_calo );
 
+          h1_xPos_calo_vs_hodo->Fill( xPos_calo-xPos_hodo );
+          h1_yPos_calo_vs_hodo->Fill( yPos_calo-yPos_hodo );
+
+          h1_xPos_calo_vs_beam->Fill( xPos_calo-xBeam_ );
+          h1_yPos_calo_vs_beam->Fill( yPos_calo-yBeam_ );
 
           // CORRELATIONS BETWEEN CALO AND HODO:
 
@@ -615,13 +675,28 @@ int main( int argc, char* argv[] ) {
 
           h1_xPos_singleEle->Fill( xPos );
           h1_yPos_singleEle->Fill( yPos );
-  
           h2_xyPos_singleEle->Fill( xPos, yPos );
 
           h1_xPos_new_singleEle->Fill( xPos_new );
           h1_yPos_new_singleEle->Fill( yPos_new );
-  
           h2_xyPos_new_singleEle->Fill( xPos_new, yPos_new );
+
+          h1_xPos_calo_vs_hodo_singleElectron->Fill( xPos_calo-xPos_hodo );
+          h1_yPos_calo_vs_hodo_singleElectron->Fill( yPos_calo-yPos_hodo );
+
+          h1_xPos_calo_vs_beam_singleElectron->Fill( xPos_calo-xBeam_ );
+          h1_yPos_calo_vs_beam_singleElectron->Fill( yPos_calo-yBeam_ );
+
+          if( nHodoClustersX==1 && nHodoClustersY==1 && hodoxClusters[0]->getSize()<=2 && hodoyClusters[0]->getSize()<=2 ) {
+
+            h1_xPos_calo_vs_hodo_singleElectron_HR->Fill( xPos_calo-xPos_hodo );
+            h1_yPos_calo_vs_hodo_singleElectron_HR->Fill( yPos_calo-yPos_hodo );
+  
+            h1_xPos_calo_vs_beam_singleElectron_HR->Fill( xPos_calo-xBeam_ );
+            h1_yPos_calo_vs_beam_singleElectron_HR->Fill( yPos_calo-yBeam_ );
+
+          }
+
 
           h2_correlation_cef3_hodo_xPos_singleEle->Fill( xPos, xPos_hodo );
           h2_correlation_cef3_hodo_yPos_singleEle->Fill( yPos, yPos_hodo );
@@ -713,6 +788,60 @@ int main( int argc, char* argv[] ) {
   h1_xPos_hodoClust->Write();
   h1_yPos_hodoClust->Write();
   h2_xyPos_hodoClust->Write();
+
+  
+  h1_xPos_calo_vs_hodo->Write();
+  h1_yPos_calo_vs_hodo->Write();
+
+  h1_xPos_calo_vs_beam->Write();
+  h1_yPos_calo_vs_beam->Write();
+  
+  h1_xPos_calo_vs_hodo_singleElectron->Write();
+  h1_yPos_calo_vs_hodo_singleElectron->Write();
+
+  h1_xPos_calo_vs_beam_singleElectron->Write();
+  h1_yPos_calo_vs_beam_singleElectron->Write();
+  
+  h1_xPos_calo_vs_hodo_singleElectron_HR->Write();
+  h1_yPos_calo_vs_hodo_singleElectron_HR->Write();
+
+  h1_xPos_calo_vs_beam_singleElectron_HR->Write();
+  h1_yPos_calo_vs_beam_singleElectron_HR->Write();
+  
+
+  std::cout << std::endl;
+
+//std::cout << "xPos_calo_vs_hodo:  MEAN: " << h1_xPos_calo_vs_hodo->GetMean() << " +/- " << h1_xPos_calo_vs_hodo->GetMeanError() << std::endl;
+//std::cout << "yPos_calo_vs_hodo:  MEAN: " << h1_yPos_calo_vs_hodo->GetMean() << " +/- " << h1_yPos_calo_vs_hodo->GetMeanError() << std::endl;
+//std::cout << "xPos_calo_vs_beam:  MEAN: " << h1_xPos_calo_vs_beam->GetMean() << " +/- " << h1_xPos_calo_vs_beam->GetMeanError() << std::endl;
+//std::cout << "yPos_calo_vs_beam:  MEAN: " << h1_yPos_calo_vs_beam->GetMean() << " +/- " << h1_yPos_calo_vs_beam->GetMeanError() << std::endl;
+
+//std::cout << "xPos_calo_vs_hodo:  RMS: " << h1_xPos_calo_vs_hodo->GetRMS() << " +/- " << h1_xPos_calo_vs_hodo->GetRMSError() << std::endl;
+//std::cout << "yPos_calo_vs_hodo:  RMS: " << h1_yPos_calo_vs_hodo->GetRMS() << " +/- " << h1_yPos_calo_vs_hodo->GetRMSError() << std::endl;
+//std::cout << "xPos_calo_vs_beam:  RMS: " << h1_xPos_calo_vs_beam->GetRMS() << " +/- " << h1_xPos_calo_vs_beam->GetRMSError() << std::endl;
+//std::cout << "yPos_calo_vs_beam:  RMS: " << h1_yPos_calo_vs_beam->GetRMS() << " +/- " << h1_yPos_calo_vs_beam->GetRMSError() << std::endl;
+//                                                   
+//std::cout << "xPos_calo_vs_hodo_singleElectron:  MEAN: " << h1_xPos_calo_vs_hodo_singleElectron->GetMean() << " +/- " << h1_xPos_calo_vs_hodo_singleElectron->GetMeanError() << std::endl;
+//std::cout << "yPos_calo_vs_hodo_singleElectron:  MEAN: " << h1_yPos_calo_vs_hodo_singleElectron->GetMean() << " +/- " << h1_yPos_calo_vs_hodo_singleElectron->GetMeanError() << std::endl;
+//std::cout << "xPos_calo_vs_beam_singleElectron:  MEAN: " << h1_xPos_calo_vs_beam_singleElectron->GetMean() << " +/- " << h1_xPos_calo_vs_beam_singleElectron->GetMeanError() << std::endl;
+//std::cout << "yPos_calo_vs_beam_singleElectron:  MEAN: " << h1_yPos_calo_vs_beam_singleElectron->GetMean() << " +/- " << h1_yPos_calo_vs_beam_singleElectron->GetMeanError() << std::endl;
+
+//std::cout << "xPos_calo_vs_hodo_singleElectron:  RMS: " << h1_xPos_calo_vs_hodo_singleElectron->GetRMS() << " +/- " << h1_xPos_calo_vs_hodo_singleElectron->GetRMSError() << std::endl;
+//std::cout << "yPos_calo_vs_hodo_singleElectron:  RMS: " << h1_yPos_calo_vs_hodo_singleElectron->GetRMS() << " +/- " << h1_yPos_calo_vs_hodo_singleElectron->GetRMSError() << std::endl;
+//std::cout << "xPos_calo_vs_beam_singleElectron:  RMS: " << h1_xPos_calo_vs_beam_singleElectron->GetRMS() << " +/- " << h1_xPos_calo_vs_beam_singleElectron->GetRMSError() << std::endl;
+//std::cout << "yPos_calo_vs_beam_singleElectron:  RMS: " << h1_yPos_calo_vs_beam_singleElectron->GetRMS() << " +/- " << h1_yPos_calo_vs_beam_singleElectron->GetRMSError() << std::endl;
+//                                                   
+//std::cout << "xPos_calo_vs_hodo_singleElectron_HR:  MEAN: " << h1_xPos_calo_vs_hodo_singleElectron_HR->GetMean() << " +/- " << h1_xPos_calo_vs_hodo_singleElectron_HR->GetMeanError() << std::endl;
+//std::cout << "yPos_calo_vs_hodo_singleElectron_HR:  MEAN: " << h1_yPos_calo_vs_hodo_singleElectron_HR->GetMean() << " +/- " << h1_yPos_calo_vs_hodo_singleElectron_HR->GetMeanError() << std::endl;
+//std::cout << "xPos_calo_vs_beam_singleElectron_HR:  MEAN: " << h1_xPos_calo_vs_beam_singleElectron_HR->GetMean() << " +/- " << h1_xPos_calo_vs_beam_singleElectron_HR->GetMeanError() << std::endl;
+//std::cout << "yPos_calo_vs_beam_singleElectron_HR:  MEAN: " << h1_yPos_calo_vs_beam_singleElectron_HR->GetMean() << " +/- " << h1_yPos_calo_vs_beam_singleElectron_HR->GetMeanError() << std::endl;
+
+//std::cout << "xPos_calo_vs_hodo_singleElectron_HR:  RMS: " << h1_xPos_calo_vs_hodo_singleElectron_HR->GetRMS() << " +/- " << h1_xPos_calo_vs_hodo_singleElectron_HR->GetRMSError() << std::endl;
+//std::cout << "yPos_calo_vs_hodo_singleElectron_HR:  RMS: " << h1_yPos_calo_vs_hodo_singleElectron_HR->GetRMS() << " +/- " << h1_yPos_calo_vs_hodo_singleElectron_HR->GetRMSError() << std::endl;
+//std::cout << "xPos_calo_vs_beam_singleElectron_HR:  RMS: " << h1_xPos_calo_vs_beam_singleElectron_HR->GetRMS() << " +/- " << h1_xPos_calo_vs_beam_singleElectron_HR->GetRMSError() << std::endl;
+//std::cout << "yPos_calo_vs_beam_singleElectron_HR:  RMS: " << h1_yPos_calo_vs_beam_singleElectron_HR->GetRMS() << " +/- " << h1_yPos_calo_vs_beam_singleElectron_HR->GetRMSError() << std::endl;
+                                                     
+  
 
   h2_correlation_cef3_hodo_xPos->Write();
   h2_correlation_cef3_hodo_yPos->Write();
