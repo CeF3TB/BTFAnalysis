@@ -10,6 +10,7 @@
 #include "TTree.h"
 #include "TVector2.h"
 
+#include "TMVA/Reader.h"
 
 #include "fastDQM_CeF3_BTF.h"
 #include "interface/HodoCluster.h"
@@ -292,7 +293,9 @@ int main( int argc, char* argv[] ) {
 
   int nentries = tree->GetEntries();
 
-  std::string outfileName = "PosAn_" + runName + ".root";
+  std::string outfileName;
+  if( isOnlyRunNumber ) outfileName = "PosAn_BTF_" + runName + ".root";
+  else outfileName = "PosAn_" + runName + ".root";
   TFile* outfile = TFile::Open( outfileName.c_str(), "RECREATE" );
 
   TTree* outTree = new TTree("tree_passedEvents","tree_passedEvents");
