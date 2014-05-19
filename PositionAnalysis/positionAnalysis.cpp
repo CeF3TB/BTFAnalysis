@@ -10,6 +10,7 @@
 #include "TTree.h"
 #include "TVector2.h"
 
+
 #include "fastDQM_CeF3_BTF.h"
 #include "interface/HodoCluster.h"
 #include "interface/RunHelper.h"
@@ -45,14 +46,37 @@ int main( int argc, char* argv[] ) {
     runName = runName_str;
   }
 
-  std::string fileName = "data/run_" + runName + ".root";
-  TFile* file = TFile::Open(fileName.c_str());
-  if( file==0 ) {
-    std::cout << "ERROR! Din't find file " << fileName << std::endl;
-    std::cout << "Exiting." << std::endl;
-    exit(11);
+  TString runName_tstr(runName);
+  bool isOnlyRunNumber = !(runName_tstr.BeginsWith("BTF_"));
+
+
+  TChain* tree = new TChain("eventRawData");
+  if( isOnlyRunNumber ) {
+    std::cout << "-> We believe you are passing the program only the run number!" << std::endl;
+    std::cout << "-> So for instance you are passing '246' for run 'BTF_246_20140501-212512_beam'" << std::endl;
+    std::cout << "(if this is not the case this means TROUBLE)" << std::endl;
+    tree->Add(Form("data/run_BTF_%s_2014*_beam.root/eventRawData", runName.c_str()) );
+  } else {
+    std::string fileName = "data/run_" + runName + ".root";
+    TFile* file = TFile::Open(fileName.c_str());
+    if( file==0 ) {
+      std::cout << "ERROR! Din't find file " << fileName << std::endl;
+      std::cout << "Exiting." << std::endl;
+      exit(11);
+    }
+    tree = (TChain*)file->Get("eventRawData");
   }
-  TTree* tree = (TTree*)file->Get("eventRawData");
+
+
+  //std::string fileName = "data/run_" + runName + ".root";
+  //TFile* file = TFile::Open(fileName.c_str());
+  //if( file==0 ) {
+  //  std::cout << "ERROR! Din't find file " << fileName << std::endl;
+  //  std::cout << "Exiting." << std::endl;
+  //  exit(11);
+  //}
+  //TTree* tree = (TTree*)file->Get("eventRawData");
+
 
 
   std::string pedestalFileName = "data/run_BTF_91_20140430-015540_pedestal.root";
@@ -272,6 +296,7 @@ int main( int argc, char* argv[] ) {
   TFile* outfile = TFile::Open( outfileName.c_str(), "RECREATE" );
 
   TTree* outTree = new TTree("tree_passedEvents","tree_passedEvents");
+  int runNumber_;
   float cef3_[CEF3_CHANNELS],bgo_[BGO_CHANNELS],hodox_[HODOX_CHANNELS],hodoy_[HODOY_CHANNELS];
   float cef3_corr_[CEF3_CHANNELS],bgo_corr_[BGO_CHANNELS],hodox_corr_[HODOX_CHANNELS],hodoy_corr_[HODOY_CHANNELS];
   float scintFront_;
@@ -280,11 +305,18 @@ int main( int argc, char* argv[] ) {
   int hodox_chan=HODOX_CHANNELS;
   int hodoy_chan=HODOY_CHANNELS; 
   float xBeam_, yBeam_;
+  float xPos_calo_, yPos_calo_;
   float pos_hodoClustX_[HODOX_CHANNELS];
   float pos_hodoClustY_[HODOY_CHANNELS];
   int nFibres_hodoClustX_[HODOX_CHANNELS];
   int nFibres_hodoClustY_[HODOY_CHANNELS];
+  bool cef3_ok_;
+  bool cef3_corr_ok_;
+  bool bgo_ok_;
+  bool bgo_corr_ok_;
+  float xPos_regr2D_, yPos_regr2D_;
 
+  outTree->Branch( "runNumber", &runNumber_,"runNumber/i" );
   outTree->Branch( "evtNumber", &evtNumber,"evtNumber/i" );
   outTree->Branch( "adcData", adcData, "adcData/i" );
   outTree->Branch( "adcBoard", adcBoard, "adcBoard/i" );
@@ -312,6 +344,101 @@ int main( int argc, char* argv[] ) {
   outTree->Branch( "scintFront", &scintFront_, "scintFront_/F" );
   outTree->Branch( "xBeam", &xBeam_, "xBeam_/F" );
   outTree->Branch( "yBeam", &yBeam_, "yBeam_/F" );
+  outTree->Branch( "xPos_calo", &xPos_calo_, "xPos_calo_/F" );
+  outTree->Branch( "yPos_calo", &yPos_calo_, "yPos_calo_/F" );
+  outTree->Branch( "yPos_calo", &yPos_calo_, "yPos_calo_/F" );
+  outTree->Branch( "cef3_ok", &cef3_ok_, "cef3_ok_/O" );
+  outTree->Branch( "cef3_corr_ok", &cef3_corr_ok_, "cef3_corr_ok_/O" );
+  outTree->Branch( "bgo_ok", &bgo_ok_, "bgo_ok_/O" );
+  outTree->Branch( "bgo_corr_ok", &bgo_corr_ok_, "bgo_corr_ok_/O" );
+  outTree->Branch( "xPos_regr2D", &xPos_regr2D_, "xPos_regr2D_/F" );
+  outTree->Branch( "yPos_regr2D", &yPos_regr2D_, "yPos_regr2D_/F" );
+
+
+  // get run number with a trick:
+  if( isOnlyRunNumber ) {
+    runNumber_ = atoi(runName.c_str());
+  } else {
+    char runNumber_cstr[3];
+    runNumber_cstr[0] = runName.at(4);
+    runNumber_cstr[1] = runName.at(5);
+    runNumber_cstr[2] = runName.at(6);
+    TString runNumber_tstr(runNumber_cstr);
+    if(runNumber_tstr.EndsWith("_")) runNumber_tstr.Chop();
+    std::string runNumber_str(runNumber_tstr.Data());
+    runNumber_ = atoi(runNumber_str.c_str());
+  }
+  
+  
+  
+//std::string runNumber_str = runName.at(4) + runName.at(5);
+//if( runName.at(6)!="_" ) runNumber_str += runName.at(6);
+//runNumber_ = atoi(runNumber_str.c_str());
+
+
+
+  float cef3_regr[CEF3_CHANNELS];
+  TMVA::Reader* readerRegrX = new TMVA::Reader( "!Color:!Silent" );
+  readerRegrX->AddVariable("cef3_corr[0]/(cef3_corr[0]+cef3_corr[1]+cef3_corr[2]+cef3_corr[3])", &cef3_regr[0] );
+  readerRegrX->AddVariable("cef3_corr[1]/(cef3_corr[0]+cef3_corr[1]+cef3_corr[2]+cef3_corr[3])", &cef3_regr[1] );
+  readerRegrX->AddVariable("cef3_corr[2]/(cef3_corr[0]+cef3_corr[1]+cef3_corr[2]+cef3_corr[3])", &cef3_regr[2] );
+  readerRegrX->AddVariable("cef3_corr[3]/(cef3_corr[0]+cef3_corr[1]+cef3_corr[2]+cef3_corr[3])", &cef3_regr[3] );
+
+  TMVA::Reader* readerRegrY = new TMVA::Reader( "!Color:!Silent" );
+  readerRegrY->AddVariable("cef3_corr[0]/(cef3_corr[0]+cef3_corr[1]+cef3_corr[2]+cef3_corr[3])", &cef3_regr[0] );
+  readerRegrY->AddVariable("cef3_corr[1]/(cef3_corr[0]+cef3_corr[1]+cef3_corr[2]+cef3_corr[3])", &cef3_regr[1] );
+  readerRegrY->AddVariable("cef3_corr[2]/(cef3_corr[0]+cef3_corr[1]+cef3_corr[2]+cef3_corr[3])", &cef3_regr[2] );
+  readerRegrY->AddVariable("cef3_corr[3]/(cef3_corr[0]+cef3_corr[1]+cef3_corr[2]+cef3_corr[3])", &cef3_regr[3] ); // let try this trick
+
+  //TMVA::Reader* readerRegr2D = new TMVA::Reader( "!Color:!Silent" );
+  //readerRegr2D->AddVariable("cef3_corr[0]", &cef3_corr_[0] );
+  //readerRegr2D->AddVariable("cef3_corr[1]", &cef3_corr_[1] );
+  //readerRegr2D->AddVariable("cef3_corr[2]", &cef3_corr_[2] );
+  //readerRegr2D->AddVariable("cef3_corr[3]", &cef3_corr_[3] );
+  //readerRegr2D->BookMVA( "MLP", "TMVA/weights/TMVARegression_MLP.weights.xml" );
+
+
+  std::vector<std::string> methodNames;
+  methodNames.push_back("BDTG");
+  //methodNames.push_back("FDA_MT");
+  methodNames.push_back("LD");
+  methodNames.push_back("MLP");
+  //methodNames.push_back("PDERS");
+
+ 
+  
+  std::cout << "-> Booking TMVA Reader" << std::endl;
+  for( unsigned i=0; i<methodNames.size(); ++i ) {
+    readerRegrX->BookMVA( methodNames[i], Form("TMVA/weights/TMVARegression_%s.weights.xml", methodNames[i].c_str()) ); 
+    readerRegrY->BookMVA( methodNames[i], Form("TMVA/weights/TMVARegression_%s.weights.xml", methodNames[i].c_str()) ); 
+  }
+
+
+  std::vector< TH1D* > h1_xPos_regr_vs_calo;
+  std::vector< TH1D* > h1_yPos_regr_vs_calo;
+  std::vector< TH2D* > h2_xyPos_regr;
+  std::vector< TH1D* > h1_xPos_regr_vs_calo_singleEle;
+  std::vector< TH1D* > h1_yPos_regr_vs_calo_singleEle;
+  std::vector< TH2D* > h2_xyPos_singleEle_regr;
+  for( unsigned i=0; i<methodNames.size(); ++i ) {
+    TH1D* newHistx = new TH1D( Form("xPos_regr%s_vs_calo", methodNames[i].c_str()), "", nBins, -xMax, xMax);
+    h1_xPos_regr_vs_calo.push_back( newHistx );
+    TH1D* newHisty = new TH1D( Form("yPos_regr%s_vs_calo", methodNames[i].c_str()), "", nBins, -xMax, xMax);
+    h1_yPos_regr_vs_calo.push_back( newHisty );
+    TH2D* newHistxy = new TH2D( Form("xyPos_regr%s", methodNames[i].c_str()), "", nBins, -xMax, xMax, nBins, -xMax, xMax);
+    h2_xyPos_regr.push_back( newHistxy );
+    TH1D* newHistx_singleEle = new TH1D( Form("xPos_regr%s_vs_calo_singleEle", methodNames[i].c_str()), "", nBins, -xMax, xMax);
+    h1_xPos_regr_vs_calo_singleEle.push_back( newHistx_singleEle );
+    TH1D* newHisty_singleEle = new TH1D( Form("yPos_regr%s_vs_calo_singleEle", methodNames[i].c_str()), "", nBins, -xMax, xMax);
+    h1_yPos_regr_vs_calo_singleEle.push_back( newHisty_singleEle );
+    TH2D* newHistxy_singleEle = new TH2D( Form("xyPos_singleEle_regr%s", methodNames[i].c_str()), "", nBins, -xMax, xMax, nBins, -xMax, xMax);
+    h2_xyPos_singleEle_regr.push_back( newHistxy_singleEle );
+  }
+
+
+  TH2D* h2_xyPos_regr2D = new TH2D("xyPos_regr2D", "", nBins, -xMax, xMax, nBins, -xMax, xMax);
+  TH2D* h2_xyPos_singleEle_regr2D = new TH2D("xyPos_singleEle_regr2D", "", nBins, -xMax, xMax, nBins, -xMax, xMax);
+
 
 
   RunHelper::getBeamPosition( runName, xBeam_, yBeam_ );
@@ -323,6 +450,9 @@ int main( int argc, char* argv[] ) {
     nHodoFibersY=0;
     nHodoClustersX=0;
     nHodoClustersY=0;
+    
+    xPos_calo_ = -999.;
+    yPos_calo_ = -999.;
 
     for( unsigned i=0; i<HODOX_CHANNELS; ++i ) {
       nFibres_hodoClustX_[i] = -1.;
@@ -407,8 +537,8 @@ int main( int argc, char* argv[] ) {
     std::vector<float> hodox_corr = subtractPedestals( hodox, pedestals_hodox, nSigma_hodo );
     std::vector<float> hodoy_corr = subtractPedestals( hodoy, pedestals_hodoy, nSigma_hodo );
 
-    bool cef3_ok = checkVector(cef3);
-    bool cef3_corr_ok = checkVector(cef3_corr);
+    cef3_ok_ = checkVector(cef3);
+    cef3_corr_ok_ = checkVector(cef3_corr);
 
 
 
@@ -445,7 +575,9 @@ int main( int argc, char* argv[] ) {
 
 
     //bool isSingleElectron = ((nHodoFibersX==1) && (nHodoFibersY==1));
-    bool isSingleElectron = (scintFront_>500. && scintFront_<2000.);
+    float scintFrontMin = (runNumber_<100) ? 110. : 500.;
+    float scintFrontMax = (runNumber_<100) ? 700. : 2000.;
+    bool isSingleElectron = (scintFront_> scintFrontMin && scintFront_< scintFrontMax);
 
     if( xPos_hodo>-100. )
       h1_xPos_hodo->Fill(xPos_hodo);
@@ -486,8 +618,8 @@ int main( int argc, char* argv[] ) {
 
 
 
-    bool bgo_ok = checkVector(bgo, 4095.);
-    bool bgo_corr_ok = checkVector(bgo_corr, 4095.);
+    bgo_ok_ = checkVector(bgo, 4095.);
+    bgo_corr_ok_ = checkVector(bgo_corr, 4095.);
 
     float xPos_bgo;
     float yPos_bgo;
@@ -497,7 +629,7 @@ int main( int argc, char* argv[] ) {
 
     float eTot_bgo_corr;
 
-    if( bgo_ok && bgo_corr_ok ) {
+    if( bgo_ok_ && bgo_corr_ok_ ) {
 
 
       for(unsigned i=0; i<bgo_calibration.size(); ++i ) 
@@ -570,7 +702,7 @@ int main( int argc, char* argv[] ) {
 
     // THEN USE CeF3 DATA:
 
-    if( cef3_ok ) {
+    if( cef3_ok_ ) {
 
       // intercalibration:
 
@@ -590,7 +722,7 @@ int main( int argc, char* argv[] ) {
 
       
 
-      if( cef3_corr_ok ) {
+      if( cef3_corr_ok_ ) {
 
         h1_cef3_corr_0->Fill( cef3_corr[0] );
         h1_cef3_corr_1->Fill( cef3_corr[1] );
@@ -642,27 +774,42 @@ int main( int argc, char* argv[] ) {
 
 
         // positioning with all 9 calorimeter channels:
-        float xPos_calo = sumVector( xPosW_bgo )/(eTot_bgo_corr + eTot_corr*0.44); // cef3 is in 0,0
-        float yPos_calo = sumVector( yPosW_bgo )/(eTot_bgo_corr + eTot_corr*0.36); // so counts only in denominator
         //float xPos_calo = sumVector( xPosW_bgo )/(eTot_bgo_corr + eTot_corr*0.07); // cef3 is in 0,0
         //float yPos_calo = sumVector( yPosW_bgo )/(eTot_bgo_corr + eTot_corr*0.08); // so counts only in denominator
-        //float xPos_calo = sumVector( xPosW_bgo )/(eTot_bgo_corr + eTot_corr*0.06); // cef3 is in 0,0
-        //float yPos_calo = sumVector( yPosW_bgo )/(eTot_bgo_corr + eTot_corr*0.10); // so counts only in denominator
+        xPos_calo_ = sumVector( xPosW_bgo )/(eTot_bgo_corr + eTot_corr*0.06); // cef3 is in 0,0
+        yPos_calo_ = sumVector( yPosW_bgo )/(eTot_bgo_corr + eTot_corr*0.10); // so counts only in denominator
         //float xPos_calo = sumVector( xPosW_bgo )/(eTot_bgo_corr + eTot_corr*0.791577); // cef3 is in 0,0
         //float yPos_calo = sumVector( yPosW_bgo )/(eTot_bgo_corr + eTot_corr*0.791577); // so counts only in denominator
 
+
+        //xPos_regr2D_ = readerRegr2D->EvaluateRegression( "MLP" )[0];
+        //yPos_regr2D_ = readerRegr2D->EvaluateRegression( "MLP" )[1];
+
+        cef3_regr[0] = cef3_corr[0]/(cef3_corr[0]+cef3_corr[1]+cef3_corr[2]+cef3_corr[3]);
+        cef3_regr[1] = cef3_corr[1]/(cef3_corr[0]+cef3_corr[1]+cef3_corr[2]+cef3_corr[3]);
+        cef3_regr[2] = cef3_corr[2]/(cef3_corr[0]+cef3_corr[1]+cef3_corr[2]+cef3_corr[3]);
+        cef3_regr[3] = cef3_corr[3]/(cef3_corr[0]+cef3_corr[1]+cef3_corr[2]+cef3_corr[3]);
   
-        if( bgo_ok && bgo_corr_ok ) {
+        if( bgo_ok_ && bgo_corr_ok_ ) {
 
-          h1_xPos_calo->Fill( xPos_calo );
-          h1_yPos_calo->Fill( yPos_calo );
-          h2_xyPos_calo->Fill( xPos_calo, yPos_calo );
+          h1_xPos_calo->Fill( xPos_calo_ );
+          h1_yPos_calo->Fill( yPos_calo_ );
+          h2_xyPos_calo->Fill( xPos_calo_, yPos_calo_ );
 
-          h1_xPos_calo_vs_hodo->Fill( xPos_calo-xPos_hodo );
-          h1_yPos_calo_vs_hodo->Fill( yPos_calo-yPos_hodo );
+          for( unsigned i=0; i<methodNames.size(); ++i ) {
+            Float_t xPos_regr = (readerRegrX->EvaluateRegression( methodNames[i] ))[0];
+            Float_t yPos_regr = (readerRegrY->EvaluateRegression( methodNames[i] ))[0];
+            h1_xPos_regr_vs_calo[i]->Fill( xPos_regr-xPos_calo_ );
+            h1_yPos_regr_vs_calo[i]->Fill( yPos_regr-yPos_calo_ );
+            h2_xyPos_regr[i]->Fill( xPos_regr, yPos_regr );
+          }
+          //h2_xyPos_regr2D->Fill( xPos_regr2D_, yPos_regr2D_ );
 
-          h1_xPos_calo_vs_beam->Fill( xPos_calo-xBeam_ );
-          h1_yPos_calo_vs_beam->Fill( yPos_calo-yBeam_ );
+          h1_xPos_calo_vs_hodo->Fill( xPos_calo_-xPos_hodo );
+          h1_yPos_calo_vs_hodo->Fill( yPos_calo_-yPos_hodo );
+
+          h1_xPos_calo_vs_beam->Fill( xPos_calo_-xBeam_ );
+          h1_yPos_calo_vs_beam->Fill( yPos_calo_-yBeam_ );
 
           // CORRELATIONS BETWEEN CALO AND HODO:
 
@@ -681,19 +828,19 @@ int main( int argc, char* argv[] ) {
           h1_yPos_new_singleEle->Fill( yPos_new );
           h2_xyPos_new_singleEle->Fill( xPos_new, yPos_new );
 
-          h1_xPos_calo_vs_hodo_singleElectron->Fill( xPos_calo-xPos_hodo );
-          h1_yPos_calo_vs_hodo_singleElectron->Fill( yPos_calo-yPos_hodo );
+          h1_xPos_calo_vs_hodo_singleElectron->Fill( xPos_calo_-xPos_hodo );
+          h1_yPos_calo_vs_hodo_singleElectron->Fill( yPos_calo_-yPos_hodo );
 
-          h1_xPos_calo_vs_beam_singleElectron->Fill( xPos_calo-xBeam_ );
-          h1_yPos_calo_vs_beam_singleElectron->Fill( yPos_calo-yBeam_ );
+          h1_xPos_calo_vs_beam_singleElectron->Fill( xPos_calo_-xBeam_ );
+          h1_yPos_calo_vs_beam_singleElectron->Fill( yPos_calo_-yBeam_ );
 
           if( nHodoClustersX==1 && nHodoClustersY==1 && hodoxClusters[0]->getSize()<=2 && hodoyClusters[0]->getSize()<=2 ) {
 
-            h1_xPos_calo_vs_hodo_singleElectron_HR->Fill( xPos_calo-xPos_hodo );
-            h1_yPos_calo_vs_hodo_singleElectron_HR->Fill( yPos_calo-yPos_hodo );
+            h1_xPos_calo_vs_hodo_singleElectron_HR->Fill( xPos_calo_-xPos_hodo );
+            h1_yPos_calo_vs_hodo_singleElectron_HR->Fill( yPos_calo_-yPos_hodo );
   
-            h1_xPos_calo_vs_beam_singleElectron_HR->Fill( xPos_calo-xBeam_ );
-            h1_yPos_calo_vs_beam_singleElectron_HR->Fill( yPos_calo-yBeam_ );
+            h1_xPos_calo_vs_beam_singleElectron_HR->Fill( xPos_calo_-xBeam_ );
+            h1_yPos_calo_vs_beam_singleElectron_HR->Fill( yPos_calo_-yBeam_ );
 
           }
 
@@ -702,11 +849,21 @@ int main( int argc, char* argv[] ) {
           h2_correlation_cef3_hodo_yPos_singleEle->Fill( yPos, yPos_hodo );
 
   
-          if( bgo_ok && bgo_corr_ok ) {
+          if( bgo_ok_ && bgo_corr_ok_ ) {
 
-            h1_xPos_singleEle_calo->Fill( xPos_calo );
-            h1_yPos_singleEle_calo->Fill( yPos_calo );
-            h2_xyPos_singleEle_calo->Fill( xPos_calo, yPos_calo );
+            h1_xPos_singleEle_calo->Fill( xPos_calo_ );
+            h1_yPos_singleEle_calo->Fill( yPos_calo_ );
+            h2_xyPos_singleEle_calo->Fill( xPos_calo_, yPos_calo_ );
+
+            for( unsigned i=0; i<methodNames.size(); ++i ) {
+              Float_t xPos_regr = (readerRegrX->EvaluateRegression( methodNames[i] ))[0];
+              Float_t yPos_regr = (readerRegrY->EvaluateRegression( methodNames[i] ))[0];
+              h1_xPos_regr_vs_calo_singleEle[i]->Fill( xPos_regr-xPos_calo_ );
+              h1_yPos_regr_vs_calo_singleEle[i]->Fill( yPos_regr-yPos_calo_ );
+              h2_xyPos_singleEle_regr[i]->Fill( xPos_regr, yPos_regr );
+            }
+
+            //h2_xyPos_singleEle_regr2D->Fill( xPos_regr2D_, yPos_regr2D_ );
 
             h2_correlation_cef3_bgo_xPos_singleEle->Fill( xPos, xPos_bgo );
             h2_correlation_cef3_bgo_yPos_singleEle->Fill( yPos, yPos_bgo );
@@ -747,6 +904,19 @@ int main( int argc, char* argv[] ) {
   outfile->cd();
 
   outTree->Write();
+
+
+  for( unsigned i=0; i<h1_xPos_regr_vs_calo.size(); ++i ) {
+    h1_xPos_regr_vs_calo[i]->Write();
+    h1_yPos_regr_vs_calo[i]->Write();
+    h1_xPos_regr_vs_calo_singleEle[i]->Write();
+    h1_yPos_regr_vs_calo_singleEle[i]->Write();
+    h2_xyPos_regr[i]->Write();
+    h2_xyPos_singleEle_regr[i]->Write();
+  }
+
+
+
 
   h1_xPos->Write();
   h1_yPos->Write();
@@ -871,6 +1041,9 @@ int main( int argc, char* argv[] ) {
   h1_xPos_singleEle_calo->Write();
   h1_yPos_singleEle_calo->Write();
   h2_xyPos_singleEle_calo->Write();
+  
+  //h2_xyPos_regr2D->Write();
+  //h2_xyPos_singleEle_regr2D->Write();
   
 
   h2_correlation_cef3_hodo_xPos_singleEle->Write();
