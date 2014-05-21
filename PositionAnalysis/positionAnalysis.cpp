@@ -56,7 +56,13 @@ int main( int argc, char* argv[] ) {
     std::cout << "-> We believe you are passing the program only the run number!" << std::endl;
     std::cout << "-> So for instance you are passing '246' for run 'BTF_246_20140501-212512_beam'" << std::endl;
     std::cout << "(if this is not the case this means TROUBLE)" << std::endl;
+    std::cout << "-> Will look for runs matching run number: " << runName << std::endl;
     tree->Add(Form("data/run_BTF_%s_2014*_beam.root/eventRawData", runName.c_str()) );
+    if( tree->GetEntries()==0 ) {
+      std::cout << "WARNING! Didn't find any events matching run: " << runName << std::endl;
+      std::cout << "Exiting" << std::endl;
+      exit(1913);
+    }
   } else {
     std::string fileName = "data/run_" + runName + ".root";
     TFile* file = TFile::Open(fileName.c_str());
@@ -293,13 +299,29 @@ int main( int argc, char* argv[] ) {
 
   int nentries = tree->GetEntries();
 
-  std::string outfileName;
-  if( isOnlyRunNumber ) outfileName = "PosAn_BTF_" + runName + ".root";
-  else outfileName = "PosAn_" + runName + ".root";
+
+  // get run number with a trick:
+  int runNumber_;
+  if( isOnlyRunNumber ) {
+    runNumber_ = atoi(runName.c_str());
+  } else {
+    char runNumber_cstr[3];
+    runNumber_cstr[0] = runName.at(4);
+    runNumber_cstr[1] = runName.at(5);
+    runNumber_cstr[2] = runName.at(6);
+    TString runNumber_tstr(runNumber_cstr);
+    if(runNumber_tstr.EndsWith("_")) runNumber_tstr.Chop();
+    std::string runNumber_str(runNumber_tstr.Data());
+    runNumber_ = atoi(runNumber_str.c_str());
+  }
+
+  // then modify runname in such a way that it's useful for getBeamPosition and outfile:
+  runName = "BTF_" + runName + "_beam";
+
+  std::string outfileName = "PosAn_" + runName + ".root";
   TFile* outfile = TFile::Open( outfileName.c_str(), "RECREATE" );
 
   TTree* outTree = new TTree("tree_passedEvents","tree_passedEvents");
-  int runNumber_;
   float cef3_[CEF3_CHANNELS],bgo_[BGO_CHANNELS],hodox_[HODOX_CHANNELS],hodoy_[HODOY_CHANNELS];
   float cef3_corr_[CEF3_CHANNELS],bgo_corr_[BGO_CHANNELS],hodox_corr_[HODOX_CHANNELS],hodoy_corr_[HODOY_CHANNELS];
   float scintFront_;
@@ -358,19 +380,6 @@ int main( int argc, char* argv[] ) {
   outTree->Branch( "yPos_regr2D", &yPos_regr2D_, "yPos_regr2D_/F" );
 
 
-  // get run number with a trick:
-  if( isOnlyRunNumber ) {
-    runNumber_ = atoi(runName.c_str());
-  } else {
-    char runNumber_cstr[3];
-    runNumber_cstr[0] = runName.at(4);
-    runNumber_cstr[1] = runName.at(5);
-    runNumber_cstr[2] = runName.at(6);
-    TString runNumber_tstr(runNumber_cstr);
-    if(runNumber_tstr.EndsWith("_")) runNumber_tstr.Chop();
-    std::string runNumber_str(runNumber_tstr.Data());
-    runNumber_ = atoi(runNumber_str.c_str());
-  }
   
   
   
@@ -578,8 +587,8 @@ int main( int argc, char* argv[] ) {
 
 
     //bool isSingleElectron = ((nHodoFibersX==1) && (nHodoFibersY==1));
-    float scintFrontMin = (runNumber_<100) ? 110. : 500.;
-    float scintFrontMax = (runNumber_<100) ? 700. : 2000.;
+    float scintFrontMin = (runNumber_<=100) ? 110. : 500.;
+    float scintFrontMax = (runNumber_<=100) ? 700. : 2000.;
     bool isSingleElectron = (scintFront_> scintFrontMin && scintFront_< scintFrontMax);
 
     if( xPos_hodo>-100. )
