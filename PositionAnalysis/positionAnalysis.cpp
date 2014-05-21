@@ -362,6 +362,7 @@ int main( int argc, char* argv[] ) {
   outTree->Branch( "hodoy", hodoy_, "hodoy_[hodoy_chan]/F" );
   outTree->Branch( "bgo", bgo_, "bgo_[bgo_chan]/F" );
   outTree->Branch( "cef3", cef3_, "cef3_[cef3_chan]/F" );
+  outTree->Branch( "cef3_pedSubtracted", cef3_pedSubtracted_, "cef3_pedSubtracted_[cef3_chan]/F" );
   outTree->Branch( "bgo_corr", bgo_corr_, "bgo_corr_[bgo_chan]/F" );
   outTree->Branch( "cef3_corr", cef3_corr_, "cef3_corr_[cef3_chan]/F" );
   outTree->Branch( "hodox_corr", hodox_corr_, "hodox_corr_[hodox_chan]/F" );
@@ -548,6 +549,8 @@ int main( int argc, char* argv[] ) {
     std::vector<float> cef3_corr = subtractPedestals( cef3, pedestals,     4. );
     std::vector<float> hodox_corr = subtractPedestals( hodox, pedestals_hodox, nSigma_hodo );
     std::vector<float> hodoy_corr = subtractPedestals( hodoy, pedestals_hodoy, nSigma_hodo );
+
+    std::vector<float> cef3_pedSubtracted = subtractPedestals( cef3, pedestals,     4. );
 
     cef3_ok_ = checkVector(cef3);
     cef3_corr_ok_ = checkVector(cef3_corr);
@@ -887,6 +890,7 @@ int main( int argc, char* argv[] ) {
         for(int i=0;i<CEF3_CHANNELS;i++){
           cef3_[i]=cef3[i]; 
           cef3_corr_[i]=cef3_corr[i];
+	  cef3_pedSubtracted_[i]=cef3_pedSubtracted[i];
         }
         for(int i=0;i<BGO_CHANNELS;i++){
           bgo_[i]=bgo[i];
