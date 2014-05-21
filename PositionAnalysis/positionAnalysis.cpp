@@ -301,7 +301,7 @@ int main( int argc, char* argv[] ) {
 
 
   // get run number with a trick:
-  int runNumber_;
+  unsigned int runNumber_;
   if( isOnlyRunNumber ) {
     runNumber_ = atoi(runName.c_str());
   } else {
