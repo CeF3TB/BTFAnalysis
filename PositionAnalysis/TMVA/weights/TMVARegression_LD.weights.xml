@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<MethodSetup Method="LD::LD">
+  <GeneralInfo>
+    <Info name="TMVA Release" value="4.2.0 [262656]"/>
+    <Info name="ROOT Release" value="5.34/18 [336402]"/>
+    <Info name="Creator" value="pandolf"/>
+    <Info name="Date" value="Mon May 19 11:38:04 2014"/>
+    <Info name="Host" value="Darwin pb-d-128-141-154-112.cern.ch 13.1.0 Darwin Kernel Version 13.1.0: Wed Apr 2 23:52:02 PDT 2014; root:xnu-2422.92.1~2/RELEASE_X86_64 x86_64"/>
+    <Info name="Dir" value="/Users/pandolf/BTFAnalysis/PositionAnalysis/TMVA"/>
+    <Info name="Training events" value="4190"/>
+    <Info name="TrainingTime" value="2.31790543e-03"/>
+    <Info name="AnalysisType" value="Regression"/>
+  </GeneralInfo>
+  <Options>
+    <Option name="V" modified="Yes">False</Option>
+    <Option name="VerbosityLevel" modified="No">Default</Option>
+    <Option name="VarTransform" modified="Yes">None</Option>
+    <Option name="H" modified="Yes">False</Option>
+    <Option name="CreateMVAPdfs" modified="No">False</Option>
+    <Option name="IgnoreNegWeightsInTraining" modified="No">False</Option>
+  </Options>
+  <Variables NVar="4">
+    <Variable VarIndex="0" Expression="cef3_corr[0]/(cef3_corr[0]+cef3_corr[1]+cef3_corr[2]+cef3_corr[3])" Label="cef3_corr[0]/(cef3_corr[0]+cef3_corr[1]+cef3_corr[2]+cef3_corr[3])" Title="CeF3 0" Unit="" Internal="cef3_corr_0__D__cef3_corr_0__P_cef3_corr_1__P_cef3_corr_2__P_cef3_corr_3__" Type="F" Min="6.77223727e-02" Max="5.30460000e-01"/>
+    <Variable VarIndex="1" Expression="cef3_corr[1]/(cef3_corr[0]+cef3_corr[1]+cef3_corr[2]+cef3_corr[3])" Label="cef3_corr[1]/(cef3_corr[0]+cef3_corr[1]+cef3_corr[2]+cef3_corr[3])" Title="CeF3 1" Unit="" Internal="cef3_corr_1__D__cef3_corr_0__P_cef3_corr_1__P_cef3_corr_2__P_cef3_corr_3__" Type="F" Min="3.53610665e-02" Max="5.16376615e-01"/>
+    <Variable VarIndex="2" Expression="cef3_corr[2]/(cef3_corr[0]+cef3_corr[1]+cef3_corr[2]+cef3_corr[3])" Label="cef3_corr[2]/(cef3_corr[0]+cef3_corr[1]+cef3_corr[2]+cef3_corr[3])" Title="CeF3 2" Unit="" Internal="cef3_corr_2__D__cef3_corr_0__P_cef3_corr_1__P_cef3_corr_2__P_cef3_corr_3__" Type="F" Min="5.29901870e-02" Max="7.03151882e-01"/>
+    <Variable VarIndex="3" Expression="cef3_corr[3]/(cef3_corr[0]+cef3_corr[1]+cef3_corr[2]+cef3_corr[3])" Label="cef3_corr[3]/(cef3_corr[0]+cef3_corr[1]+cef3_corr[2]+cef3_corr[3])" Title="CeF3 3" Unit="" Internal="cef3_corr_3__D__cef3_corr_0__P_cef3_corr_1__P_cef3_corr_2__P_cef3_corr_3__" Type="F" Min="3.97924110e-02" Max="6.25240684e-01"/>
+  </Variables>
+  <Spectators NSpec="0"/>
+  <Classes NClass="1">
+    <Class Name="Regression" Index="0"/>
+  </Classes>
+  <Targets NTrgt="1">
+    <Target TargetIndex="0" Expression="xPos_calo" Label="xPos_calo" Title="xPos_calo" Unit="" Internal="xPos_calo" Type="F" Min="-2.02909584e+01" Max="2.00556259e+01"/>
+  </Targets>
+  <Transformations NTransformations="0"/>
+  <MVAPdfs/>
+  <Weights NOut="1" NCoeff="5">
+    <Coefficient IndexOut="0" IndexCoeff="0" Value="2.7710336685180664e+01"/>
+    <Coefficient IndexOut="0" IndexCoeff="1" Value="-3.7398719787597656e+01"/>
+    <Coefficient IndexOut="0" IndexCoeff="2" Value="-2.0338920593261719e+01"/>
+    <Coefficient IndexOut="0" IndexCoeff="3" Value="-1.9999860763549805e+01"/>
+    <Coefficient IndexOut="0" IndexCoeff="4" Value="-3.7406126022338867e+01"/>
+  </Weights>
+</MethodSetup>
