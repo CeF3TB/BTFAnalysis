@@ -322,8 +322,8 @@ int main( int argc, char* argv[] ) {
   TFile* outfile = TFile::Open( outfileName.c_str(), "RECREATE" );
 
   TTree* outTree = new TTree("tree_passedEvents","tree_passedEvents");
-  float cef3_[CEF3_CHANNELS],bgo_[BGO_CHANNELS],hodox_[HODOX_CHANNELS],hodoy_[HODOY_CHANNELS];
-  float cef3_corr_[CEF3_CHANNELS],bgo_corr_[BGO_CHANNELS],hodox_corr_[HODOX_CHANNELS],hodoy_corr_[HODOY_CHANNELS];
+  float cef3_[CEF3_CHANNELS],cef3_pedSubtracted_[CEF3_CHANNELS],bgo_[BGO_CHANNELS],hodox_[HODOX_CHANNELS],hodoy_[HODOY_CHANNELS];
+  float cef3_corr_[CEF3_CHANNELS],bgo_corr_[BGO_CHANNELS],bgo_pedSubtracted_[BGO_CHANNELS],hodox_corr_[HODOX_CHANNELS],hodoy_corr_[HODOY_CHANNELS];
   float scintFront_;
   int cef3_chan=CEF3_CHANNELS;
   int bgo_chan=BGO_CHANNELS;
@@ -364,6 +364,7 @@ int main( int argc, char* argv[] ) {
   outTree->Branch( "cef3", cef3_, "cef3_[cef3_chan]/F" );
   outTree->Branch( "cef3_pedSubtracted", cef3_pedSubtracted_, "cef3_pedSubtracted_[cef3_chan]/F" );
   outTree->Branch( "bgo_corr", bgo_corr_, "bgo_corr_[bgo_chan]/F" );
+  outTree->Branch( "bgo_pedSubtracted", bgo_pedSubtracted_, "bgo_pedSubtracted_[bgo_chan]/F" );
   outTree->Branch( "cef3_corr", cef3_corr_, "cef3_corr_[cef3_chan]/F" );
   outTree->Branch( "hodox_corr", hodox_corr_, "hodox_corr_[hodox_chan]/F" );
   outTree->Branch( "hodoy_corr", hodoy_corr_, "hodoy_corr_[hodoy_chan]/F" );
@@ -551,6 +552,7 @@ int main( int argc, char* argv[] ) {
     std::vector<float> hodoy_corr = subtractPedestals( hodoy, pedestals_hodoy, nSigma_hodo );
 
     std::vector<float> cef3_pedSubtracted = subtractPedestals( cef3, pedestals,     4. );
+    std::vector<float>  bgo_pedSubtracted= subtractPedestals( bgo , pedestals_bgo, 4. );
 
     cef3_ok_ = checkVector(cef3);
     cef3_corr_ok_ = checkVector(cef3_corr);
@@ -895,6 +897,7 @@ int main( int argc, char* argv[] ) {
         for(int i=0;i<BGO_CHANNELS;i++){
           bgo_[i]=bgo[i];
           bgo_corr_[i]=bgo_corr[i];
+          bgo_pedSubtracted_[i]=bgo_pedSubtracted[i];
         }
         for(int i=0;i<HODOX_CHANNELS;i++){
           hodox_[i]=hodox[i];
