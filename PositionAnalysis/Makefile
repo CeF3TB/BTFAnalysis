@@ -12,7 +12,7 @@ EXTRALIBS := -L$(ROOTSYS)/lib  -lHtml -lMathCore -lGenVector -lMinuit -lTMVA
 
 
 
-all: positionAnalysis drawPositionAnalysis hodoscopeAnalysis calibrateCeF3 drawHodoClustersVsEnergy drawShitVsDiagonal calibrateBGO drawEnergyScan calibrateCaloPositioning drawCaloPositioning calibrateCeF3Positioning makePedestalFile
+all: positionAnalysis drawPositionAnalysis hodoscopeAnalysis calibrateCeF3 drawHodoClustersVsEnergy drawShitVsDiagonal calibrateBGO drawEnergyScan calibrateCaloPositioning drawCaloPositioning calibrateCeF3Positioning makePedestalFile makeAnalysisTree
 
 
 checkRuns: checkRuns.cpp
@@ -20,6 +20,9 @@ checkRuns: checkRuns.cpp
 
 makePedestalFile: makePedestalFile.cpp 
 	$(CC) -Wall $(INCLUDES) -o makePedestalFile makePedestalFile.cpp $(ROOTFLAG) $(EXTRALIBS)
+
+makeAnalysisTree: makeAnalysisTree.cpp RunHelper.o HodoCluster.o
+	$(CC) -Wall $(INCLUDES) -o makeAnalysisTree makeAnalysisTree.cpp RunHelper.o HodoCluster.o $(ROOTFLAG) $(EXTRALIBS)
 
 positionAnalysis: HodoCluster.o RunHelper.o positionAnalysis.cpp hodo_efficiency.dat
 	$(CC) -Wall $(INCLUDES) -o positionAnalysis positionAnalysis.cpp HodoCluster.o RunHelper.o $(ROOTFLAG) $(EXTRALIBS)
