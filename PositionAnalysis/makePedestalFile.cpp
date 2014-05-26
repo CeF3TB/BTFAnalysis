@@ -28,7 +28,7 @@ void savePedestalsToFile( TFile* file, std::vector<TH1D*> vh_peds );
 int main( int argc, char* argv[] ) {
 
 
-  ifstream pedList("pedestalFiles.txt");
+  ifstream pedList("pedestalFilesList.txt");
 
   TFile* outfile = TFile::Open("pedestalFile.root", "recreate");
  
