@@ -9,6 +9,7 @@
 #include "TFile.h"
 #include "TTree.h"
 #include "TVector2.h"
+#include "TF1.h"
 
 #include "TMVA/Reader.h"
 
@@ -19,6 +20,11 @@
 #include "hodo_efficiency.dat"
 
 
+
+//TFile* f1pro = TFile::Open("prova.root", "recreate");
+//TH1D* h1_d13 = new TH1D("d13", "", 100, -20., 20.);
+
+
 std::vector< std::pair<float, float> > getPedestals( const std::string& type, const std::string& fileName );
 std::vector<float> subtractPedestals( std::vector<float> raw, std::vector< std::pair<float, float> > pedestals, float nSigma );
 float sumVector( std::vector<float> v );
@@ -27,6 +33,7 @@ bool checkVector( std::vector<float> v, float theMax=4095. );
 float getMeanposHodo( std::vector<HodoCluster*> clusters );
 std::vector<HodoCluster*> getHodoClusters( std::vector<float> hodo_corr, int nClusterMax );
 void getCeF3Position( std::vector<float> cef3, float& xPos, float& yPos );
+TF1* getCef3Function( const std::string& diagName );
 float getSingleCef3Position( float en, bool takemin, float trueX );
 float gethodointercalib(TString axis, int n);
 
@@ -324,6 +331,7 @@ int main( int argc, char* argv[] ) {
   TTree* outTree = new TTree("tree_passedEvents","tree_passedEvents");
   float cef3_[CEF3_CHANNELS],bgo_[BGO_CHANNELS],hodox_[HODOX_CHANNELS],hodoy_[HODOY_CHANNELS];
   float cef3_corr_[CEF3_CHANNELS],bgo_corr_[BGO_CHANNELS],hodox_corr_[HODOX_CHANNELS],hodoy_corr_[HODOY_CHANNELS];
+  float cef3_pedSubtracted_[CEF3_CHANNELS];
   float scintFront_;
   int cef3_chan=CEF3_CHANNELS;
   int bgo_chan=BGO_CHANNELS;
@@ -331,6 +339,7 @@ int main( int argc, char* argv[] ) {
   int hodoy_chan=HODOY_CHANNELS; 
   float xBeam_, yBeam_;
   float xPos_calo_, yPos_calo_;
+  float xPos_new_, yPos_new_;
   float pos_hodoClustX_[HODOX_CHANNELS];
   float pos_hodoClustY_[HODOY_CHANNELS];
   int nFibres_hodoClustX_[HODOX_CHANNELS];
@@ -372,7 +381,8 @@ int main( int argc, char* argv[] ) {
   outTree->Branch( "yBeam", &yBeam_, "yBeam_/F" );
   outTree->Branch( "xPos_calo", &xPos_calo_, "xPos_calo_/F" );
   outTree->Branch( "yPos_calo", &yPos_calo_, "yPos_calo_/F" );
-  outTree->Branch( "yPos_calo", &yPos_calo_, "yPos_calo_/F" );
+  outTree->Branch( "xPos_new", &xPos_new_, "xPos_new_/F" );
+  outTree->Branch( "yPos_new", &yPos_new_, "yPos_new_/F" );
   outTree->Branch( "cef3_ok", &cef3_ok_, "cef3_ok_/O" );
   outTree->Branch( "cef3_corr_ok", &cef3_corr_ok_, "cef3_corr_ok_/O" );
   outTree->Branch( "bgo_ok", &bgo_ok_, "bgo_ok_/O" );
@@ -380,6 +390,18 @@ int main( int argc, char* argv[] ) {
   outTree->Branch( "xPos_regr2D", &xPos_regr2D_, "xPos_regr2D_/F" );
   outTree->Branch( "yPos_regr2D", &yPos_regr2D_, "yPos_regr2D_/F" );
 
+  float diag02_calo_;
+  float diag13_calo_;
+  outTree->Branch( "diag02_calo", &diag02_calo_, "diag02_calo_/F" );
+  outTree->Branch( "diag13_calo", &diag13_calo_, "diag13_calo_/F" );
+  float diag02_new_;
+  float diag13_new_;
+  outTree->Branch( "diag02_new", &diag02_new_, "diag02_new_/F" );
+  outTree->Branch( "diag13_new", &diag13_new_, "diag13_new_/F" );
+  float diag02_beam_;
+  float diag13_beam_;
+  outTree->Branch( "diag02_beam", &diag02_beam_, "diag02_beam_/F" );
+  outTree->Branch( "diag13_beam", &diag13_beam_, "diag13_beam_/F" );
 
   
   
@@ -391,17 +413,17 @@ int main( int argc, char* argv[] ) {
 
 
   float cef3_regr[CEF3_CHANNELS];
-  TMVA::Reader* readerRegrX = new TMVA::Reader( "!Color:!Silent" );
-  readerRegrX->AddVariable("cef3_corr[0]/(cef3_corr[0]+cef3_corr[1]+cef3_corr[2]+cef3_corr[3])", &cef3_regr[0] );
-  readerRegrX->AddVariable("cef3_corr[1]/(cef3_corr[0]+cef3_corr[1]+cef3_corr[2]+cef3_corr[3])", &cef3_regr[1] );
-  readerRegrX->AddVariable("cef3_corr[2]/(cef3_corr[0]+cef3_corr[1]+cef3_corr[2]+cef3_corr[3])", &cef3_regr[2] );
-  readerRegrX->AddVariable("cef3_corr[3]/(cef3_corr[0]+cef3_corr[1]+cef3_corr[2]+cef3_corr[3])", &cef3_regr[3] );
+  //TMVA::Reader* readerRegrX = new TMVA::Reader( "!Color:!Silent" );
+  //readerRegrX->AddVariable("cef3_corr[0]/(cef3_corr[0]+cef3_corr[1]+cef3_corr[2]+cef3_corr[3])", &cef3_regr[0] );
+  //readerRegrX->AddVariable("cef3_corr[1]/(cef3_corr[0]+cef3_corr[1]+cef3_corr[2]+cef3_corr[3])", &cef3_regr[1] );
+  //readerRegrX->AddVariable("cef3_corr[2]/(cef3_corr[0]+cef3_corr[1]+cef3_corr[2]+cef3_corr[3])", &cef3_regr[2] );
+  //readerRegrX->AddVariable("cef3_corr[3]/(cef3_corr[0]+cef3_corr[1]+cef3_corr[2]+cef3_corr[3])", &cef3_regr[3] );
 
-  TMVA::Reader* readerRegrY = new TMVA::Reader( "!Color:!Silent" );
-  readerRegrY->AddVariable("cef3_corr[0]/(cef3_corr[0]+cef3_corr[1]+cef3_corr[2]+cef3_corr[3])", &cef3_regr[0] );
-  readerRegrY->AddVariable("cef3_corr[1]/(cef3_corr[0]+cef3_corr[1]+cef3_corr[2]+cef3_corr[3])", &cef3_regr[1] );
-  readerRegrY->AddVariable("cef3_corr[2]/(cef3_corr[0]+cef3_corr[1]+cef3_corr[2]+cef3_corr[3])", &cef3_regr[2] );
-  readerRegrY->AddVariable("cef3_corr[3]/(cef3_corr[0]+cef3_corr[1]+cef3_corr[2]+cef3_corr[3])", &cef3_regr[3] ); // let try this trick
+  //TMVA::Reader* readerRegrY = new TMVA::Reader( "!Color:!Silent" );
+  //readerRegrY->AddVariable("cef3_corr[0]/(cef3_corr[0]+cef3_corr[1]+cef3_corr[2]+cef3_corr[3])", &cef3_regr[0] );
+  //readerRegrY->AddVariable("cef3_corr[1]/(cef3_corr[0]+cef3_corr[1]+cef3_corr[2]+cef3_corr[3])", &cef3_regr[1] );
+  //readerRegrY->AddVariable("cef3_corr[2]/(cef3_corr[0]+cef3_corr[1]+cef3_corr[2]+cef3_corr[3])", &cef3_regr[2] );
+  //readerRegrY->AddVariable("cef3_corr[3]/(cef3_corr[0]+cef3_corr[1]+cef3_corr[2]+cef3_corr[3])", &cef3_regr[3] ); // let try this trick
 
   //TMVA::Reader* readerRegr2D = new TMVA::Reader( "!Color:!Silent" );
   //readerRegr2D->AddVariable("cef3_corr[0]", &cef3_corr_[0] );
@@ -412,19 +434,19 @@ int main( int argc, char* argv[] ) {
 
 
   std::vector<std::string> methodNames;
-  methodNames.push_back("BDTG");
-  //methodNames.push_back("FDA_MT");
-  methodNames.push_back("LD");
-  methodNames.push_back("MLP");
-  //methodNames.push_back("PDERS");
+  //methodNames.push_back("BDTG");
+  ////methodNames.push_back("FDA_MT");
+  //methodNames.push_back("LD");
+  //methodNames.push_back("MLP");
+  ////methodNames.push_back("PDERS");
 
  
-  
-  std::cout << "-> Booking TMVA Reader" << std::endl;
-  for( unsigned i=0; i<methodNames.size(); ++i ) {
-    readerRegrX->BookMVA( methodNames[i], Form("TMVA/weights/TMVARegression_%s.weights.xml", methodNames[i].c_str()) ); 
-    readerRegrY->BookMVA( methodNames[i], Form("TMVA/weights/TMVARegression_%s.weights.xml", methodNames[i].c_str()) ); 
-  }
+  //
+  //std::cout << "-> Booking TMVA Reader" << std::endl;
+  //for( unsigned i=0; i<methodNames.size(); ++i ) {
+  //  readerRegrX->BookMVA( methodNames[i], Form("TMVA/weights/TMVARegression_%s.weights.xml", methodNames[i].c_str()) ); 
+  //  readerRegrY->BookMVA( methodNames[i], Form("TMVA/weights/TMVARegression_%s.weights.xml", methodNames[i].c_str()) ); 
+  //}
 
 
   std::vector< TH1D* > h1_xPos_regr_vs_calo;
@@ -771,8 +793,22 @@ int main( int argc, char* argv[] ) {
         yPosW.push_back(cef3_corr[3]*(-position));
 
 
-        float xPos_new, yPos_new;
-        getCeF3Position( cef3_corr, xPos_new, yPos_new );
+        getCeF3Position( cef3_corr, xPos_new_, yPos_new_ );
+        //diag02_new_ = xPos_new_;
+        //diag13_new_ = yPos_new_;
+
+        float pi = 3.14159;
+        float theta = pi/4.; // 45 degrees 
+        TVector2 vnew( xPos_new_, yPos_new_ );
+        TVector2 dnew = vnew.Rotate(-theta);
+        diag02_new_ = dnew.Y();
+        diag13_new_ = dnew.X();
+
+
+        TVector2 vBeam( xBeam_, yBeam_ );
+        TVector2 dBeam = vBeam.Rotate(-theta);
+        diag02_beam_ = dBeam.Y();
+        diag13_beam_ = dBeam.X();
 
         float xPos = sumVector(xPosW)/eTot_corr;
         float yPos = sumVector(yPosW)/eTot_corr;
@@ -782,10 +818,10 @@ int main( int argc, char* argv[] ) {
 
         h2_xyPos->Fill( xPos, yPos );
 
-        h1_xPos_new->Fill( xPos_new );
-        h1_yPos_new->Fill( yPos_new );
+        h1_xPos_new->Fill( xPos_new_ );
+        h1_yPos_new->Fill( yPos_new_ );
 
-        h2_xyPos_new->Fill( xPos_new, yPos_new );
+        h2_xyPos_new->Fill( xPos_new_, yPos_new_ );
 
 
         // positioning with all 9 calorimeter channels:
@@ -796,6 +832,10 @@ int main( int argc, char* argv[] ) {
         //float xPos_calo = sumVector( xPosW_bgo )/(eTot_bgo_corr + eTot_corr*0.791577); // cef3 is in 0,0
         //float yPos_calo = sumVector( yPosW_bgo )/(eTot_bgo_corr + eTot_corr*0.791577); // so counts only in denominator
 
+        TVector2 vcalo( xPos_calo_, yPos_calo_ );
+        TVector2 dcalo = vcalo.Rotate(-theta);
+        diag02_calo_ = dcalo.Y();
+        diag13_calo_ = dcalo.X();
 
         //xPos_regr2D_ = readerRegr2D->EvaluateRegression( "MLP" )[0];
         //yPos_regr2D_ = readerRegr2D->EvaluateRegression( "MLP" )[1];
@@ -811,13 +851,13 @@ int main( int argc, char* argv[] ) {
           h1_yPos_calo->Fill( yPos_calo_ );
           h2_xyPos_calo->Fill( xPos_calo_, yPos_calo_ );
 
-          for( unsigned i=0; i<methodNames.size(); ++i ) {
-            Float_t xPos_regr = (readerRegrX->EvaluateRegression( methodNames[i] ))[0];
-            Float_t yPos_regr = (readerRegrY->EvaluateRegression( methodNames[i] ))[0];
-            h1_xPos_regr_vs_calo[i]->Fill( xPos_regr-xPos_calo_ );
-            h1_yPos_regr_vs_calo[i]->Fill( yPos_regr-yPos_calo_ );
-            h2_xyPos_regr[i]->Fill( xPos_regr, yPos_regr );
-          }
+          //for( unsigned i=0; i<methodNames.size(); ++i ) {
+          //  Float_t xPos_regr = (readerRegrX->EvaluateRegression( methodNames[i] ))[0];
+          //  Float_t yPos_regr = (readerRegrY->EvaluateRegression( methodNames[i] ))[0];
+          //  h1_xPos_regr_vs_calo[i]->Fill( xPos_regr-xPos_calo_ );
+          //  h1_yPos_regr_vs_calo[i]->Fill( yPos_regr-yPos_calo_ );
+          //  h2_xyPos_regr[i]->Fill( xPos_regr, yPos_regr );
+          //}
           //h2_xyPos_regr2D->Fill( xPos_regr2D_, yPos_regr2D_ );
 
           h1_xPos_calo_vs_hodo->Fill( xPos_calo_-xPos_hodo );
@@ -839,9 +879,9 @@ int main( int argc, char* argv[] ) {
           h1_yPos_singleEle->Fill( yPos );
           h2_xyPos_singleEle->Fill( xPos, yPos );
 
-          h1_xPos_new_singleEle->Fill( xPos_new );
-          h1_yPos_new_singleEle->Fill( yPos_new );
-          h2_xyPos_new_singleEle->Fill( xPos_new, yPos_new );
+          h1_xPos_new_singleEle->Fill( xPos_new_ );
+          h1_yPos_new_singleEle->Fill( yPos_new_ );
+          h2_xyPos_new_singleEle->Fill( xPos_new_, yPos_new_ );
 
           h1_xPos_calo_vs_hodo_singleElectron->Fill( xPos_calo_-xPos_hodo );
           h1_yPos_calo_vs_hodo_singleElectron->Fill( yPos_calo_-yPos_hodo );
@@ -870,13 +910,13 @@ int main( int argc, char* argv[] ) {
             h1_yPos_singleEle_calo->Fill( yPos_calo_ );
             h2_xyPos_singleEle_calo->Fill( xPos_calo_, yPos_calo_ );
 
-            for( unsigned i=0; i<methodNames.size(); ++i ) {
-              Float_t xPos_regr = (readerRegrX->EvaluateRegression( methodNames[i] ))[0];
-              Float_t yPos_regr = (readerRegrY->EvaluateRegression( methodNames[i] ))[0];
-              h1_xPos_regr_vs_calo_singleEle[i]->Fill( xPos_regr-xPos_calo_ );
-              h1_yPos_regr_vs_calo_singleEle[i]->Fill( yPos_regr-yPos_calo_ );
-              h2_xyPos_singleEle_regr[i]->Fill( xPos_regr, yPos_regr );
-            }
+            //for( unsigned i=0; i<methodNames.size(); ++i ) {
+            //  Float_t xPos_regr = (readerRegrX->EvaluateRegression( methodNames[i] ))[0];
+            //  Float_t yPos_regr = (readerRegrY->EvaluateRegression( methodNames[i] ))[0];
+            //  h1_xPos_regr_vs_calo_singleEle[i]->Fill( xPos_regr-xPos_calo_ );
+            //  h1_yPos_regr_vs_calo_singleEle[i]->Fill( yPos_regr-yPos_calo_ );
+            //  h2_xyPos_singleEle_regr[i]->Fill( xPos_regr, yPos_regr );
+            //}
 
             //h2_xyPos_singleEle_regr2D->Fill( xPos_regr2D_, yPos_regr2D_ );
 
@@ -914,6 +954,9 @@ int main( int argc, char* argv[] ) {
 
   }
 
+  //f1pro->cd();
+  //h1_d13->Write();
+  //f1pro->Close();
 
   std::cout << "-> Events passing overflow cut: " << h1_xPos->GetEntries() << "/" << nentries << " (" << 100.* h1_xPos->GetEntries()/nentries << "%)" << std::endl;
 
@@ -1312,29 +1355,108 @@ void getCeF3Position( std::vector<float> cef3, float& xPos, float& yPos ) {
   xPos=0.;
   yPos=0.;
 
-  //float offset02 = 0.;
-  float offset02 = 0.0170062;
-  float offset13 = 0.0594743;
-  float r02 = cef3[0]/cef3[2] - offset02;
-  float r13 = cef3[1]/cef3[3] - offset13;
-float trueX = sqrt(2)*(9.);
-  float diag02 = (r02>1.) ? getSingleCef3Position( r02, false, trueX ) : -getSingleCef3Position( 1./r02, false, -trueX );
-  float diag13 = (r13>1.) ? getSingleCef3Position( r13, false, 0.    ) : -getSingleCef3Position( 1./r13, false, 0. );
+  float r02 = cef3[0]/cef3[2];
+  float r13 = cef3[1]/cef3[3];
 
-  //float diag02 = (r02>1.) ? getSingleCef3Position( r02, false, 0. )    : -getSingleCef3Position( 1./r02, false, 0. );
-  //float diag13 = (r13>1.) ? getSingleCef3Position( r13, false, trueX ) : -getSingleCef3Position( 1./r13, false, -trueX );
+  TF1* f1_d02 = getCef3Function("diag02");
+  TF1* f1_d13 = getCef3Function("diag13");
 
-//h1_diag->Fill(diag02/sqrt(2.));
+  float diag02 = f1_d02->GetX(r02, -50., 50.);
+  float diag13 = f1_d13->GetX(r13, -50., 50.);
 
   TVector2 v( diag13, diag02 );
   float pi = 3.14159;
   float theta = pi/4.; // 45 degrees 
-  TVector2 d = v.Rotate(theta);
+  TVector2 d = v.Rotate(+theta);
 
   xPos = d.X();
   yPos = d.Y();
+  //xPos = diag02;
+  //yPos = diag13;
+
+
+  delete f1_d02;
+  delete f1_d13;
 
 }
+
+
+TF1* getCef3Function( const std::string& diagName ) {
+
+  std::string fName = "f1_" + diagName;
+
+  //ifstream ifs(fileName.c_str());
+  TF1* f1 = new TF1(fName.c_str(), "pol5", -100., 100.);
+
+
+  if( diagName=="diag02" ) {
+    f1->SetParameter( 0, 1.03747 );
+    f1->SetParameter( 1, 0.00895044 );
+    f1->SetParameter( 2, 0 );
+    f1->SetParameter( 3, 0.000125462 );
+    f1->SetParameter( 4, 2.1783e-06 );
+    f1->SetParameter( 5, 0 );
+  } else if( diagName=="diag13" ) {
+    f1->SetParameter( 0, 1.06795 );
+    f1->SetParameter( 1, 0.011661 );
+    f1->SetParameter( 2, 0.000461872 );
+    f1->SetParameter( 3, 0.000142064 );
+    f1->SetParameter( 4, 1.90787e-05 );
+    f1->SetParameter( 5, 1.0005e-06 );
+    //f1->SetParameter( 0, 1.07932 );
+    //f1->SetParameter( 1, 0.014342 );
+    //f1->SetParameter( 2, 0.000722962 );
+    //f1->SetParameter( 3, 0.000192131 );
+    //f1->SetParameter( 4, 1.86405e-05 );
+    //f1->SetParameter( 5, 8.16208e-07 );
+  } else {
+    std::cout << "WARNING! Unkown diagName: " << diagName << std::endl;
+    std::cout << "Exiting." << std::endl;
+    exit(11111);
+  }
+
+  //int i=0;
+  //while( i<4 ) {
+  //  float x;
+  //  ifs >> x;
+  //  f1->SetParameter(i, x);
+  //  i++;
+  //}
+
+  return f1;
+
+}
+
+
+//void getCeF3Position( std::vector<float> cef3, float& xPos, float& yPos ) {
+//
+//  xPos=0.;
+//  yPos=0.;
+//
+//  //float offset02 = 0.;
+//  float offset02 = 0.0170062;
+//  float offset13 = 0.0594743;
+//  float r02 = cef3[0]/cef3[2] - offset02;
+//  float r13 = cef3[1]/cef3[3] - offset13;
+//float trueX = sqrt(2)*(9.);
+//  float diag02 = (r02>1.) ? getSingleCef3Position( r02, false, trueX ) : -getSingleCef3Position( 1./r02, false, -trueX );
+//  float diag13 = (r13>1.) ? getSingleCef3Position( r13, false, 0.    ) : -getSingleCef3Position( 1./r13, false, 0. );
+//
+//  //float diag02 = (r02>1.) ? getSingleCef3Position( r02, false, 0. )    : -getSingleCef3Position( 1./r02, false, 0. );
+//  //float diag13 = (r13>1.) ? getSingleCef3Position( r13, false, trueX ) : -getSingleCef3Position( 1./r13, false, -trueX );
+//
+////h1_diag->Fill(diag02/sqrt(2.));
+//
+//  TVector2 v( diag13, diag02 );
+//  float pi = 3.14159;
+//  float theta = pi/4.; // 45 degrees 
+//  TVector2 d = v.Rotate(theta);
+//
+//  xPos = d.X();
+//  yPos = d.Y();
+//
+//}
+
 
 
 float getSingleCef3Position( float en, bool takemin, float trueX ) {
