@@ -187,7 +187,7 @@ int main( int argc, char* argv[] ) {
   TFile* outfile = TFile::Open( outfileName.c_str(), "RECREATE" );
 
 
-  TTree* outTree = new TTree("aTree","aTree");
+  TTree* outTree = new TTree("recoTree","recoTree");
   float cef3_[CEF3_CHANNELS],cef3_pedSubtracted_[CEF3_CHANNELS],bgo_[BGO_CHANNELS],hodox_[HODOX_CHANNELS],hodoy_[HODOY_CHANNELS];
   float cef3_corr_[CEF3_CHANNELS],bgo_corr_[BGO_CHANNELS],bgo_pedSubtracted_[BGO_CHANNELS],hodox_corr_[HODOX_CHANNELS],hodoy_corr_[HODOY_CHANNELS];
   float scintFront_;
