@@ -50,6 +50,8 @@ int main( int argc, char* argv[] ) {
     int runNumber, date, time;
     sscanf( runName, "BTF_%d_%d-%d", &runNumber, &date, &time );
 
+    std::cout << "Adding run: " << runNumber << std::endl;
+
     setPedestal( fileName, runNumber, "hodox", ped_hodox );
     setPedestal( fileName, runNumber, "hodoy", ped_hodoy );
     setPedestal( fileName, runNumber, "bgo", ped_bgo );
@@ -124,6 +126,7 @@ void setPedestal( const std::string& fileName, int runNumber, const std::string&
     delete h1_ped;
   }
 
+  file->Close();
 
 }
 
@@ -133,7 +136,7 @@ void setPedestal( const std::string& fileName, int runNumber, const std::string&
 std::vector<TH1D*> getHistoVector(const std::string name, int nChannels) {
 
   std::vector<TH1D*> returnVector;
-  int nBins = 500;
+  int nBins = 600;
 
   for( unsigned i=0; i<nChannels; ++i ) {
     TH1D* newHisto = new TH1D(Form("%s_%d", name.c_str(), i), "", nBins, 0., (float)nBins);
