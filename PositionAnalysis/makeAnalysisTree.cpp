@@ -84,8 +84,10 @@ int main( int argc, char* argv[] ) {
     runNumber_ = atoi(runNumber_str.c_str());
   }
 
-  // then modify runname in such a way that it's useful for getBeamPosition and outfile:
-  runName = "BTF_" + runName + "_beam";
+  if( isOnlyRunNumber ) {
+    // then modify runname in such a way that it's useful for getBeamPosition and outfile:
+    runName = "BTF_" + runName + "_beam";
+  }
 
 
 
