@@ -77,7 +77,7 @@ void drawPedestals( TFile* file, const std::string& name ) {
   float typicalPed = (name=="bgo") ? 140. : 100.; 
   float yMax = ((float)nChannels+1.)*typicalPed*1.2;
 
-  TH2D* h2_axes = new TH2D("axes", "", 10, 0., 1000., 10, 0., yMax );
+  TH2D* h2_axes = new TH2D("axes", "", 10, 0., 950., 10, 0., yMax );
   h2_axes->SetXTitle( "Run Number");
   h2_axes->SetYTitle( "Pedestal Mean [ADC Counts]" );
 
