@@ -12,7 +12,7 @@ EXTRALIBS := -L$(ROOTSYS)/lib  -lHtml -lMathCore -lGenVector -lMinuit -lTMVA
 
 
 
-all: positionAnalysis drawPositionAnalysis hodoscopeAnalysis calibrateCeF3 drawHodoClustersVsEnergy drawShitVsDiagonal calibrateBGO drawEnergyScan calibrateCaloPositioning drawCaloPositioning calibrateCeF3Positioning makePedestalFile makeAnalysisTree
+all: positionAnalysis drawPositionAnalysis hodoscopeAnalysis calibrateCeF3 drawHodoClustersVsEnergy drawShitVsDiagonal calibrateBGO drawEnergyScan calibrateCaloPositioning drawCaloPositioning calibrateCeF3Positioning makePedestalFile makeAnalysisTree drawPedestalsVsRun
 
 
 checkRuns: checkRuns.cpp
@@ -29,6 +29,9 @@ positionAnalysis: HodoCluster.o RunHelper.o positionAnalysis.cpp hodo_efficiency
 
 drawPositionAnalysis: DrawTools.o RunHelper.o drawPositionAnalysis.cpp 
 	$(CC) -Wall $(INCLUDES) -o drawPositionAnalysis drawPositionAnalysis.cpp DrawTools.o RunHelper.o $(ROOTFLAG) $(EXTRALIBS)
+
+drawPedestalsVsRun: DrawTools.o drawPedestalsVsRun.cpp 
+	$(CC) -Wall $(INCLUDES) -o drawPedestalsVsRun drawPedestalsVsRun.cpp DrawTools.o $(ROOTFLAG) $(EXTRALIBS)
 
 calibrateCeF3: calibrateCeF3.cpp DrawTools.o
 	$(CC) -Wall $(INCLUDES) -o calibrateCeF3 calibrateCeF3.cpp DrawTools.o  $(ROOTFLAG) $(EXTRALIBS)
@@ -83,3 +86,4 @@ clean:
 	rm drawHodoClustersVsEnergy
 	rm drawShitVsDiagonal
 	rm drawEnergyScan
+	rm drawPedestalsVsRun
