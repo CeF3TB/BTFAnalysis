@@ -23,20 +23,29 @@ int main( int argc, char* argv[] ) {
 
   std::string inputDir = "./analysisTrees";
   std::string runName = "BTF_92_20140430-020137_beam_uncalib";
+  std::string tag = "default";
 
-  if( argc == 2 ) {
+  if( argc == 3 ) {
     std::string runName_str(argv[1]);
     runName = runName_str;
-  }else if (argc==3){
+    std::string tag_str(argv[2]);
+    tag = tag_str;
+  }else if (argc==4){
     std::string inputDir_str(argv[2]);
     inputDir =inputDir_str;
+  } else{
+    std::cout<<"Usage:"<<std::endl;
+    std::cout<<"./calibrateCef3 BTF_XXX tag [inputDir]"<<std::endl;
+    exit(12345);
   }
 
 
   DrawTools::setStyle();
 
 
-  TFile* file = TFile::Open(Form("%s/Reco_%s.root", inputDir.c_str(),runName.c_str()) );
+  TFile* file = TFile::Open(Form("%s/Reco_%s_%s.root", inputDir.c_str(),runName.c_str(),tag.c_str()));
+  std::cout<<"opening file:"<<file->GetName();
+
 
   TTree* tree = (TTree*)file->Get("recoTree");
 
