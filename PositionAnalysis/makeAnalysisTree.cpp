@@ -35,9 +35,16 @@ int main( int argc, char* argv[] ) {
 
 
   std::string runName = "precalib_BGO_pedestal_noSource";
-  if( argc>1 ) {
+  std::string tag = "default";
+  if( argc>2 ) {
     std::string runName_str(argv[1]);
     runName = runName_str;
+    std::string tag_str(argv[2]);
+    tag = tag_str;
+  }else{
+    std::cout<<"Usage:"<<std::endl;
+    std::cout<<"./makeAnalysisTree BTF_XXX tag"<<std::endl;
+    exit(12345);
   }
 
   TString runName_tstr(runName);
@@ -120,47 +127,41 @@ int main( int argc, char* argv[] ) {
 
 
 
+  //set the tag for calibration
+  RunHelper helper;
+  helper.setCalibrationFiles(tag);
 
-  // first: BGO precalibration*calibration:
-
+  // first: BGO calibration:
   std::vector<float> bgo_calibration;
+  std::string bgoVersion= "BGOCalibration/constants_"+helper.getCalibrationFiles(false);
+  bgoVersion+=".txt";
+  std::string ifsName_bgo = bgoVersion;
+  std::cout<<"opened file"<<std::endl;
+  ifstream ifs_bgo(ifsName_bgo.c_str(),std::ios_base::in);
+  for(int i = 0;i<BGO_CHANNELS;i++){
 
-  // good, dont touch
-  //bgo_calibration.push_back(1.24251419*1.02018 ); // 0
-  //bgo_calibration.push_back(0.78909836*0.91473 ); // 1
-  //bgo_calibration.push_back(0.91233889*1.07665 ); // 2
-  //bgo_calibration.push_back(0.81254220*1.07697 ); // 3
-  //bgo_calibration.push_back(1.19382440*0.956594); // 4
-  //bgo_calibration.push_back(1.23486403*0.992715); // 5
-  //bgo_calibration.push_back(1.05052378*0.996411); // 6
-  //bgo_calibration.push_back(0.99823724*0.987254); // 7
-
-  // test
-  bgo_calibration.push_back(1.24251419*1.02018 ); // 0
-  bgo_calibration.push_back(0.78909836*0.91473 ); // 1
-  bgo_calibration.push_back(0.91233889*1.07665 ); // 2
-  bgo_calibration.push_back(0.81254220*1.07697/0.73 ); // 3
-  bgo_calibration.push_back(1.19382440*0.956594*0.5); // 4
-  bgo_calibration.push_back(1.23486403*0.992715); // 5
-  bgo_calibration.push_back(1.05052378*0.996411); // 6
-  bgo_calibration.push_back(0.99823724*0.987254); // 7
-
+    float channel, constant;
+    ifs_bgo>>channel>>constant;
+    bgo_calibration.push_back(constant);
+    std::cout<<bgo_calibration[i]<<std::endl;
+  }
 
 
 
   // CeF3 calibration:
   std::vector<float> cef3_calibration;
-  cef3_calibration.push_back(848.317);
-  cef3_calibration.push_back(995.703);
-  cef3_calibration.push_back(891.56 );
-  cef3_calibration.push_back(928.443);
+  std::string cefVersion= "CeF3Calibration/constants_"+helper.getCalibrationFiles(true);
+  cefVersion+=".txt";
+  std::string ifsName_cef3 = cefVersion;
+  std::cout<<"opened file"<<std::endl;
+  ifstream ifs_cef3(ifsName_cef3.c_str(),std::ios_base::in);
+  for(int i = 0;i<CEF3_CHANNELS;i++){
 
-  float cef3CalibrationAverage = sumVector(cef3_calibration)/cef3_calibration.size();
-
-  for(unsigned i=0; i<cef3_calibration.size(); ++i )
-    cef3_calibration[i] = cef3CalibrationAverage/cef3_calibration[i];
-
-
+    float channel, constant;
+    ifs_cef3>>channel>>constant;
+    cef3_calibration.push_back(constant);
+    std::cout<<cef3_calibration[i]<<std::endl;
+  }
 
 
 
@@ -177,7 +178,7 @@ int main( int argc, char* argv[] ) {
 
 
   system( "mkdir -p analysisTrees" );
-  std::string outfileName = "analysisTrees/Reco_" + runName + ".root";
+  std::string outfileName = "analysisTrees/Reco_" + runName + "_" + tag + ".root";
   TFile* outfile = TFile::Open( outfileName.c_str(), "RECREATE" );
 
 
