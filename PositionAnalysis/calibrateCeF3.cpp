@@ -16,49 +16,67 @@
 void doSingleFit( TH1D* h1, TF1* f1, const std::string& outputdir, const std::string& name );
 TF1* fitSingleElectronPeak( const std::string& outputdir, int i, TTree* tree );
 TF1* checkTotalResolution( const std::string& outputdir, TTree* tree );
-
+float sumVector( std::vector<float> v );
+bool savePlots=false;
 
 int main( int argc, char* argv[] ) {
 
-
+  std::string inputDir = "./analysisTrees";
   std::string runName = "BTF_92_20140430-020137_beam_uncalib";
-  if( argc>1 ) {
+
+  if( argc == 2 ) {
     std::string runName_str(argv[1]);
     runName = runName_str;
+  }else if (argc==3){
+    std::string inputDir_str(argv[2]);
+    inputDir =inputDir_str;
   }
+
 
   DrawTools::setStyle();
 
 
-  TFile* file = TFile::Open(Form("PosAn_%s.root", runName.c_str()) );
-  TTree* tree = (TTree*)file->Get("tree_passedEvents");
+  TFile* file = TFile::Open(Form("%s/Reco_%s.root", inputDir.c_str(),runName.c_str()) );
 
+  TTree* tree = (TTree*)file->Get("recoTree");
 
-  
-  std::string outputdir = "CeF3_Calibration_" + runName;
+  std::string outputdir = "CeF3Calibration/";
   std::string mkdir_command = "mkdir -p " + outputdir;
   system( mkdir_command.c_str() );
 
   std::string ofsName = outputdir + "/constants.txt";
   ofstream ofs(ofsName.c_str());
 
-  std::vector<float> calibConstants;
+  int nentries = tree->GetEntries();
+
+  std::vector<float> cef3_calibration;
+
   for( unsigned i=0; i<4; ++i ) {
     TF1* f1 = fitSingleElectronPeak( outputdir, i, tree );
     float mean  = f1->GetParameter(1);
     float sigma = f1->GetParameter(2);
-    calibConstants.push_back(sigma/mean);
     std::cout << std::endl;
     std::cout << "Channel " << i << std::endl;
     std::cout << "  Mean       : " << mean << std::endl;
     std::cout << "  Sigma      : " << sigma << std::endl;
     std::cout << "  Resolution : " << sigma/mean << std::endl;
 
-    ofs << i << "\t" << mean << std::endl;
-
+    cef3_calibration.push_back(mean);
   }
 
+
+  float cef3CalibrationAverage = sumVector(cef3_calibration)/cef3_calibration.size();
+
+  for(unsigned i=0; i<cef3_calibration.size(); ++i ){
+    cef3_calibration[i] = cef3CalibrationAverage/cef3_calibration[i];
+    ofs << i << "\t" << cef3_calibration[i] << std::endl;
+  }
+
+
   ofs.close();
+
+
+
   std::cout << "-> Saved constants in: " << ofsName << std::endl;
 
 
@@ -146,9 +164,20 @@ void doSingleFit( TH1D* h1, TF1* f1, const std::string& outputdir, const std::st
 
   h1->Draw();
 
-  c1->SaveAs( Form("%s/fit_%s.eps", outputdir.c_str(), name.c_str()) );
-  c1->SaveAs( Form("%s/fit_%s.png", outputdir.c_str(), name.c_str()) );
+  if(savePlots){
+    c1->SaveAs( Form("%s/fit_%s.eps", outputdir.c_str(), name.c_str()) );
+    c1->SaveAs( Form("%s/fit_%s.png", outputdir.c_str(), name.c_str()) );
+  }
 
   delete c1;
+
+}
+
+float sumVector( std::vector<float> v ) {
+
+  float sum=0.;
+  for( unsigned i=0; i<v.size(); ++i ) sum += v[i];
+
+  return sum;
 
 }
