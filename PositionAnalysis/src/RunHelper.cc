@@ -1,10 +1,29 @@
 #include "../interface/RunHelper.h"
-
-#include "TString.h"
-
+#include <iostream>
 
 
+void RunHelper::setCalibrationFiles(std::string tagName){
 
+  std::string tagName_tstr(tagName.c_str());
+  if (tagName == "V00"){
+    cef3CalibrationVersion_ ="V0";
+    bgoCalibrationVersion_ ="V0";
+  }else{
+    std::cout<<"tag "<<tagName<<" does not exist. Exiting"<<std::endl;
+    exit(12345);
+  }
+
+}
+
+std::string RunHelper::getCalibrationFiles(bool isCef3){
+  std::string version;
+  if(isCef3){
+    version = cef3CalibrationVersion_;
+  }else{
+    version = bgoCalibrationVersion_;
+  }
+  return version;
+}
 
 void RunHelper::getBeamPosition( const std::string& runName, float& beamX, float& beamY ) {
 
