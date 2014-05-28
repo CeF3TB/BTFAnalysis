@@ -9,8 +9,6 @@ PositionAnalysis/positionAnalysis
 
 PositionAnalysis/pedestalFilesList.txt
 
-PositionAnalysis/hodo_efficiency.dat
-
 PositionAnalysis/pedestalFile.root
 
 PositionAnalysis/analysisTrees/
