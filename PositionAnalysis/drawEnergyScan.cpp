@@ -20,7 +20,16 @@ void doSingleFit( TH1D* h1, TF1* f1, const std::string& outputdir, const std::st
 TF1* fitSingleElectronPeak( const std::string& outputdir, const std::string& runName, TTree* tree );
 
 
-int main() {
+int main( int argc, char* argv[] ) {
+
+
+  std::string tag="V00";
+  if( argc>1 ) {
+    std::string tag_str(argv[1]);
+    tag = tag_str;
+  }
+
+  std::cout << "-> Using tag: " << tag << std::endl;
 
 
   std::string outputdir = "EnergyScanPlots/";
@@ -33,14 +42,14 @@ int main() {
   std::vector<float> beamEnergy; 
 
 
-  //runs.push_back("BTF_314_20140503-024715_beam");
-  //beamEnergy.push_back(98.3);
+  runs.push_back("BTF_314_20140503-024715_beam");
+  beamEnergy.push_back(98.3);
 
-  //runs.push_back("BTF_308_20140503-002534_beam");
-  //beamEnergy.push_back(147.4);
+  runs.push_back("BTF_308_20140503-002534_beam");
+  beamEnergy.push_back(147.4);
 
-  //runs.push_back("BTF_293_20140502-180258_beam");
-  //beamEnergy.push_back(196.5);
+  runs.push_back("BTF_293_20140502-180258_beam");
+  beamEnergy.push_back(196.5);
 
   runs.push_back("BTF_286_287");
   beamEnergy.push_back(294.8-2.);
@@ -61,8 +70,8 @@ int main() {
 
   for( unsigned i=0; i<runs.size(); ++i ) {
 
-    TFile* file = TFile::Open(Form("PosAn_%s.root", runs[i].c_str()));
-    TTree* tree = (TTree*)file->Get("tree_passedEvents");
+    TFile* file = TFile::Open(Form("analysisTrees_%s/Reco_%s.root", tag.c_str(), runs[i].c_str()));
+    TTree* tree = (TTree*)file->Get("recoTree");
 
     TF1* thisFunc = fitSingleElectronPeak( outputdir, runs[i], tree );
 
