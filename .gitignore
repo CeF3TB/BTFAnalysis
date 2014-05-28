@@ -18,3 +18,11 @@ PositionAnalysis/data/
 
 PositionAnalysis/*.o
 *~
+
+BGO_Intercalibration/BGO_InterCalibration_CB/
+BGO_Intercalibration/analysisTrees
+BGO_Intercalibration/bgoIntercalibration
+BGO_Intercalibration/*txt
+BGO_Intercalibration/bgoIntercalibration/*_cc.d
+BGO_Intercalibration/bgoIntercalibration/*_cc.so
+BGO_Intercalibration/.__afs*
