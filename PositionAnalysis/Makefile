@@ -21,8 +21,8 @@ checkRuns: checkRuns.cpp
 makePedestalFile: makePedestalFile.cpp 
 	$(CC) -Wall $(INCLUDES) -o makePedestalFile makePedestalFile.cpp $(ROOTFLAG) $(EXTRALIBS)
 
-makeAnalysisTree: makeAnalysisTree.cpp RunHelper.o HodoCluster.o
-	$(CC) -Wall $(INCLUDES) -o makeAnalysisTree makeAnalysisTree.cpp RunHelper.o HodoCluster.o $(ROOTFLAG) $(EXTRALIBS)
+makeAnalysisTree: makeAnalysisTree.cpp RunHelper.o HodoCluster.o EnergyCalibration.o CalibrationUtility.o 
+	$(CC) -Wall $(INCLUDES) -o makeAnalysisTree makeAnalysisTree.cpp RunHelper.o HodoCluster.o EnergyCalibration.o CalibrationUtility.o $(ROOTFLAG) $(EXTRALIBS)
 
 positionAnalysis: HodoCluster.o RunHelper.o positionAnalysis.cpp hodo_efficiency.dat
 	$(CC) -Wall $(INCLUDES) -o positionAnalysis positionAnalysis.cpp HodoCluster.o RunHelper.o $(ROOTFLAG) $(EXTRALIBS)
@@ -71,6 +71,12 @@ DrawTools.o: src/DrawTools.cc
 
 RunHelper.o: src/RunHelper.cc
 	$(CC) $(CFLAGS) -c src/RunHelper.cc $(ROOTFLAG) $(EXTRALIBS)
+
+CalibrationUtility.o: src/CalibrationUtility.cc
+	$(CC) $(CFLAGS) -c src/CalibrationUtility.cc $(ROOTFLAG) $(EXTRALIBS)
+
+EnergyCalibration.o: src/EnergyCalibration.cc
+	$(CC) $(CFLAGS) -c src/EnergyCalibration.cc $(ROOTFLAG) $(EXTRALIBS)
 
 
 
