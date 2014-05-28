@@ -78,7 +78,7 @@ int main( int argc, char* argv[] ) {
 
   for(unsigned i=0; i<cef3_calibration.size(); ++i ){
     cef3_calibration[i] = cef3CalibrationAverage/cef3_calibration[i];
-    ofs << i << "\t" << cef3_calibration[i] << std::endl;
+    ofs << cef3_calibration[i] << std::endl;
   }
 
 
