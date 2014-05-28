@@ -14,6 +14,8 @@
 #include "fastDQM_CeF3_BTF.h"
 #include "interface/HodoCluster.h"
 #include "interface/RunHelper.h"
+#include "interface/CalibrationUtility.h"
+#include "interface/EnergyCalibration.h"
 
 
 
@@ -128,41 +130,9 @@ int main( int argc, char* argv[] ) {
 
 
   //set the tag for calibration
-  RunHelper helper;
-  helper.setCalibrationFiles(tag);
-
-  // first: BGO calibration:
-  std::vector<float> bgo_calibration;
-  std::string bgoVersion= "BGOCalibration/constants_"+helper.getCalibrationFiles(false);
-  bgoVersion+=".txt";
-  std::string ifsName_bgo = bgoVersion;
-  std::cout<<"opened file"<<std::endl;
-  ifstream ifs_bgo(ifsName_bgo.c_str(),std::ios_base::in);
-  for(int i = 0;i<BGO_CHANNELS;i++){
-
-    float channel, constant;
-    ifs_bgo>>channel>>constant;
-    bgo_calibration.push_back(constant);
-    std::cout<<bgo_calibration[i]<<std::endl;
-  }
-
-
-
-  // CeF3 calibration:
-  std::vector<float> cef3_calibration;
-  std::string cefVersion= "CeF3Calibration/constants_"+helper.getCalibrationFiles(true);
-  cefVersion+=".txt";
-  std::string ifsName_cef3 = cefVersion;
-  std::cout<<"opened file"<<std::endl;
-  ifstream ifs_cef3(ifsName_cef3.c_str(),std::ios_base::in);
-  for(int i = 0;i<CEF3_CHANNELS;i++){
-
-    float channel, constant;
-    ifs_cef3>>channel>>constant;
-    cef3_calibration.push_back(constant);
-    std::cout<<cef3_calibration[i]<<std::endl;
-  }
-
+  CalibrationUtility calibUtil(tag);
+  EnergyCalibration cef3Calib(calibUtil.getCeF3FileName());
+  EnergyCalibration bgoCalib(calibUtil.getBGOFileName());
 
 
 
@@ -177,8 +147,9 @@ int main( int argc, char* argv[] ) {
 
 
 
-  system( "mkdir -p analysisTrees" );
-  std::string outfileName = "analysisTrees/Reco_" + runName + "_" + tag + ".root";
+  std::string outdir = "analysisTrees_" + tag;
+  system( Form("mkdir -p %s", outdir.c_str()) );
+  std::string outfileName = outdir + "/Reco_" + runName + ".root";
   TFile* outfile = TFile::Open( outfileName.c_str(), "RECREATE" );
 
 
@@ -343,6 +314,10 @@ int main( int argc, char* argv[] ) {
     std::vector<float> hodox_corr = subtractPedestals( hodox, pedestals_hodox, 4. );
     std::vector<float> hodoy_corr = subtractPedestals( hodoy, pedestals_hodoy, 4. );
 
+    bgoCalib.applyCalibration(bgo_corr);
+    cef3Calib.applyCalibration(cef3_corr);
+
+
     std::vector<float> cef3_pedSubtracted = subtractPedestals( cef3, pedestals,    4. );
     std::vector<float>  bgo_pedSubtracted= subtractPedestals( bgo , pedestals_bgo, 4. );
 
@@ -387,15 +362,6 @@ int main( int argc, char* argv[] ) {
     bgo_ok_ = checkVector(bgo, 4095.);
     bgo_corr_ok_ = checkVector(bgo_corr, 4095.);
 
-
-
-    for(unsigned i=0; i<bgo_calibration.size(); ++i ) 
-      bgo_corr[i] *= bgo_calibration[i]; //correct
-
-
-
-    for(unsigned i=0; i<cef3_calibration.size(); ++i )
-      cef3_corr[i] *= cef3_calibration[i]; //correct
 
 
     for(int i=0;i<CEF3_CHANNELS;i++){
