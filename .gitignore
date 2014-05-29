@@ -2,22 +2,29 @@ PositionAnalysis/calibrateCeF3
 PositionAnalysis/drawHodoClustersVsEnergy
 PositionAnalysis/drawPositionAnalysis
 PositionAnalysis/drawShitVsDiagonal
+PositionAnalysis/drawCaloPositioning
+PositionAnalysis/drawEnergyScan
+PositionAnalysis/drawPedestalsVsRun
 PositionAnalysis/hodoscopeAnalysis
 PositionAnalysis/makeAnalysisTree
 PositionAnalysis/makePedestalFile
 PositionAnalysis/positionAnalysis
+PositionAnalysis/calibrateBGO
+PositionAnalysis/calibrateCaloPositioning
+PositionAnalysis/calibrateCeF3Positioning
 
 PositionAnalysis/pedestalFilesList.txt
 
 PositionAnalysis/pedestalFile.root
 
 PositionAnalysis/analysisTrees/
+PositionAnalysis/analysisTrees_V*
 PositionAnalysis/data/
 
 PositionAnalysis/*.o
 *~
 
-BGO_Intercalibration/BGOInterCalibration_CB
+BGO_Intercalibration/BGOInterCalibration_CB*
 BGO_Intercalibration/analysisTrees
 BGO_Intercalibration/bgoIntercalibration
 BGO_Intercalibration/*txt
