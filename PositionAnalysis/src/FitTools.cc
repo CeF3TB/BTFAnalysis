@@ -6,7 +6,7 @@
 
 
 
-TF1* FitTools::fitSingleElectronPeak( const std::string& outputdir, const std::string& name, TTree* tree ) {
+TF1* FitTools::fitSingleElectronPeak( const std::string& outputdir, const std::string& name, TTree* tree, int niter, float nSigma ) {
 
   std::string histoName(Form("h1_%s", name.c_str()));
   TH1D* h1 = new TH1D(histoName.c_str(), "", 200, 0., 6000.);
@@ -20,7 +20,7 @@ TF1* FitTools::fitSingleElectronPeak( const std::string& outputdir, const std::s
   f1->SetParError(1, h1->GetMeanError() );
   f1->SetParError(2, h1->GetRMSError() );
 
-  doSingleFit( h1, f1, outputdir, name );
+  doSingleFit( h1, f1, outputdir, name, niter, nSigma );
 
   return f1;
 
@@ -29,12 +29,9 @@ TF1* FitTools::fitSingleElectronPeak( const std::string& outputdir, const std::s
 
 
 
-void FitTools::doSingleFit( TH1D* h1, TF1* f1, const std::string& outputdir, const std::string& name ) {
+void FitTools::doSingleFit( TH1D* h1, TF1* f1, const std::string& outputdir, const std::string& name, int niter, float nSigma ) {
 
   h1->Fit( f1, "RQN" );
-
-  int niter = 4.;
-  float nSigma = 1.5;
 
   for( unsigned iter=0; iter<niter; iter++ ) {
 
