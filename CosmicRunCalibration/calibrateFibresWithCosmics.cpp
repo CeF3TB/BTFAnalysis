@@ -525,11 +525,55 @@ void doSummaryPlots(FitResults fr_0,FitResults fr_1,FitResults fr_2,FitResults f
   std::cout<<"Q1: "<<fr_0.Q1<<"+-"<<fr_0.Q1_err<<" "<<fr_1.Q1<<"+-"<<fr_1.Q1_err<<" "<<fr_2.Q1<<"+-"<<fr_2.Q1_err<<" "<<fr_3.Q1<<"+-"<<fr_3.Q1_err<<std::endl;
   std::cout<<"mu*Q1: "<<fr_0.Q1*fr_0.mu<<"+-"<<sqrt(fr_0.Q1_err*fr_0.Q1_err*fr_0.mu*fr_0.mu+fr_0.mu_err*fr_0.mu_err*fr_0.Q1*fr_0.Q1)<<" "<<fr_1.Q1*fr_1.mu<<"+-"<<sqrt(fr_1.Q1_err*fr_1.Q1_err*fr_1.mu*fr_1.mu+fr_1.mu_err*fr_1.mu_err*fr_1.Q1*fr_1.Q1)<<" "<<fr_2.Q1<<"+-"<<sqrt(fr_2.Q1_err*fr_2.Q1_err*fr_2.mu*fr_2.mu+fr_2.mu_err*fr_2.mu_err*fr_2.Q1*fr_2.Q1)<<" "<<fr_3.Q1<<"+-"<<sqrt(fr_3.Q1_err*fr_3.Q1_err*fr_3.mu*fr_3.mu+fr_3.mu_err*fr_3.mu_err*fr_3.Q1*fr_3.Q1)<<std::endl;
 
-
-
-
+  
 }
 
+std::vector< std::pair<float, float> > getPedestals( const std::string& type, const std::string& fileName, int runNumber ) {
+
+  std::cout<<"run:"<<runNumber<<std::endl;
+
+  int nChannels=-1;
+  if( type=="cef3" ) {
+    nChannels    = CEF3_CHANNELS;
+  } else if( type=="bgo" ) {
+    nChannels    = BGO_CHANNELS;
+  } else if( type=="hodox" ) {
+    nChannels    = HODOX_CHANNELS;
+  } else if( type=="hodoy" ) {
+    nChannels    = HODOY_CHANNELS;
+  } else {
+    std::cout << "ERROR! Unkown type '" << type << "'!" << std::endl;
+    std::cout << "Don't know what pedestals you're looking for." << std::endl;
+    std::cout << "Exiting." << std::endl;
+    exit(77);
+  }
+
+    
+
+  TFile* file = TFile::Open(fileName.c_str());
+
+  std::vector< std::pair<float, float> > peds;
+
+  for( unsigned i=0; i<nChannels; ++i ) {
+    TH1D* h1_ped = (TH1D*)file->Get(Form("%s_%d", type.c_str(), i));
+    int iped = runNumber;
+    float ped=-1.;
+    float pedrms=0.;
+    while( ped<0. ) { // get closest run before current one
+      ped = h1_ped->GetBinContent(iped); 
+      pedrms = h1_ped->GetBinError(iped);
+      iped--;
+    }
+    std::pair<float, float>  thispair;
+    thispair.first  = ped;
+    thispair.second = pedrms;
+    peds.push_back(thispair);
+    delete h1_ped;
+  }
+
+  return peds;
+
+}
 
 
 int main( int argc, char* argv[] ) {
@@ -549,7 +593,7 @@ int main( int argc, char* argv[] ) {
   }
 
 
-  std::string fileName = "run_" + runName + ".root";
+  std::string fileName = "../PositionAnalysis/data/run_" + runName + ".root";
   TFile* file = TFile::Open(fileName.c_str());
   
   
@@ -611,16 +655,20 @@ int main( int argc, char* argv[] ) {
   TH1D* h1_cef3_pedSubtracted_corr_muMean_3   = new TH1D("cef3_pedSubtracted_corr_muMean_3",   "", 400, 0., 400.*1.07241);
 
 
-  std::vector<float> pedestals;
-  std::vector<float> sigma;
-  pedestals.push_back(124.872);
-  sigma.push_back(1.07245);
-  pedestals.push_back(106.911);
-  sigma.push_back(1.85074);
-  pedestals.push_back(114.198);
-  sigma.push_back(2.34754);
-  pedestals.push_back(121.555);
-  sigma.push_back(4.08115);
+  // there is only one cosmic run
+  unsigned int runNumber_;
+  runNumber_=91;  
+
+
+  std::string pedestalFileName = "../PositionAnalysis/pedestalFile.root";
+  std::vector<std::pair<float, float> > pedestals = getPedestals( "cef3", pedestalFileName, runNumber_ );
+  std::cout << std::endl;
+  std::cout << "-> Got pedestals of CeF3: " << std::endl;
+  for( unsigned i=0; i<CEF3_CHANNELS; ++i )
+    std::cout << " CeF3 Channel " << i << ": " << pedestals[i].first << " (+- " << pedestals[i].second << ")" << std::endl;
+  std::cout << std::endl;
+
+
   int nSigma=4;  
 
   for( unsigned iEntry=0; iEntry<nentries; ++iEntry ) {
@@ -641,22 +689,22 @@ int main( int argc, char* argv[] ) {
 	if( channel==(CEF3_ADC_START_CHANNEL  ) ){
 	  h1_cef3_0->Fill(adcData[i]);
 	  cef3+=adcData[i];
-	  if(adcData[i]>(pedestals[0] + nSigma*sigma[0])) h1_cef3_pedSubtracted_0->Fill(adcData[i]-pedestals[0]);
+	  if(adcData[i]>(pedestals[0].first + nSigma*pedestals[0].second)) h1_cef3_pedSubtracted_0->Fill(adcData[i]-pedestals[0].first);
 	}
         else if( channel==(CEF3_ADC_START_CHANNEL+1) ){
 	  h1_cef3_1->Fill(adcData[i]);
 	  cef3+=adcData[i];
-	  if(adcData[i]>(pedestals[1] + nSigma*sigma[1]))h1_cef3_pedSubtracted_1->Fill(adcData[i]-pedestals[1]);
+	  if(adcData[i]>(pedestals[1].first + nSigma*pedestals[1].second))h1_cef3_pedSubtracted_1->Fill(adcData[i]-pedestals[1].first);
 	}
         else if( channel==(CEF3_ADC_START_CHANNEL+2) ) {
 	  h1_cef3_2->Fill(adcData[i]);
 	  cef3+=adcData[i];
-	  if(adcData[i]>(pedestals[2] + nSigma*sigma[2]))h1_cef3_pedSubtracted_2->Fill(adcData[i]-pedestals[2]);
+	  if(adcData[i]>(pedestals[2].first + nSigma*pedestals[2].second))h1_cef3_pedSubtracted_2->Fill(adcData[i]-pedestals[2].first);
 	}
         else if( channel==(CEF3_ADC_START_CHANNEL+3) ) {
 	  h1_cef3_3->Fill(adcData[i]);
 	  cef3+=adcData[i];
-	  if(adcData[i]>(pedestals[3] + nSigma*sigma[3]))h1_cef3_pedSubtracted_3->Fill(adcData[i]-pedestals[3]);
+	  if(adcData[i]>(pedestals[3].first + nSigma*pedestals[3].second))h1_cef3_pedSubtracted_3->Fill(adcData[i]-pedestals[3].first);
 	}
 	h1_cef3_tot->Fill(cef3);
       }
@@ -846,10 +894,10 @@ int main( int argc, char* argv[] ) {
 
   
 
-  FitResults fr_pedSubtracted_0 = fitSingleHisto( h1_cef3_pedSubtracted_0, 0., 0., lowerFitBoundary[0]-pedestals[0], 185.-pedestals[0] );
-  FitResults fr_pedSubtracted_1 = fitSingleHisto( h1_cef3_pedSubtracted_1, 0., 0., lowerFitBoundary[1]-pedestals[1], 190.-pedestals[1] );
-  FitResults fr_pedSubtracted_2 = fitSingleHisto( h1_cef3_pedSubtracted_2, 0., 0., lowerFitBoundary[2]-pedestals[2], 190.-pedestals[2] );
-  FitResults fr_pedSubtracted_3 = fitSingleHisto( h1_cef3_pedSubtracted_3, 0., 0., lowerFitBoundary[3]-pedestals[3], 198.-pedestals[3] );
+  FitResults fr_pedSubtracted_0 = fitSingleHisto( h1_cef3_pedSubtracted_0, 0., 0., lowerFitBoundary[0]-pedestals[0].first, 185.-pedestals[0].first );
+  FitResults fr_pedSubtracted_1 = fitSingleHisto( h1_cef3_pedSubtracted_1, 0., 0., lowerFitBoundary[1]-pedestals[1].first, 190.-pedestals[1].first );
+  FitResults fr_pedSubtracted_2 = fitSingleHisto( h1_cef3_pedSubtracted_2, 0., 0., lowerFitBoundary[2]-pedestals[2].first, 190.-pedestals[2].first );
+  FitResults fr_pedSubtracted_3 = fitSingleHisto( h1_cef3_pedSubtracted_3, 0., 0., lowerFitBoundary[3]-pedestals[3].first, 198.-pedestals[3].first );
 
 
   std::vector<float> correctionFactors = intercalibrateFibers(fr_0,fr_1,fr_2,fr_3,true);
@@ -897,37 +945,37 @@ int main( int argc, char* argv[] ) {
       if( board==CEF3_ADC_BOARD ) {
 	if( channel==(CEF3_ADC_START_CHANNEL  ) ){
 	  h1_cef3_corr_0->Fill(adcData[i]*correctionFactors[0]);
-	  if(adcData[i]>(pedestals[0] + nSigma*sigma[0])){
-	    h1_cef3_pedSubtracted_corr_0->Fill((adcData[i]-pedestals[0])*correctionFactors_pedSubtracted[0]);
-	    h1_cef3_pedSubtracted_corr_muQ_0->Fill((adcData[i]-pedestals[0])*correctionFactors_pedSubtracted_muQ[0]);
-	    h1_cef3_pedSubtracted_corr_muMean_0->Fill((adcData[i]-pedestals[0])*correctionFactors_pedSubtracted_muMean[0]);
+	  if(adcData[i]>(pedestals[0].first + nSigma*pedestals[0].second)){
+	    h1_cef3_pedSubtracted_corr_0->Fill((adcData[i]-pedestals[0].first)*correctionFactors_pedSubtracted[0]);
+	    h1_cef3_pedSubtracted_corr_muQ_0->Fill((adcData[i]-pedestals[0].first)*correctionFactors_pedSubtracted_muQ[0]);
+	    h1_cef3_pedSubtracted_corr_muMean_0->Fill((adcData[i]-pedestals[0].first)*correctionFactors_pedSubtracted_muMean[0]);
 	  }
 	  cef3_corr+=adcData[i]*correctionFactors[0];
 	}
         else if( channel==(CEF3_ADC_START_CHANNEL+1) ){
 	  h1_cef3_corr_1->Fill(adcData[i]*correctionFactors[1]);
-	  if(adcData[i]>(pedestals[1] + nSigma*sigma[1])) {
-	    h1_cef3_pedSubtracted_corr_1->Fill((adcData[i]-pedestals[1])*correctionFactors_pedSubtracted[1]);
-	    h1_cef3_pedSubtracted_corr_muQ_1->Fill((adcData[i]-pedestals[1])*correctionFactors_pedSubtracted_muQ[1]);
-	    h1_cef3_pedSubtracted_corr_muMean_1->Fill((adcData[i]-pedestals[1])*correctionFactors_pedSubtracted_muMean[1]);
+	  if(adcData[i]>(pedestals[1].first + nSigma*pedestals[1].second)) {
+	    h1_cef3_pedSubtracted_corr_1->Fill((adcData[i]-pedestals[1].first)*correctionFactors_pedSubtracted[1]);
+	    h1_cef3_pedSubtracted_corr_muQ_1->Fill((adcData[i]-pedestals[1].first)*correctionFactors_pedSubtracted_muQ[1]);
+	    h1_cef3_pedSubtracted_corr_muMean_1->Fill((adcData[i]-pedestals[1].first)*correctionFactors_pedSubtracted_muMean[1]);
 	  }
 	  cef3_corr+=adcData[i]*correctionFactors[1];
 	}
         else if( channel==(CEF3_ADC_START_CHANNEL+2) ) {
 	  h1_cef3_corr_2->Fill(adcData[i]*correctionFactors[2]);
-	  if(adcData[i]>(pedestals[2] + nSigma*sigma[2])) {
-	    h1_cef3_pedSubtracted_corr_2->Fill((adcData[i]-pedestals[2])*correctionFactors_pedSubtracted[2]);
-	    h1_cef3_pedSubtracted_corr_muQ_2->Fill((adcData[i]-pedestals[2])*correctionFactors_pedSubtracted_muQ[2]);
-	    h1_cef3_pedSubtracted_corr_muMean_2->Fill((adcData[i]-pedestals[2])*correctionFactors_pedSubtracted_muMean[2]);
+	  if(adcData[i]>(pedestals[2].first + nSigma*pedestals[2].second)) {
+	    h1_cef3_pedSubtracted_corr_2->Fill((adcData[i]-pedestals[2].first)*correctionFactors_pedSubtracted[2]);
+	    h1_cef3_pedSubtracted_corr_muQ_2->Fill((adcData[i]-pedestals[2].first)*correctionFactors_pedSubtracted_muQ[2]);
+	    h1_cef3_pedSubtracted_corr_muMean_2->Fill((adcData[i]-pedestals[2].first)*correctionFactors_pedSubtracted_muMean[2]);
 	  }
 	  cef3_corr+=adcData[i]*correctionFactors[2];
 	}
         else if( channel==(CEF3_ADC_START_CHANNEL+3) ) {
 	  h1_cef3_corr_3->Fill(adcData[i]*correctionFactors[3]);
-	  if(adcData[i]>(pedestals[3] + nSigma*sigma[3])){
-	    h1_cef3_pedSubtracted_corr_3->Fill((adcData[i]-pedestals[3])*correctionFactors_pedSubtracted[3]);
-	    h1_cef3_pedSubtracted_corr_muQ_3->Fill((adcData[i]-pedestals[3])*correctionFactors_pedSubtracted_muQ[3]);
-	    h1_cef3_pedSubtracted_corr_muMean_3->Fill((adcData[i]-pedestals[3])*correctionFactors_pedSubtracted_muMean[3]);
+	  if(adcData[i]>(pedestals[3].first + nSigma*pedestals[3].second)){
+	    h1_cef3_pedSubtracted_corr_3->Fill((adcData[i]-pedestals[3].first)*correctionFactors_pedSubtracted[3]);
+	    h1_cef3_pedSubtracted_corr_muQ_3->Fill((adcData[i]-pedestals[3].first)*correctionFactors_pedSubtracted_muQ[3]);
+	    h1_cef3_pedSubtracted_corr_muMean_3->Fill((adcData[i]-pedestals[3].first)*correctionFactors_pedSubtracted_muMean[3]);
 	  }
 	  cef3_corr+=adcData[i]*correctionFactors[3];
 	}
@@ -1111,10 +1159,10 @@ int main( int argc, char* argv[] ) {
   FitResults fr_corr_2 = fitSingleHisto( h1_cef3_corr_2, 1.01311*100., 1.01311*125., 1.01311*128., 1.01311*189. );
   FitResults fr_corr_3 = fitSingleHisto( h1_cef3_corr_3, 0.984112*100., 0.984112*125., 0.984112*137., 0.984112*200. );
 
-  FitResults fr_pedSubtracted_corr_0 = fitSingleHisto( h1_cef3_pedSubtracted_corr_0, 0., 0., lowerFitBoundary[0]+2-pedestals[0], 188.-pedestals[0] );
-  FitResults fr_pedSubtracted_corr_1 = fitSingleHisto( h1_cef3_pedSubtracted_corr_1, 0., 0., lowerFitBoundary[1]-3-pedestals[1], 182.-pedestals[1] );
-  FitResults fr_pedSubtracted_corr_2 = fitSingleHisto( h1_cef3_pedSubtracted_corr_2, 0., 0., lowerFitBoundary[2]+1-pedestals[2], 188.-pedestals[2] );
-  FitResults fr_pedSubtracted_corr_3 = fitSingleHisto( h1_cef3_pedSubtracted_corr_3, 0., 0., lowerFitBoundary[3]+1-pedestals[3], 198.-pedestals[3] );
+  FitResults fr_pedSubtracted_corr_0 = fitSingleHisto( h1_cef3_pedSubtracted_corr_0, 0., 0., lowerFitBoundary[0]+2-pedestals[0].first, 188.-pedestals[0].first );
+  FitResults fr_pedSubtracted_corr_1 = fitSingleHisto( h1_cef3_pedSubtracted_corr_1, 0., 0., lowerFitBoundary[1]-3-pedestals[1].first, 182.-pedestals[1].first );
+  FitResults fr_pedSubtracted_corr_2 = fitSingleHisto( h1_cef3_pedSubtracted_corr_2, 0., 0., lowerFitBoundary[2]+1-pedestals[2].first, 188.-pedestals[2].first );
+  FitResults fr_pedSubtracted_corr_3 = fitSingleHisto( h1_cef3_pedSubtracted_corr_3, 0., 0., lowerFitBoundary[3]+1-pedestals[3].first, 198.-pedestals[3].first );
 
 
 
