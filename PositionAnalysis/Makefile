@@ -54,8 +54,8 @@ drawHodoClustersVsEnergy: DrawTools.o drawHodoClustersVsEnergy.cpp
 drawShitVsDiagonal: drawShitVsDiagonal.cpp DrawTools.o
 	$(CC) -Wall $(INCLUDES) -o drawShitVsDiagonal drawShitVsDiagonal.cpp DrawTools.o $(ROOTFLAG) $(EXTRALIBS)
 
-drawEnergyScan: drawEnergyScan.cpp DrawTools.o
-	$(CC) -Wall $(INCLUDES) -o drawEnergyScan drawEnergyScan.cpp DrawTools.o $(ROOTFLAG) $(EXTRALIBS)
+drawEnergyScan: drawEnergyScan.cpp DrawTools.o FitTools.o
+	$(CC) -Wall $(INCLUDES) -o drawEnergyScan drawEnergyScan.cpp DrawTools.o FitTools.o $(ROOTFLAG) $(EXTRALIBS)
 
 drawCaloPositioning: drawCaloPositioning.cpp DrawTools.o RunHelper.o
 	$(CC) -Wall $(INCLUDES) -o drawCaloPositioning drawCaloPositioning.cpp DrawTools.o RunHelper.o $(ROOTFLAG) $(EXTRALIBS)
@@ -77,6 +77,10 @@ CalibrationUtility.o: src/CalibrationUtility.cc
 
 EnergyCalibration.o: src/EnergyCalibration.cc
 	$(CC) $(CFLAGS) -c src/EnergyCalibration.cc $(ROOTFLAG) $(EXTRALIBS)
+
+FitTools.o: src/FitTools.cc
+	$(CC) $(CFLAGS) -c src/FitTools.cc $(ROOTFLAG) $(EXTRALIBS)
+
 
 
 
