@@ -12,7 +12,7 @@ EXTRALIBS := -L$(ROOTSYS)/lib  -lHtml -lMathCore -lGenVector -lMinuit -lTMVA
 
 
 
-all: positionAnalysis drawPositionAnalysis hodoscopeAnalysis calibrateCeF3 drawHodoClustersVsEnergy drawShitVsDiagonal calibrateBGO drawEnergyScan calibrateCaloPositioning drawCaloPositioning calibrateCeF3Positioning makePedestalFile makeAnalysisTree drawPedestalsVsRun
+all: positionAnalysis drawPositionAnalysis hodoscopeAnalysis calibrateCeF3 drawHodoClustersVsEnergy drawShitVsDiagonal calibrateBGO drawEnergyScan calibrateCaloPositioning drawCaloPositioning calibrateCeF3Positioning makePedestalFile makeAnalysisTree drawPedestalsVsRun drawResolutionStudies
 
 
 checkRuns: checkRuns.cpp
@@ -59,6 +59,9 @@ drawEnergyScan: drawEnergyScan.cpp DrawTools.o FitTools.o
 
 drawCaloPositioning: drawCaloPositioning.cpp DrawTools.o RunHelper.o
 	$(CC) -Wall $(INCLUDES) -o drawCaloPositioning drawCaloPositioning.cpp DrawTools.o RunHelper.o $(ROOTFLAG) $(EXTRALIBS)
+
+drawResolutionStudies: drawResolutionStudies.cpp DrawTools.o FitTools.o
+	$(CC) -Wall $(INCLUDES) -o drawResolutionStudies drawResolutionStudies.cpp DrawTools.o FitTools.o $(ROOTFLAG) $(EXTRALIBS)
 
 
 
