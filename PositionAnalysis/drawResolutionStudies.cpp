@@ -2,6 +2,10 @@
 
 #include "TFile.h"
 #include "TTree.h"
+#include "TGraphErrors.h"
+#include "TH2D.h"
+#include "TCanvas.h"
+#include "TLegend.h"
 
 
 #include "interface/DrawTools.h"
@@ -23,17 +27,36 @@ struct ResoStruct {
 };
 
 
+struct DiagonalScanStruct {
+
+ DiagonalScanStruct( float d, TTree* t_data, TTree* t_mc ) {
+   diag = d;
+   tree_mc = t_mc;
+   tree_data = t_data;
+ }
+
+ float diag;
+ TTree* tree_data;
+ TTree* tree_mc;
+
+};
 
 
 ResoStruct getResponseResolutionMC( const std::string& outputdir, TTree* tree, float LYSF[], const std::string& name );
+std::string getVarName( float LYSF[] );
 ResoStruct getRespAndReso( TF1* f1, float energyErrorPercent );
+float getRatioError( float num, float denom, float numErr, float denomErr );
+ResoStruct getRespResoFromHisto( TH1D* h1 );
+
+
 
 
 int main() {
 
   DrawTools::setStyle();
 
-  TFile* file_mc = TFile::Open("EEShash_491MeV_10000ev.root");
+  TFile* file_mc = TFile::Open("EEShash_491MeV_10000ev_smear.root");
+  //TFile* file_mc = TFile::Open("EEShash_491MeV_10000ev.root");
 
   TFile* file_data = TFile::Open("analysisTrees_V00/Reco_BTF_259_20140502-012847_beam.root");
 
@@ -68,6 +91,125 @@ int main() {
   std::cout << "MC hole: " << rs_hole.Sres << " +/- " << rs_hole.Sres_error << std::endl;
 
 
+  TFile* file_mc_3x3y = TFile::Open("EEShash_491MeV_10000ev_smear_3x3y.root");
+  TFile* file_mc_6x6y = TFile::Open("EEShash_491MeV_10000ev_smear_6x6y.root");
+  TFile* file_mc_9x9y = TFile::Open("EEShash_491MeV_10000ev_smear_9x9y.root");
+  TFile* file_mc_11p3x11p3y = TFile::Open("EEShash_491MeV_10000ev_smear_11p3x11p3y.root");
+
+  TTree* tree_mc_3x3y = (TTree*)file_mc_3x3y->Get("EEShash");
+  TTree* tree_mc_6x6y = (TTree*)file_mc_6x6y->Get("EEShash");
+  TTree* tree_mc_9x9y = (TTree*)file_mc_9x9y->Get("EEShash");
+  TTree* tree_mc_11p3x11p3y = (TTree*)file_mc_11p3x11p3y->Get("EEShash");
+
+  TFile* file_data_3x3y       = TFile::Open("PosAnTrees_V00/PosAn_BTF_141_beam.root");
+  TFile* file_data_6x6y       = TFile::Open("PosAnTrees_V00/PosAn_BTF_143_beam.root");
+  TFile* file_data_9x9y       = TFile::Open("PosAnTrees_V00/PosAn_BTF_167_beam.root");
+  TFile* file_data_11p3x11p3y = TFile::Open("PosAnTrees_V00/PosAn_BTF_219_beam.root");
+
+  TTree* tree_data_3x3y = (TTree*)file_data_3x3y->Get("posTree");
+  TTree* tree_data_6x6y = (TTree*)file_data_6x6y->Get("posTree");
+  TTree* tree_data_9x9y = (TTree*)file_data_9x9y->Get("posTree");
+  TTree* tree_data_11p3x11p3y = (TTree*)file_data_11p3x11p3y->Get("posTree");
+
+  //TFile* file_data_3x3y       = TFile::Open("AnalysisTrees_V00/Reco_BTF_141_20140430-183508_beam.root");
+  //TFile* file_data_6x6y       = TFile::Open("AnalysisTrees_V00/Reco_BTF_143_20140430-191455_beam.root");
+  //TFile* file_data_9x9y       = TFile::Open("AnalysisTrees_V00/Reco_BTF_167_20140430-210839_beam.root");
+  //TFile* file_data_11p3x11p3y = TFile::Open("AnalysisTrees_V00/Reco_BTF_219_20140501-092151_beam.root");
+
+  //TTree* tree_data_3x3y = (TTree*)file_data_3x3y->Get("recoTree");
+  //TTree* tree_data_6x6y = (TTree*)file_data_6x6y->Get("recoTree");
+  //TTree* tree_data_9x9y = (TTree*)file_data_9x9y->Get("recoTree");
+  //TTree* tree_data_11p3x11p3y = (TTree*)file_data_11p3x11p3y->Get("recoTree");
+
+  std::vector<DiagonalScanStruct> dss;
+  dss.push_back( DiagonalScanStruct(0., tree_data, tree_mc) );
+  dss.push_back( DiagonalScanStruct(3., tree_data_3x3y, tree_mc_3x3y) );
+  dss.push_back( DiagonalScanStruct(6., tree_data_6x6y, tree_mc_6x6y) );
+  dss.push_back( DiagonalScanStruct(9., tree_data_9x9y, tree_mc_9x9y) );
+  dss.push_back( DiagonalScanStruct(11.3, tree_data_11p3x11p3y, tree_mc_11p3x11p3y) );
+
+
+  std::string fullVarName_mc = getVarName(LYSF_hole);
+
+  ResoStruct rs_ref_mc;
+  ResoStruct rs_ref_data;
+  TGraphErrors* gr_RespVsDiag_data = new TGraphErrors(0);
+  TGraphErrors* gr_ResoVsDiag_data = new TGraphErrors(0);
+  TGraphErrors* gr_RespVsDiag_mc   = new TGraphErrors(0);
+  TGraphErrors* gr_ResoVsDiag_mc   = new TGraphErrors(0);
+
+  for( unsigned i=0; i<dss.size(); ++i ) {
+
+    std::string histoName_data(Form("data_%.0f", dss[i].diag));
+    TH1D* h1_data = new TH1D( histoName_data.c_str(), "", 200, 0., 5000. );
+    dss[i].tree_data->Project( histoName_data.c_str(), "cef3_corr[0]+cef3_corr[1]+cef3_corr[2]+cef3_corr[3]", "isSingleEle_scintFront" );
+
+    std::string histoName_mc(Form("mc_%.0f", dss[i].diag));
+    TH1D* h1_mc = new TH1D( histoName_mc.c_str(), "", 100, 0., 500. );
+    dss[i].tree_mc->Project( histoName_mc.c_str(), fullVarName_mc.c_str() );
+
+    if( i==0 ) {
+
+      rs_ref_mc   = getRespResoFromHisto( h1_mc );
+      rs_ref_data = getRespResoFromHisto( h1_data );
+
+    }
+
+    ResoStruct rs_mc = getRespResoFromHisto( h1_mc );
+    ResoStruct rs_data = getRespResoFromHisto( h1_data );
+
+    gr_RespVsDiag_data->SetPoint( i, dss[i].diag, rs_data.resp/rs_ref_data.resp );
+    gr_ResoVsDiag_data->SetPoint( i, dss[i].diag, rs_data.reso/rs_ref_data.reso );
+    gr_RespVsDiag_mc  ->SetPoint( i, dss[i].diag, rs_mc.resp/rs_ref_mc.resp );
+    gr_ResoVsDiag_mc  ->SetPoint( i, dss[i].diag, rs_mc.reso/rs_ref_mc.reso );
+    
+    gr_RespVsDiag_data->SetPointError( i, 0., getRatioError( rs_data.resp, rs_ref_data.resp, rs_data.resp_error, rs_ref_data.resp_error) );
+    gr_ResoVsDiag_data->SetPointError( i, 0., getRatioError( rs_data.reso, rs_ref_data.reso, rs_data.reso_error, rs_ref_data.reso_error) );
+    gr_RespVsDiag_mc  ->SetPointError( i, 0., getRatioError( rs_mc  .resp, rs_ref_mc  .resp, rs_mc  .resp_error, rs_ref_mc  .resp_error) );
+    gr_ResoVsDiag_mc  ->SetPointError( i, 0., getRatioError( rs_mc  .reso, rs_ref_mc  .reso, rs_mc  .reso_error, rs_ref_mc  .reso_error) );
+    
+  }
+
+
+  TCanvas* c1 = new TCanvas("c1", "", 600, 600);
+  c1->cd();
+
+  float xMin = -1.;
+  float xMax = 13.;
+  TH2D* h2_axes = new TH2D("axes", "", 10, xMin, xMax, 10, 0., 1.1);
+  h2_axes->SetXTitle( "Diagonal Distance From Center [mm]");
+  h2_axes->SetYTitle( "Response Ratio" );
+
+  h2_axes->Draw();
+
+  TLine* line_one = new TLine( xMin, 1., xMax, 1. );
+  line_one->Draw("same");
+
+  gr_RespVsDiag_data->SetMarkerSize(1.6);
+  gr_RespVsDiag_mc->SetMarkerSize(1.6);
+
+  gr_RespVsDiag_data->SetMarkerStyle(20);
+  gr_RespVsDiag_mc->SetMarkerStyle(24);
+
+  gr_RespVsDiag_data->SetMarkerColor(46);
+  gr_RespVsDiag_mc->SetMarkerColor(kBlack);
+
+  gr_RespVsDiag_data->Draw("p same");
+  gr_RespVsDiag_mc->Draw("p same");
+
+  TLegend* legend = new TLegend( 0.23, 0.27, 0.5, 0.47 );
+  legend->SetFillColor(0);
+  legend->SetTextSize(0.038);
+  legend->AddEntry( gr_RespVsDiag_data, "Data", "P" );
+  legend->AddEntry( gr_RespVsDiag_mc, "Geant4", "P" );
+  legend->Draw("same");
+
+  gPad->RedrawAxis();
+
+  c1->SaveAs( Form("%s/resp_vs_diag.eps", outputdir.c_str()) );
+  c1->SaveAs( Form("%s/resp_vs_diag.png", outputdir.c_str()) );
+  c1->SaveAs( Form("%s/resp_vs_diag.pdf", outputdir.c_str()) );
+
   return 0;
 
 }
@@ -77,12 +219,7 @@ int main() {
 
 ResoStruct getResponseResolutionMC( const std::string& outputdir, TTree* tree, float LYSF[], const std::string& name ) {
 
-  std::string fullVarName = "";
-  for( unsigned i=0; i<10; ++i ) {
-    std::string plusSign = (i==0) ? "" : " + ";
-    std::string thisPiece(Form("%s%f*Eact_%d", plusSign.c_str(), LYSF[i], i));
-    fullVarName += thisPiece;
-  }
+  std::string fullVarName = getVarName(LYSF);
 
   TH1D* h1 = new TH1D( name.c_str(), "", 500, 0., 500. );
 
@@ -100,6 +237,19 @@ ResoStruct getResponseResolutionMC( const std::string& outputdir, TTree* tree, f
 }
 
 
+std::string getVarName( float LYSF[] ) {
+
+  std::string fullVarName = "";
+  for( unsigned i=0; i<10; ++i ) {
+    std::string plusSign = (i==0) ? "" : " + ";
+    std::string thisPiece(Form("%s%f*Eact_%d", plusSign.c_str(), LYSF[i], i));
+    fullVarName += thisPiece;
+  }
+
+  return fullVarName;
+
+}
+
 
 ResoStruct getRespAndReso( TF1* f1, float energyErrorPercent ) {
 
@@ -113,7 +263,7 @@ ResoStruct getRespAndReso( TF1* f1, float energyErrorPercent ) {
   float rmsErr = f1->GetParError(2);
 
   float reso = 100.* rms/mean; //in percent
-  float resoErr = 100.* sqrt( rmsErr*rmsErr/(mean*mean) + rms*rms*meanErr*meanErr/(mean*mean*mean*mean) );
+  float resoErr = 100.* getRatioError( mean, rms, meanErr, rmsErr );
 
   float energyGeV = energy/1000.;
   float energyGeVErr = energyErr/1000.;
@@ -127,6 +277,34 @@ ResoStruct getRespAndReso( TF1* f1, float energyErrorPercent ) {
   rs.reso_error = resoErr;
   rs.Sres = Sres;
   rs.Sres_error = Sres_error;
+
+  return rs;
+
+}
+
+
+float getRatioError( float num, float denom, float numErr, float denomErr ) {
+
+  return sqrt( denomErr*denomErr/(num*num) + denom*denom*numErr*numErr/(num*num*num*num) );
+
+}
+
+ResoStruct getRespResoFromHisto( TH1D* h1 ) {
+
+  float mean = h1->GetMean();
+  float meanErr = h1->GetMeanError();
+
+  float rms = h1->GetRMS();
+  float rmsErr = h1->GetRMS();
+
+  float reso = 100.* rms/mean; //in percent
+  float resoErr = 100.* getRatioError(mean, rms, meanErr, rmsErr);
+
+  ResoStruct rs;
+  rs.resp = mean;
+  rs.resp_error = meanErr;
+  rs.reso = reso;
+  rs.reso_error = resoErr;
 
   return rs;
 
