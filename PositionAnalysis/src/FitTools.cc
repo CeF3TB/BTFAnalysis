@@ -10,7 +10,7 @@ TF1* FitTools::fitSingleElectronPeak( const std::string& outputdir, const std::s
 
   std::string histoName(Form("h1_%s", name.c_str()));
   TH1D* h1 = new TH1D(histoName.c_str(), "", 200, 0., 6000.);
-  tree->Project( histoName.c_str(), "cef3_corr[0]+cef3_corr[1]+cef3_corr[2]+cef3_corr[3]", "(scintFront>500. && scintFront<2000. && nHodoClustersX==1 && nHodoClustersY==1)");
+  tree->Project( histoName.c_str(), "cef3_corr[0]+cef3_corr[1]+cef3_corr[2]+cef3_corr[3]", "(isSingleEle_scintFront && nHodoClustersX==1 && nHodoClustersY==1)");
 
   TF1* f1 = new TF1( Form("gaus_%s", name.c_str()), "gaus", 400., 6000.);
   f1->SetParameter(0, h1->Integral() );
@@ -47,7 +47,7 @@ void FitTools::doSingleFit( TH1D* h1, TF1* f1, const std::string& outputdir, con
   }
 
 
-  TCanvas* c1 = new TCanvas("c1", "", 600, 600);
+  TCanvas* c1 = new TCanvas("cX", "", 600, 600);
   c1->cd();
 
   h1->Draw();
