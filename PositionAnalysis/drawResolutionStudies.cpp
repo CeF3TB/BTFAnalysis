@@ -52,18 +52,25 @@ void drawLateralScan( const std::string& outputdir, const std::string& name, std
 
 
 
-int main() {
+int main( int argc, char* argv[]) {
+
+
+  std::string tag = "V00";
+  if( argc>1 ) {
+    std::string tag_str(argv[1]);
+    tag = tag_str;
+  }
 
   DrawTools::setStyle();
 
   TFile* file_mc = TFile::Open("EEShash_491MeV_10000ev_smear.root");
 
-  TFile* file_data = TFile::Open("PosAnTrees_V00/PosAn_BTF_259_beam.root");
+  TFile* file_data = TFile::Open(Form("PosAnTrees_%s/PosAn_BTF_259_beam.root", tag.c_str()));
 
   TTree* tree_data = (TTree*)file_data->Get("posTree");
   TTree* tree_mc = (TTree*)file_mc->Get("EEShash");
 
-  std::string outputdir = "ResolutionStudiesPlots";
+  std::string outputdir = "ResolutionStudiesPlots_"+tag;
   std::string mkdir_command = "mkdir -p " + outputdir;
   system( mkdir_command.c_str() );
   
@@ -91,7 +98,11 @@ int main() {
   std::cout << "MC hole: " << rs_hole.Sres << " +/- " << rs_hole.Sres_error << std::endl;
 
 
-  // stuff for diagonal scan:
+  
+
+
+
+  // FIRST: DIAGONAL SCAN
 
   TFile* file_mc_3x3y = TFile::Open("EEShash_491MeV_10000ev_smear_3x3y.root");
   TFile* file_mc_6x6y = TFile::Open("EEShash_491MeV_10000ev_smear_6x6y.root");
@@ -113,10 +124,10 @@ int main() {
   //TTree* tree_data_9x9y = (TTree*)file_data_9x9y->Get("recoTree");
   //TTree* tree_data_11p3x11p3y = (TTree*)file_data_11p3x11p3y->Get("recoTree");
 
-  TFile* file_data_3x3y       = TFile::Open("PosAnTrees_V00/PosAn_BTF_141_beam.root");
-  TFile* file_data_6x6y       = TFile::Open("PosAnTrees_V00/PosAn_BTF_143_beam.root");
-  TFile* file_data_9x9y       = TFile::Open("PosAnTrees_V00/PosAn_BTF_167_beam.root");
-  TFile* file_data_11p3x11p3y = TFile::Open("PosAnTrees_V00/PosAn_BTF_219_beam.root");
+  TFile* file_data_3x3y       = TFile::Open(Form("PosAnTrees_%s/PosAn_BTF_141_beam.root", tag.c_str()));
+  TFile* file_data_6x6y       = TFile::Open(Form("PosAnTrees_%s/PosAn_BTF_143_beam.root", tag.c_str()));
+  TFile* file_data_9x9y       = TFile::Open(Form("PosAnTrees_%s/PosAn_BTF_167_beam.root", tag.c_str()));
+  TFile* file_data_11p3x11p3y = TFile::Open(Form("PosAnTrees_%s/PosAn_BTF_219_beam.root", tag.c_str()));
 
   TTree* tree_data_3x3y = (TTree*)file_data_3x3y->Get("posTree");
   TTree* tree_data_6x6y = (TTree*)file_data_6x6y->Get("posTree");
@@ -130,6 +141,13 @@ int main() {
   lss_diag.push_back( LateralScanStruct(9., tree_data_9x9y, tree_mc_9x9y) );
   lss_diag.push_back( LateralScanStruct(11.3, tree_data_11p3x11p3y, tree_mc_11p3x11p3y) );
 
+  std::string fullVarName_mc = getVarName(LYSF_hole);
+  drawLateralScan( outputdir, "diag", lss_diag, "Diagonal", fullVarName_mc );
+
+
+
+
+  // SECOND: HORIZONTAL SCAN
 
 
   TFile* file_mc_2x0y  = TFile::Open("EEShash_491MeV_10000ev_smear_2x0y.root");
@@ -146,18 +164,18 @@ int main() {
   TTree* tree_mc_10x0y   = (TTree*)file_mc_10x0y->Get("EEShash");
   TTree* tree_mc_12x0y   = (TTree*)file_mc_12x0y->Get("EEShash");
 
-  TFile* file_data_12x0y  = TFile::Open("PosAnTrees_V00/PosAn_BTF_144_20140430-200741_beam.root");
-  TFile* file_data_10x0y  = TFile::Open("PosAnTrees_V00/PosAn_BTF_145_20140430-201024_beam.root");
-  TFile* file_data_8x0y   = TFile::Open("PosAnTrees_V00/PosAn_BTF_146_20140430-201243_beam.root");
-  TFile* file_data_6x0y   = TFile::Open("PosAnTrees_V00/PosAn_BTF_147_20140430-201509_beam.root");
-  TFile* file_data_4x0y   = TFile::Open("PosAnTrees_V00/PosAn_BTF_148_20140430-201719_beam.root");
-  TFile* file_data_2x0y   = TFile::Open("PosAnTrees_V00/PosAn_BTF_149_20140430-201913_beam.root");
-  TFile* file_data_m2x0y  = TFile::Open("PosAnTrees_V00/PosAn_BTF_151_20140430-202639_beam.root");
-  TFile* file_data_m4x0y  = TFile::Open("PosAnTrees_V00/PosAn_BTF_152_20140430-202852_beam.root");
-  TFile* file_data_m6x0y  = TFile::Open("PosAnTrees_V00/PosAn_BTF_153_20140430-203054_beam.root");
-  TFile* file_data_m8x0y  = TFile::Open("PosAnTrees_V00/PosAn_BTF_154_20140430-203255_beam.root");
-  TFile* file_data_m10x0y = TFile::Open("PosAnTrees_V00/PosAn_BTF_155_20140430-203551_beam.root");
-  TFile* file_data_m12x0y = TFile::Open("PosAnTrees_V00/PosAn_BTF_156_20140430-203818_beam.root");
+  TFile* file_data_12x0y  = TFile::Open(Form("PosAnTrees_%s/PosAn_BTF_144_20140430-200741_beam.root", tag.c_str()));
+  TFile* file_data_10x0y  = TFile::Open(Form("PosAnTrees_%s/PosAn_BTF_145_20140430-201024_beam.root", tag.c_str()));
+  TFile* file_data_8x0y   = TFile::Open(Form("PosAnTrees_%s/PosAn_BTF_146_20140430-201243_beam.root", tag.c_str()));
+  TFile* file_data_6x0y   = TFile::Open(Form("PosAnTrees_%s/PosAn_BTF_147_20140430-201509_beam.root", tag.c_str()));
+  TFile* file_data_4x0y   = TFile::Open(Form("PosAnTrees_%s/PosAn_BTF_148_20140430-201719_beam.root", tag.c_str()));
+  TFile* file_data_2x0y   = TFile::Open(Form("PosAnTrees_%s/PosAn_BTF_149_20140430-201913_beam.root", tag.c_str()));
+  TFile* file_data_m2x0y  = TFile::Open(Form("PosAnTrees_%s/PosAn_BTF_151_20140430-202639_beam.root", tag.c_str()));
+  TFile* file_data_m4x0y  = TFile::Open(Form("PosAnTrees_%s/PosAn_BTF_152_20140430-202852_beam.root", tag.c_str()));
+  TFile* file_data_m6x0y  = TFile::Open(Form("PosAnTrees_%s/PosAn_BTF_153_20140430-203054_beam.root", tag.c_str()));
+  TFile* file_data_m8x0y  = TFile::Open(Form("PosAnTrees_%s/PosAn_BTF_154_20140430-203255_beam.root", tag.c_str()));
+  TFile* file_data_m10x0y = TFile::Open(Form("PosAnTrees_%s/PosAn_BTF_155_20140430-203551_beam.root", tag.c_str()));
+  TFile* file_data_m12x0y = TFile::Open(Form("PosAnTrees_%s/PosAn_BTF_156_20140430-203818_beam.root", tag.c_str()));
 
   TTree* tree_data_2x0y    = (TTree*)file_data_2x0y  ->Get("posTree");
   TTree* tree_data_4x0y    = (TTree*)file_data_4x0y  ->Get("posTree");  
@@ -187,10 +205,47 @@ int main() {
   lss_horiz.push_back( LateralScanStruct(-10., tree_data_m10x0y, tree_mc_10x0y) );
   lss_horiz.push_back( LateralScanStruct(-12., tree_data_m12x0y, tree_mc_12x0y) );
 
-  std::string fullVarName_mc = getVarName(LYSF_hole);
-  drawLateralScan( outputdir, "diag", lss_diag, "Diagonal", fullVarName_mc );
   drawLateralScan( outputdir, "horiz", lss_horiz, "Horizontal", fullVarName_mc );
 
+
+
+
+
+
+
+  // THIRD: VERTICAL SCAN
+
+
+  TFile* file_data_0x2y   = TFile::Open(Form("PosAnTrees_%s/PosAn_BTF_160_20140430-204719_beam.root", tag.c_str()));
+  TFile* file_data_0x4y   = TFile::Open(Form("PosAnTrees_%s/PosAn_BTF_159_20140430-204525_beam.root", tag.c_str()));
+  TFile* file_data_0x6y   = TFile::Open(Form("PosAnTrees_%s/PosAn_BTF_158_20140430-204306_beam.root", tag.c_str()));
+  TFile* file_data_0x8y   = TFile::Open(Form("PosAnTrees_%s/PosAn_BTF_157_20140430-204053_beam.root", tag.c_str()));
+  TFile* file_data_0xm2y  = TFile::Open(Form("PosAnTrees_%s/PosAn_BTF_162_20140430-205129_beam.root", tag.c_str()));
+  TFile* file_data_0xm4y  = TFile::Open(Form("PosAnTrees_%s/PosAn_BTF_163_20140430-205337_beam.root", tag.c_str()));
+  TFile* file_data_0xm6y  = TFile::Open(Form("PosAnTrees_%s/PosAn_BTF_164_20140430-205542_beam.root", tag.c_str()));
+  TFile* file_data_0xm8y  = TFile::Open(Form("PosAnTrees_%s/PosAn_BTF_165_20140430-205756_beam.root", tag.c_str()));
+
+  TTree* tree_data_0x2y  = (TTree*)file_data_0x2y ->Get("posTree");
+  TTree* tree_data_0x4y  = (TTree*)file_data_0x4y ->Get("posTree");  
+  TTree* tree_data_0x6y  = (TTree*)file_data_0x6y ->Get("posTree");
+  TTree* tree_data_0x8y  = (TTree*)file_data_0x8y ->Get("posTree");
+  TTree* tree_data_0xm2y  = (TTree*)file_data_0xm2y ->Get("posTree");
+  TTree* tree_data_0xm4y  = (TTree*)file_data_0xm4y ->Get("posTree");  
+  TTree* tree_data_0xm6y  = (TTree*)file_data_0xm6y ->Get("posTree");
+  TTree* tree_data_0xm8y  = (TTree*)file_data_0xm8y ->Get("posTree");
+
+  std::vector<LateralScanStruct> lss_vert;
+  lss_vert.push_back( LateralScanStruct(0.,  tree_data, tree_mc) );
+  lss_vert.push_back( LateralScanStruct(2.,  tree_data_0x2y, tree_mc_2x0y) );
+  lss_vert.push_back( LateralScanStruct(4.,  tree_data_0x4y, tree_mc_4x0y) );
+  lss_vert.push_back( LateralScanStruct(6.,  tree_data_0x6y, tree_mc_6x0y) );
+  lss_vert.push_back( LateralScanStruct(8.,  tree_data_0x8y, tree_mc_8x0y) );
+  lss_vert.push_back( LateralScanStruct(-2., tree_data_0xm2y, tree_mc_2x0y) );
+  lss_vert.push_back( LateralScanStruct(-4., tree_data_0xm4y, tree_mc_4x0y) );
+  lss_vert.push_back( LateralScanStruct(-6., tree_data_0xm6y, tree_mc_6x0y) );
+  lss_vert.push_back( LateralScanStruct(-8., tree_data_0xm8y, tree_mc_8x0y) );
+
+  drawLateralScan( outputdir, "vert", lss_vert, "Vertical", fullVarName_mc );
 
   return 0;
 
