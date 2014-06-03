@@ -8,6 +8,12 @@ void RunHelper::setCalibrationFiles(std::string tagName){
   if (tagName == "V00"){
     cef3CalibrationVersion_ ="V0";
     bgoCalibrationVersion_ ="V0";
+  }else if (tagName == "V01"){
+    cef3CalibrationVersion_ ="V1";
+    bgoCalibrationVersion_ ="V0";
+  }else if(tagName == "V02"){
+    cef3CalibrationVersion_ ="V1";
+    bgoCalibrationVersion_ ="V1";
   }else{
     std::cout<<"tag "<<tagName<<" does not exist. Exiting"<<std::endl;
     exit(12345);
