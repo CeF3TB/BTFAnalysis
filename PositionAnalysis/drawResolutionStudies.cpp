@@ -543,7 +543,7 @@ ResoStruct addPhotoStatistics( ResoStruct rs, float QE ) {
   float poissonError = 100./sqrt( nPhotons ); // in percent
 
   rs.reso = sqrt( rs.reso*rs.reso + poissonError*poissonError );
-  rs.Sres = sqrt( rs.Sres*rs.Sres + poissonError*poissonError );
+  rs.Sres = rs.reso*sqrt(0.491);
 
   return rs;
 
