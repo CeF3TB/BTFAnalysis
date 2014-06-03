@@ -115,6 +115,7 @@ void drawSinglePositionPlot( const std::string& outputdir, TFile* file, const st
   TCanvas* c1 = new TCanvas("c1", "", 600, 600);
   c1->cd();
 
+  //TH2D* h2_xyPos      = (TH2D*)file->Get(Form("xyPos%s_regrBDTG", suffix.c_str())); 
   TH2D* h2_xyPos      = (TH2D*)file->Get(Form("xyPos_new%s", suffix.c_str())); 
   TH2D* h2_xyPos_hodo = (TH2D*)file->Get(Form("xyPos%s_hodo", suffix.c_str())); 
   //TH2D* h2_xyPos_hodo = (TH2D*)file->Get(Form("xyPos%s_hodo", suffix.c_str())); 

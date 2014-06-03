@@ -44,6 +44,12 @@ int main( int argc, char* argv[] ) {
     runName = runName_str;
   }
 
+  std::string tag = "V00";
+  if( argc>2 ) {
+    std::string tag_str(argv[2]);
+    tag = tag_str;
+  }
+
   TString runName_tstr(runName);
   bool isOnlyRunNumber = !(runName_tstr.BeginsWith("BTF_"));
 
@@ -54,14 +60,14 @@ int main( int argc, char* argv[] ) {
     std::cout << "-> So for instance you are passing '246' for run 'BTF_246_20140501-212512_beam'" << std::endl;
     std::cout << "(if this is not the case this means TROUBLE)" << std::endl;
     std::cout << "-> Will look for runs matching run number: " << runName << std::endl;
-    tree->Add(Form("analysisTrees/Reco_BTF_%s_*beam.root/recoTree", runName.c_str()) );
+    tree->Add(Form("analysisTrees_%s/Reco_BTF_%s_*beam.root/recoTree", tag.c_str(), runName.c_str()) );
     if( tree->GetEntries()==0 ) {
       std::cout << "WARNING! Didn't find any events matching run: " << runName << std::endl;
       std::cout << "Exiting" << std::endl;
       exit(1913);
     }
   } else {
-    std::string fileName = "analysisTrees/Reco_" + runName + ".root";
+    std::string fileName = "analysisTrees_"+tag+"/Reco_" + runName + ".root";
     TFile* file = TFile::Open(fileName.c_str());
     if( file==0 ) {
       std::cout << "ERROR! Din't find file " << fileName << std::endl;
@@ -230,14 +236,28 @@ int main( int argc, char* argv[] ) {
 
 
 
-  std::string outfileName = "PosAn_" + runName + ".root";
+  std::string outputdir = "PosAnTrees_"+tag;
+  system( Form("mkdir -p %s", outputdir.c_str()) );
+  std::string outfileName = outputdir + "/PosAn_" + runName + ".root";
   TFile* outfile = TFile::Open( outfileName.c_str(), "RECREATE" );
 
   TTree* outTree = new TTree("posTree","posTree");
   float xPos_calo_, yPos_calo_;
+  float xPos_bgo_, yPos_bgo_;
   float xPos_new_, yPos_new_;
   float xPos_regr2D_, yPos_regr2D_;
+  float r02_, r13_;
 
+  outTree->Branch( "isSingleEle_scintFront", &isSingleEle_scintFront, "isSingleEle_scintFront/O" );
+  outTree->Branch( "nHodoClustersX", &nHodoClustersX, "nHodoClustersX/I" );
+  outTree->Branch( "nHodoClustersY", &nHodoClustersY, "nHodoClustersY/I" );
+  outTree->Branch( "cef3_corr", cef3_corr, "cef3_corr[4]/F" );
+  outTree->Branch( "r02", &r02_, "r02_/F" );
+  outTree->Branch( "r13", &r13_, "r13_/F" );
+  outTree->Branch( "xBeam", &xBeam, "xBeam/F" );
+  outTree->Branch( "yBeam", &yBeam, "yBeam/F" );
+  outTree->Branch( "xPos_bgo", &xPos_bgo_, "xPos_bgo_/F" );
+  outTree->Branch( "yPos_bgo", &yPos_bgo_, "yPos_bgo_/F" );
   outTree->Branch( "xPos_calo", &xPos_calo_, "xPos_calo_/F" );
   outTree->Branch( "yPos_calo", &yPos_calo_, "yPos_calo_/F" );
   outTree->Branch( "xPos_new", &xPos_new_, "xPos_new_/F" );
@@ -341,6 +361,9 @@ int main( int argc, char* argv[] ) {
 
   for( unsigned iEntry=0; iEntry<nentries; ++iEntry ) {
 
+    xPos_bgo_ = -999.;
+    yPos_bgo_ = -999.;
+
     xPos_calo_ = -999.;
     yPos_calo_ = -999.;
 
@@ -349,8 +372,10 @@ int main( int argc, char* argv[] ) {
 
     if( iEntry % 5000 == 0 ) std::cout << "Entry: " << iEntry << " / " << nentries << std::endl;
 
+    if( !bgo_corr_ok ) continue;
 
-
+    r02_ = cef3_corr[0]/cef3_corr[2];
+    r13_ = cef3_corr[1]/cef3_corr[3];
 
     // FIRST GET POSITION FROM HODOSCOPE:
 
@@ -382,8 +407,6 @@ int main( int argc, char* argv[] ) {
     }
 
 
-    float xPos_bgo;
-    float yPos_bgo;
 
     std::vector<float> xPosW_bgo;
     std::vector<float> yPosW_bgo;
@@ -418,24 +441,24 @@ int main( int argc, char* argv[] ) {
       yPosW_bgo.push_back(bgo_corr[7]*ybgo[7]);
       
 
-      xPos_bgo = sumVector( xPosW_bgo )/eTot_bgo_corr;
-      yPos_bgo = sumVector( yPosW_bgo )/eTot_bgo_corr;
+      xPos_bgo_ = sumVector( xPosW_bgo )/eTot_bgo_corr;
+      yPos_bgo_ = sumVector( yPosW_bgo )/eTot_bgo_corr;
       
-      h1_xPos_bgo->Fill( xPos_bgo );
-      h1_yPos_bgo->Fill( yPos_bgo );
-      h2_xyPos_bgo->Fill( xPos_bgo, yPos_bgo );
+      h1_xPos_bgo->Fill( xPos_bgo_ );
+      h1_yPos_bgo->Fill( yPos_bgo_ );
+      h2_xyPos_bgo->Fill( xPos_bgo_, yPos_bgo_ );
 
-      h2_correlation_hodo_bgo_xPos->Fill( xPos_hodo, xPos_bgo );
-      h2_correlation_hodo_bgo_yPos->Fill( yPos_hodo, yPos_bgo );
+      h2_correlation_hodo_bgo_xPos->Fill( xPos_hodo, xPos_bgo_ );
+      h2_correlation_hodo_bgo_yPos->Fill( yPos_hodo, yPos_bgo_ );
       
       if( isSingleEle_scintFront ) {
 
-        h1_xPos_singleEle_bgo->Fill( xPos_bgo );
-        h1_yPos_singleEle_bgo->Fill( yPos_bgo );
-        h2_xyPos_singleEle_bgo->Fill( xPos_bgo, yPos_bgo );
+        h1_xPos_singleEle_bgo->Fill( xPos_bgo_ );
+        h1_yPos_singleEle_bgo->Fill( yPos_bgo_ );
+        h2_xyPos_singleEle_bgo->Fill( xPos_bgo_, yPos_bgo_ );
 
-        h2_correlation_hodo_bgo_xPos_singleEle->Fill( xPos_hodo, xPos_bgo );
-        h2_correlation_hodo_bgo_yPos_singleEle->Fill( yPos_hodo, yPos_bgo );
+        h2_correlation_hodo_bgo_xPos_singleEle->Fill( xPos_hodo, xPos_bgo_ );
+        h2_correlation_hodo_bgo_yPos_singleEle->Fill( yPos_hodo, yPos_bgo_ );
 
       }
       
@@ -556,8 +579,8 @@ int main( int argc, char* argv[] ) {
 
           // CORRELATIONS BETWEEN CALO AND HODO:
 
-          h2_correlation_cef3_bgo_xPos->Fill( xPos, xPos_bgo );
-          h2_correlation_cef3_bgo_yPos->Fill( yPos, yPos_bgo );
+          h2_correlation_cef3_bgo_xPos->Fill( xPos, xPos_bgo_ );
+          h2_correlation_cef3_bgo_yPos->Fill( yPos, yPos_bgo_ );
 
         }
 
@@ -608,8 +631,8 @@ int main( int argc, char* argv[] ) {
 
             //h2_xyPos_singleEle_regr2D->Fill( xPos_regr2D_, yPos_regr2D_ );
 
-            h2_correlation_cef3_bgo_xPos_singleEle->Fill( xPos, xPos_bgo );
-            h2_correlation_cef3_bgo_yPos_singleEle->Fill( yPos, yPos_bgo );
+            h2_correlation_cef3_bgo_xPos_singleEle->Fill( xPos, xPos_bgo_ );
+            h2_correlation_cef3_bgo_yPos_singleEle->Fill( yPos, yPos_bgo_ );
 
           }
 
