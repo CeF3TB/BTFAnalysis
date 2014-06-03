@@ -48,6 +48,7 @@ ResoStruct getRespAndReso( TF1* f1, float energyErrorPercent );
 float getRatioError( float num, float denom, float numErr, float denomErr );
 ResoStruct getRespResoFromHisto( TH1D* h1 );
 void drawLateralScan( const std::string& outputdir, const std::string& name, std::vector<LateralScanStruct> lss, const std::string& axisName, const std::string& fullVarName_mc );
+ResoStruct addPhotoStatistics( ResoStruct rs, float QE );
 
 
 
@@ -93,13 +94,41 @@ int main( int argc, char* argv[]) {
   std::cout << "reso: " << rs_data.reso << " +/- " << rs_data.reso_error << std::endl;
   std::cout << "Sres: " << rs_data.Sres << " +/- " << rs_data.Sres_error << std::endl;
   
-  std::cout << "MC reso ideal: " << rs_ideal.reso << " +/- " << rs_ideal.reso_error << std::endl;
-  std::cout << "MC reso real: " << rs_real.reso << " +/- " << rs_real.reso_error << std::endl;
-  std::cout << "MC reso hole: " << rs_hole.reso << " +/- " << rs_hole.reso_error << std::endl;
+  std::cout << "MC reso ideal: "<< rs_ideal.reso << " +/- " << rs_ideal.reso_error << std::endl;
+  std::cout << "MC reso real: " << rs_real .reso << " +/- " << rs_real .reso_error << std::endl;
+  std::cout << "MC reso hole: " << rs_hole .reso << " +/- " << rs_hole .reso_error << std::endl;
 
   std::cout << "MC Sres ideal: " << rs_ideal.Sres << " +/- " << rs_ideal.Sres_error << std::endl;
-  std::cout << "MC Sres real: " << rs_real.Sres << " +/- " << rs_real.Sres_error << std::endl;
-  std::cout << "MC Sres hole: " << rs_hole.Sres << " +/- " << rs_hole.Sres_error << std::endl;
+  std::cout << "MC Sres real: "  << rs_real .Sres << " +/- " << rs_real .Sres_error << std::endl;
+  std::cout << "MC Sres hole: "  << rs_hole .Sres << " +/- " << rs_hole .Sres_error << std::endl;
+
+  std::cout << std::endl;
+  std::cout << "-> Adding photostatistics to MC (25% QE): " << std::endl;
+  ResoStruct rs_ideal_ps = addPhotoStatistics( rs_ideal, 0.25 );
+  ResoStruct rs_real_ps  = addPhotoStatistics( rs_real, 0.25 );
+  ResoStruct rs_hole_ps  = addPhotoStatistics( rs_hole, 0.25 );
+  
+  std::cout << "MC reso ideal: "<< rs_ideal_ps.reso << " +/- " << rs_ideal_ps.reso_error << std::endl;
+  std::cout << "MC reso real: " << rs_real_ps .reso << " +/- " << rs_real_ps .reso_error << std::endl;
+  std::cout << "MC reso hole: " << rs_hole_ps .reso << " +/- " << rs_hole_ps .reso_error << std::endl;
+
+  std::cout << "MC Sres ideal: " << rs_ideal_ps.Sres << " +/- " << rs_ideal_ps.Sres_error << std::endl;
+  std::cout << "MC Sres real: "  << rs_real_ps .Sres << " +/- " << rs_real_ps .Sres_error << std::endl;
+  std::cout << "MC Sres hole: "  << rs_hole_ps .Sres << " +/- " << rs_hole_ps .Sres_error << std::endl;
+
+
+  std::cout << "-> Adding photostatistics to MC (15% QE): " << std::endl;
+  rs_ideal_ps = addPhotoStatistics( rs_ideal, 0.15 );
+  rs_real_ps  = addPhotoStatistics( rs_real, 0.15 );
+  rs_hole_ps  = addPhotoStatistics( rs_hole, 0.15 );
+  
+  std::cout << "MC reso ideal: "<< rs_ideal_ps.reso << " +/- " << rs_ideal_ps.reso_error << std::endl;
+  std::cout << "MC reso real: " << rs_real_ps .reso << " +/- " << rs_real_ps .reso_error << std::endl;
+  std::cout << "MC reso hole: " << rs_hole_ps .reso << " +/- " << rs_hole_ps .reso_error << std::endl;
+
+  std::cout << "MC Sres ideal: " << rs_ideal_ps.Sres << " +/- " << rs_ideal_ps.Sres_error << std::endl;
+  std::cout << "MC Sres real: "  << rs_real_ps .Sres << " +/- " << rs_real_ps .Sres_error << std::endl;
+  std::cout << "MC Sres hole: "  << rs_hole_ps .Sres << " +/- " << rs_hole_ps .Sres_error << std::endl;
 
 
   
@@ -505,3 +534,17 @@ void drawLateralScan( const std::string& outputdir, const std::string& name, std
   delete gr_ResoVsDiag_mc;
 
 }
+
+
+ResoStruct addPhotoStatistics( ResoStruct rs, float QE ) {
+
+  float nPhotons = floor(rs.resp*0.49/QE);
+
+  float poissonError = 100./sqrt( nPhotons ); // in percent
+
+  rs.reso = sqrt( rs.reso*rs.reso + poissonError*poissonError );
+  rs.Sres = sqrt( rs.Sres*rs.Sres + poissonError*poissonError );
+
+  return rs;
+
+} 
