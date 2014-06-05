@@ -12,7 +12,7 @@ EXTRALIBS := -L$(ROOTSYS)/lib  -lHtml -lMathCore -lGenVector -lMinuit -lTMVA
 
 
 
-all: positionAnalysis drawPositionAnalysis hodoscopeAnalysis calibrateCeF3 drawHodoClustersVsEnergy drawShitVsDiagonal calibrateBGO drawEnergyScan calibrateCaloPositioning drawCaloPositioning calibrateCeF3Positioning makePedestalFile makeAnalysisTree drawPedestalsVsRun drawResolutionStudies
+all: positionAnalysis drawPositionAnalysis hodoscopeAnalysis calibrateCeF3 drawHodoClustersVsEnergy drawShitVsDiagonal calibrateBGO drawEnergyScan calibrateCaloPositioning drawCaloPositioning calibrateCeF3Positioning makePedestalFile makeAnalysisTree drawPedestalsVsRun drawResolutionStudies calibrateBGOPositioning
 
 
 checkRuns: checkRuns.cpp
@@ -41,6 +41,9 @@ calibrateBGO: DrawTools.o calibrateBGO.cpp
 
 calibrateCaloPositioning: RunHelper.o calibrateCaloPositioning.cpp
 	$(CC) -Wall $(INCLUDES) -o calibrateCaloPositioning calibrateCaloPositioning.cpp RunHelper.o $(ROOTFLAG) $(EXTRALIBS)
+
+calibrateBGOPositioning: RunHelper.o DrawTools.o calibrateBGOPositioning.cpp
+	$(CC) -Wall $(INCLUDES) -o calibrateBGOPositioning calibrateBGOPositioning.cpp RunHelper.o DrawTools.o $(ROOTFLAG) $(EXTRALIBS)
 
 calibrateCeF3Positioning: RunHelper.o DrawTools.o calibrateCeF3Positioning.cpp
 	$(CC) -Wall $(INCLUDES) -o calibrateCeF3Positioning calibrateCeF3Positioning.cpp RunHelper.o DrawTools.o $(ROOTFLAG) $(EXTRALIBS)
