@@ -18,6 +18,7 @@ PositionAnalysis/pedestalFilesList.txt
 *.root
 *.eps
 *.png
+*.pdf
 *.o
 
 *.d
