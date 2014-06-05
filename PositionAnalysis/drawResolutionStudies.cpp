@@ -48,6 +48,7 @@ ResoStruct getRespAndReso( TF1* f1, float energyErrorPercent );
 float getRatioError( float num, float denom, float numErr, float denomErr );
 ResoStruct getRespResoFromHisto( TH1D* h1 );
 void drawLateralScan( const std::string& outputdir, const std::string& name, std::vector<LateralScanStruct> lss, const std::string& axisName, const std::string& fullVarName_mc );
+ResoStruct addPhotoStatistics( ResoStruct rs, float QE );
 
 
 
@@ -93,16 +94,48 @@ int main( int argc, char* argv[]) {
   std::cout << "reso: " << rs_data.reso << " +/- " << rs_data.reso_error << std::endl;
   std::cout << "Sres: " << rs_data.Sres << " +/- " << rs_data.Sres_error << std::endl;
   
-  std::cout << "MC ideal: " << rs_ideal.Sres << " +/- " << rs_ideal.Sres_error << std::endl;
-  std::cout << "MC real: " << rs_real.Sres << " +/- " << rs_real.Sres_error << std::endl;
-  std::cout << "MC hole: " << rs_hole.Sres << " +/- " << rs_hole.Sres_error << std::endl;
+  std::cout << "MC reso ideal: "<< rs_ideal.reso << " +/- " << rs_ideal.reso_error << std::endl;
+  std::cout << "MC reso real: " << rs_real .reso << " +/- " << rs_real .reso_error << std::endl;
+  std::cout << "MC reso hole: " << rs_hole .reso << " +/- " << rs_hole .reso_error << std::endl;
+
+  std::cout << "MC Sres ideal: " << rs_ideal.Sres << " +/- " << rs_ideal.Sres_error << std::endl;
+  std::cout << "MC Sres real: "  << rs_real .Sres << " +/- " << rs_real .Sres_error << std::endl;
+  std::cout << "MC Sres hole: "  << rs_hole .Sres << " +/- " << rs_hole .Sres_error << std::endl;
+
+  std::cout << std::endl;
+  std::cout << "-> Adding photostatistics to MC (25% QE): " << std::endl;
+  ResoStruct rs_ideal_ps = addPhotoStatistics( rs_ideal, 0.25 );
+  ResoStruct rs_real_ps  = addPhotoStatistics( rs_real, 0.25 );
+  ResoStruct rs_hole_ps  = addPhotoStatistics( rs_hole, 0.25 );
+  
+  std::cout << "MC reso ideal: "<< rs_ideal_ps.reso << " +/- " << rs_ideal_ps.reso_error << std::endl;
+  std::cout << "MC reso real: " << rs_real_ps .reso << " +/- " << rs_real_ps .reso_error << std::endl;
+  std::cout << "MC reso hole: " << rs_hole_ps .reso << " +/- " << rs_hole_ps .reso_error << std::endl;
+
+  std::cout << "MC Sres ideal: " << rs_ideal_ps.Sres << " +/- " << rs_ideal_ps.Sres_error << std::endl;
+  std::cout << "MC Sres real: "  << rs_real_ps .Sres << " +/- " << rs_real_ps .Sres_error << std::endl;
+  std::cout << "MC Sres hole: "  << rs_hole_ps .Sres << " +/- " << rs_hole_ps .Sres_error << std::endl;
+
+
+  std::cout << "-> Adding photostatistics to MC (15% QE): " << std::endl;
+  rs_ideal_ps = addPhotoStatistics( rs_ideal, 0.15 );
+  rs_real_ps  = addPhotoStatistics( rs_real, 0.15 );
+  rs_hole_ps  = addPhotoStatistics( rs_hole, 0.15 );
+  
+  std::cout << "MC reso ideal: "<< rs_ideal_ps.reso << " +/- " << rs_ideal_ps.reso_error << std::endl;
+  std::cout << "MC reso real: " << rs_real_ps .reso << " +/- " << rs_real_ps .reso_error << std::endl;
+  std::cout << "MC reso hole: " << rs_hole_ps .reso << " +/- " << rs_hole_ps .reso_error << std::endl;
+
+  std::cout << "MC Sres ideal: " << rs_ideal_ps.Sres << " +/- " << rs_ideal_ps.Sres_error << std::endl;
+  std::cout << "MC Sres real: "  << rs_real_ps .Sres << " +/- " << rs_real_ps .Sres_error << std::endl;
+  std::cout << "MC Sres hole: "  << rs_hole_ps .Sres << " +/- " << rs_hole_ps .Sres_error << std::endl;
 
 
   
 
 
 
-  // FIRST: DIAGONAL SCAN
+  // FIRST: DIAGONAL13 SCAN
 
   TFile* file_mc_3x3y = TFile::Open("EEShash_491MeV_10000ev_smear_3x3y.root");
   TFile* file_mc_6x6y = TFile::Open("EEShash_491MeV_10000ev_smear_6x6y.root");
@@ -136,18 +169,51 @@ int main( int argc, char* argv[]) {
 
   std::vector<LateralScanStruct> lss_diag;
   lss_diag.push_back( LateralScanStruct(0., tree_data, tree_mc) );
-  lss_diag.push_back( LateralScanStruct(3., tree_data_3x3y, tree_mc_3x3y) );
-  lss_diag.push_back( LateralScanStruct(6., tree_data_6x6y, tree_mc_6x6y) );
-  lss_diag.push_back( LateralScanStruct(9., tree_data_9x9y, tree_mc_9x9y) );
-  lss_diag.push_back( LateralScanStruct(11.3, tree_data_11p3x11p3y, tree_mc_11p3x11p3y) );
+  lss_diag.push_back( LateralScanStruct(3.*sqrt(2.), tree_data_3x3y, tree_mc_3x3y) );
+  lss_diag.push_back( LateralScanStruct(6.*sqrt(2.), tree_data_6x6y, tree_mc_6x6y) );
+  lss_diag.push_back( LateralScanStruct(9.*sqrt(2.), tree_data_9x9y, tree_mc_9x9y) );
+  lss_diag.push_back( LateralScanStruct(11.3*sqrt(2.), tree_data_11p3x11p3y, tree_mc_11p3x11p3y) );
 
   std::string fullVarName_mc = getVarName(LYSF_hole);
-  drawLateralScan( outputdir, "diag", lss_diag, "Diagonal", fullVarName_mc );
+  drawLateralScan( outputdir, "diag13", lss_diag, "Diagonal", fullVarName_mc );
+
+
+
+  // SECOND: DIAGONAL02 SCAN
+
+  //TFile* file_data_d02_3x3y       = TFile::Open(Form("PosAnTrees_%s/PosAn_BTF_94_beam.root", tag.c_str()));
+  //TFile* file_data_d02_6x6y       = TFile::Open(Form("PosAnTrees_%s/PosAn_BTF_96_beam.root", tag.c_str()));
+  //TFile* file_data_d02_9x9y       = TFile::Open(Form("PosAnTrees_%s/PosAn_BTF_98_beam.root", tag.c_str()));
+  //TFile* file_data_d02_m9xm9y     = TFile::Open(Form("PosAnTrees_%s/PosAn_BTF_171_beam.root", tag.c_str()));
+  //TFile* file_data_d02_m6xm6y     = TFile::Open(Form("PosAnTrees_%s/PosAn_BTF_173_beam.root", tag.c_str()));
+  //TFile* file_data_d02_m3xm3y     = TFile::Open(Form("PosAnTrees_%s/PosAn_BTF_176_beam.root", tag.c_str()));
+
+  TFile* file_data_d02_9x9y     = TFile::Open(Form("PosAnTrees_%s/PosAn_BTF_171_beam.root", tag.c_str()));
+  TFile* file_data_d02_6x6y     = TFile::Open(Form("PosAnTrees_%s/PosAn_BTF_173_beam.root", tag.c_str()));
+  TFile* file_data_d02_3x3y     = TFile::Open(Form("PosAnTrees_%s/PosAn_BTF_176_beam.root", tag.c_str()));
+
+  TTree* tree_data_d02_3x3y   = (TTree*)file_data_d02_3x3y->Get("posTree");
+  TTree* tree_data_d02_6x6y   = (TTree*)file_data_d02_6x6y->Get("posTree");
+  TTree* tree_data_d02_9x9y   = (TTree*)file_data_d02_9x9y->Get("posTree");
+  //TTree* tree_data_d02_m3xm3y = (TTree*)file_data_d02_m3xm3y->Get("posTree");
+  //TTree* tree_data_d02_m6xm6y = (TTree*)file_data_d02_m6xm6y->Get("posTree");
+  //TTree* tree_data_d02_m9xm9y = (TTree*)file_data_d02_m9xm9y->Get("posTree");
+
+  std::vector<LateralScanStruct> lss_diag02;
+  lss_diag02.push_back( LateralScanStruct(0.,  tree_data, tree_mc) );
+  lss_diag02.push_back( LateralScanStruct(3.*sqrt(2.),  tree_data_d02_3x3y, tree_mc_3x3y) );
+  lss_diag02.push_back( LateralScanStruct(6.*sqrt(2.),  tree_data_d02_6x6y, tree_mc_6x6y) );
+  lss_diag02.push_back( LateralScanStruct(9.*sqrt(2.),  tree_data_d02_9x9y, tree_mc_9x9y) );
+  //lss_diag02.push_back( LateralScanStruct(-3.*sqrt(2.), tree_data_d02_m3xm3y, tree_mc_3x3y) );
+  //lss_diag02.push_back( LateralScanStruct(-6.*sqrt(2.), tree_data_d02_m6xm6y, tree_mc_6x6y) );
+  //lss_diag02.push_back( LateralScanStruct(-9.*sqrt(2.), tree_data_d02_m9xm9y, tree_mc_9x9y) );
+
+  drawLateralScan( outputdir, "diag02", lss_diag02, "Diagonal", fullVarName_mc );
 
 
 
 
-  // SECOND: HORIZONTAL SCAN
+  // THIRD: HORIZONTAL SCAN
 
 
   TFile* file_mc_2x0y  = TFile::Open("EEShash_491MeV_10000ev_smear_2x0y.root");
@@ -213,7 +279,7 @@ int main( int argc, char* argv[]) {
 
 
 
-  // THIRD: VERTICAL SCAN
+  // FOURTH: VERTICAL SCAN
 
 
   TFile* file_data_0x2y   = TFile::Open(Form("PosAnTrees_%s/PosAn_BTF_160_20140430-204719_beam.root", tag.c_str()));
@@ -419,8 +485,8 @@ void drawLateralScan( const std::string& outputdir, const std::string& name, std
   TCanvas* c1 = new TCanvas("c2", "", 600, 600);
   c1->cd();
 
-  float xMin = (axisName=="Diagonal") ? -1. : -13.;
-  float xMax = 13.;
+  float xMax = (axisName=="Diagonal") ? 20. : 13.;
+  float xMin = (axisName=="Diagonal") ? -1. : -xMax;
   TH2D* h2_axes = new TH2D("axes", "", 10, xMin, xMax, 10, 0., 1.1);
   h2_axes->SetXTitle( Form("%s Distance From Center [mm]", axisName.c_str()));
   h2_axes->SetYTitle( "Response Ratio" );
@@ -442,12 +508,16 @@ void drawLateralScan( const std::string& outputdir, const std::string& name, std
   gr_RespVsDiag_data->Draw("p same");
   gr_RespVsDiag_mc->Draw("p same");
 
-  TLegend* legend = new TLegend( 0.23, 0.22, 0.5, 0.4 );
+  TLegend* legend = new TLegend( 0.22, 0.21, 0.45, 0.39 );
+  legend->SetFillStyle(1);
   legend->SetFillColor(0);
   legend->SetTextSize(0.038);
   legend->AddEntry( gr_RespVsDiag_data, "Data", "P" );
   legend->AddEntry( gr_RespVsDiag_mc, "Geant4", "P" );
   legend->Draw("same");
+
+  TPaveText* labelTop = DrawTools::getLabelTop();
+  labelTop->Draw("same");
 
   gPad->RedrawAxis();
 
@@ -464,3 +534,17 @@ void drawLateralScan( const std::string& outputdir, const std::string& name, std
   delete gr_ResoVsDiag_mc;
 
 }
+
+
+ResoStruct addPhotoStatistics( ResoStruct rs, float QE ) {
+
+  float nPhotons = floor(rs.resp*0.49/QE);
+
+  float poissonError = 100./sqrt( nPhotons ); // in percent
+
+  rs.reso = sqrt( rs.reso*rs.reso + poissonError*poissonError );
+  rs.Sres = sqrt( rs.Sres*rs.Sres + poissonError*poissonError );
+
+  return rs;
+
+} 

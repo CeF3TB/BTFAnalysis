@@ -1,0 +1,15 @@
+== Description: 
+Code to estimate the intercalibration constants for BGO. Creates a folder named
+BGOInterCalibration_CB (can be changed), in which the ADC counts distribution 
+for all the BGO channels are stored, for RAW and CALIBRATED cases.
+
+== To compile:
+
+make bgoIntercalibration
+
+(Need newest version of ROOT, to include RooFit, i.e. can do:
+source /afs/cern.ch/sw/lcg/app/releases/ROOT/5.34.12/x86_64-slc5-gcc46-opt/root/bin/thisroot.sh ) 
+
+== To run:
+
+./bgoIntercalibration

@@ -64,17 +64,17 @@ void TMVARegression( TString myMethodList = "" )
    // default MVA methods to be trained + tested
    std::map<std::string,int> Use;
 
-   Use["PDERS"]           = 1;
+   Use["PDERS"]           = 0;
    Use["PDERSkNN"]        = 0; // depreciated until further notice
-   Use["PDEFoam"]         = 1; // preparation for new TMVA version "reader". This method is not available in this version of TMVA
+   Use["PDEFoam"]         = 0; // preparation for new TMVA version "reader". This method is not available in this version of TMVA
    // ---
    Use["KNN"]             = 0;
    // ---
-   Use["LD"]		        = 1;
+   Use["LD"]		  = 1;
    // ---
    Use["FDA_GA"]          = 0;
    Use["FDA_MC"]          = 0;
-   Use["FDA_MT"]          = 1;
+   Use["FDA_MT"]          = 0;
    Use["FDA_GAMT"]        = 0;
    // ---
    Use["MLP"]             = 1; 
@@ -130,10 +130,13 @@ void TMVARegression( TString myMethodList = "" )
    // Define the input variables that shall be used for the MVA training
    // note that you may also use variable expressions, such as: "3*var1/var2*abs(var3)"
    // [all types of expressions that can also be parsed by TTree::Draw( "expression" )]
-   factory->AddVariable( "cef3_corr[0]", "CeF3 0", "", 'F' );
-   factory->AddVariable( "cef3_corr[1]", "CeF3 1", "", 'F' );
-   factory->AddVariable( "cef3_corr[2]", "CeF3 2", "", 'F' );
-   factory->AddVariable( "cef3_corr[3]", "CeF3 3", "", 'F' );
+   factory->AddVariable( "r02", "r02", "", 'F' );
+   //factory->AddVariable( "cef3_corr[1]/cef3_corr[3]", "r13", "", 'F' );
+
+   //factory->AddVariable( "cef3_corr[0]/(cef3_corr[0]+cef3_corr[1]+cef3_corr[2]+cef3_corr[3])", "CeF3 0", "", 'F' );
+   //factory->AddVariable( "cef3_corr[1]/(cef3_corr[0]+cef3_corr[1]+cef3_corr[2]+cef3_corr[3])", "CeF3 1", "", 'F' );
+   //factory->AddVariable( "cef3_corr[2]/(cef3_corr[0]+cef3_corr[1]+cef3_corr[2]+cef3_corr[3])", "CeF3 2", "", 'F' );
+   //factory->AddVariable( "cef3_corr[3]/(cef3_corr[0]+cef3_corr[1]+cef3_corr[2]+cef3_corr[3])", "CeF3 3", "", 'F' );
 
    //// You can add so-called "Spectator variables", which are not used in the MVA training, 
    //// but will appear in the final "TestTree" produced by TMVA. This TestTree will contain the 
@@ -142,7 +145,7 @@ void TMVARegression( TString myMethodList = "" )
    //factory->AddSpectator( "spec2:=var1*3",  "Spectator 2", "units", 'F' );
 
    // Add the variable carrying the regression target
-   factory->AddTarget  ( "xBeam" ); 
+   factory->AddTarget  ( "diag02_calo" ); 
    //factory->AddTarget  ( "yBeam" ); 
 
    // It is also possible to declare additional targets for multi-dimensional regression, ie:
@@ -168,7 +171,7 @@ void TMVARegression( TString myMethodList = "" )
    std::cout << "--- TMVARegression           : Using input file: " << input->GetName() << std::endl;
 
 
-   TTree *regTree = (TTree*)input->Get("tree_passedEvents");
+   TTree *regTree = (TTree*)input->Get("posTree");
 
    // global event weights per tree (see below for setting event-wise weights)
    Double_t regWeight  = 1.0;   
@@ -187,7 +190,7 @@ void TMVARegression( TString myMethodList = "" )
    //factory->SetWeightExpression( "var1", "Regression" );
 
    // Apply additional cuts on the signal and background samples (can be different)
-   TCut mycut = ""; // for example: TCut mycut = "abs(var1)<0.5 && abs(var2-0.5)<1";
+   TCut mycut = "isSingleEle_scintFront"; // for example: TCut mycut = "abs(var1)<0.5 && abs(var2-0.5)<1";
 
    // tell the factory to use all remaining events in the trees after training for testing:
    factory->PrepareTrainingAndTestTree( mycut, 

@@ -171,7 +171,7 @@ TGraphErrors* getGraph( const std::string varName, std::vector<std::string> runs
     std::string diagName = "diag_" + runs[i];
     TH1D* h1_diag = new TH1D(diagName.c_str(), "", 100, 0., 3.);
 
-    tree->Project(diagName.c_str(), varName.c_str() );
+    tree->Project(diagName.c_str(), varName.c_str(), "scintFront>500. && scintFront<2000. && nHodoClustersX==1 && nHodoClustersY==1" );
 
     TVector2 v(beamX[i],beamY[i]);
     TVector2 d = v.Rotate( -3.14159/4. );

@@ -13,6 +13,7 @@
 #include "TGraphErrors.h"
 #include "TVector2.h"
 #include "TProfile.h"
+#include "TLegend.h"
 
 #include "interface/DrawTools.h"
 #include "interface/RunHelper.h"
@@ -130,7 +131,12 @@ int main() {
 
   TF1* f1_d02 = new TF1("f1_d02", "pol5", -17., 17.);
   f1_d02->SetLineColor( kGray);
-  hp_diag02_vs_dCalo->Fit( f1_d02, "R" );
+  f1_d02->FixParameter( 2, 0. );
+  f1_d02->FixParameter( 5, 0. );
+  //f1_d02->SetParLimits( 2, 0., 0.1 );
+  //f1_d02->SetParameter( 5, 0.05 );
+  //f1_d02->SetParLimits( 5, 0., 0.1 );
+  hp_diag02_vs_dCalo->Fit( f1_d02, "RB" );
 
   TF1* f1_d13 = new TF1("f1_d13", "pol5", -17., 17.);
   f1_d13->SetLineColor(kRed);
@@ -143,6 +149,13 @@ int main() {
   h2_axes->Draw();
 
   TLine* lineone = new TLine( -20., 1., 20., 1. );
+
+  TLegend* legend = new TLegend( 0.2, 0.55, 0.5, 0.9 );
+  legend->SetFillColor(0);
+  legend->SetTextSize(0.035);
+  legend->AddEntry( f1_d02, "02", "L" );
+  legend->AddEntry( f1_d13, "13", "L" );
+  legend->Draw("same");
 
   hp_diag02_vs_dCalo->Draw("same");
   lineone->Draw("same");
