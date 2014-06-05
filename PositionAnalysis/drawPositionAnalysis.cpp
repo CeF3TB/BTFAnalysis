@@ -28,10 +28,8 @@ std::string runName;
 
 TGraphErrors* get_xyCenter( TH2D* h2_xyPos );
 void drawSinglePositionPlot( const std::string& outputdir, TFile* file, const std::string& runName, const std::string& suffix );
-//void drawSinglePlot( const std::string& outputdir, const std::string& saveName, TFile* file, const std::string& name, const std::string& axisName, int nChannels, float xMin=0, float xMax=4095, int rebin=1, bool plotLog=false );
-void drawSinglePlot( const std::string& outputdir, const std::string& saveName, TFile* file, const std::string& varName, const std::string& selection, const std::string& axisName, int nChannels, int nBins, float xMin=0, float xMax=4095, bool plotLog=false );
 void fitHodoWithBeam( const std::string& outputdir, const std::string& suffix, TH1D* h1, float r, float& pos, float& pos_err );
-//TGraphErrors* getFitPositionCeF3( TFile* file );
+void drawPositionResolutionXY( const std::string& outputdir, TFile* file, const std::string& runName, const std::string& name1, const std::string& name2="Beam" );
 
 
 
@@ -51,12 +49,18 @@ int main( int argc, char* argv[] ) {
     runName = runName_str;
   }
 
+  std::string tag = "V02";
+  if( argc>2 ) {
+    std::string tag_str(argv[2]);
+    tag = tag_str;
+  }
 
-  std::string fileName = "PosAn_" + runName + ".root";
+
+  std::string fileName = "PosAnTrees_" + tag + "/PosAn_" + runName + ".root";
   TFile* file = TFile::Open( fileName.c_str() );
   std::cout << "-> Opened file: " << fileName << std::endl;
   
-  std::string outputdir = "Plots_" + runName;
+  std::string outputdir = "Plots_" + runName + "_" + tag;
   std::string mkdir_command = "mkdir -p " + outputdir;
   system(mkdir_command.c_str());
 
@@ -67,27 +71,8 @@ int main( int argc, char* argv[] ) {
   drawSinglePositionPlot( outputdir, file, runName, "" );
   drawSinglePositionPlot( outputdir, file, runName, "_singleEle" );
 
-  //drawSinglePlot( outputdir, "cef3_spectrum"      , file, "cef3"     , "ADC Counts", 4, 0., 3500., 10, true );
-  //drawSinglePlot( outputdir, "cef3_corr_spectrum" , file, "cef3_corr", "ADC Counts", 4, 0., 3500., 10, true );
 
-  if( runName=="BTF_000001_cosmics" ) {
-
-    drawSinglePlot( outputdir, "cef3_spectrum"      , file, "cef3"     , "", "ADC Counts", 4, 50, 0., 200., false );
-    drawSinglePlot( outputdir, "cef3_corr_spectrum" , file, "cef3_corr", "", "ADC Counts", 4, 50, 0., 200., false );
-  
-  } else {
-
-    drawSinglePlot( outputdir, "cef3_spectrum"      , file, "cef3"     , "", "ADC Counts", 4, 200, 0., 3500., false );
-    drawSinglePlot( outputdir, "cef3_corr_spectrum" , file, "cef3_corr", "", "ADC Counts", 4, 200, 0., 3500., false );
-  
-    drawSinglePlot( outputdir, "cef3_spectrum_singleEle"      , file, "cef3"     , "scintFront>500. && scintFront<2000.", "ADC Counts", 4, 200, 0., 3500., false );
-    drawSinglePlot( outputdir, "cef3_corr_spectrum_singleEle" , file, "cef3_corr", "scintFront>500. && scintFront<2000.", "ADC Counts", 4, 200, 0., 3500., false );
-  
-    drawSinglePlot( outputdir, "cef3_spectrum_singleEle_hodo"      , file, "cef3"     , "scintFront>500. && scintFront<2000. && nHodoClustersX==1 && nHodoClustersY==1", "ADC Counts", 4, 200, 0., 3500., false );
-    drawSinglePlot( outputdir, "cef3_corr_spectrum_singleEle_hodo" , file, "cef3_corr", "scintFront>500. && scintFront<2000. && nHodoClustersX==1 && nHodoClustersY==1", "ADC Counts", 4, 200, 0., 3500., false );
-
-  }
-
+  drawPositionResolutionXY( outputdir, file, runName, "bgo", "Beam" );
 
   return 0;
 
@@ -157,11 +142,6 @@ void drawSinglePositionPlot( const std::string& outputdir, TFile* file, const st
   gr_xyCenter_calo->SetMarkerSize(1.6);
 
 
-  //TGraphErrors* gr_xyPos_fit = getFitPositionCeF3(file);
-  //gr_xyPos_fit->SetMarkerColor(kRed+2);
-  //gr_xyPos_fit->SetLineColor(kRed+2);
-  //gr_xyPos_fit->SetMarkerStyle(24);
-  //gr_xyPos_fit->SetMarkerSize(1.6);
 
   // fit hodo points with the expected beam size
   float xPos_hodo_fit, xPos_hodo_fit_err;
@@ -204,7 +184,7 @@ void drawSinglePositionPlot( const std::string& outputdir, TFile* file, const st
   legend->AddEntry( gr_xyCenter_hodo_fit, "Hodo", "P" );
   //legend->AddEntry( gr_xyCenter, "CeF3", "P" );
   legend->AddEntry( gr_xyCenter_bgo, "BGO", "P" );
-  legend->AddEntry( gr_xyCenter_calo, "Calo", "P" );
+  //legend->AddEntry( gr_xyCenter_calo, "Calo", "P" );
   legend->Draw("same");
 
   float bgoFrontSize = 22.;
@@ -280,9 +260,9 @@ void drawSinglePositionPlot( const std::string& outputdir, TFile* file, const st
 
 
   h2_xyPos_bgo->Draw("same");
-  h2_xyPos->Draw("same");
+  //h2_xyPos->Draw("same");
   h2_xyPos_hodo->Draw("same");
-  h2_xyPos_calo->Draw("same");
+  //h2_xyPos_calo->Draw("same");
 
 
   TEllipse* beamPos = new TEllipse( beamX, beamY, beamRX, beamRY );
@@ -293,8 +273,8 @@ void drawSinglePositionPlot( const std::string& outputdir, TFile* file, const st
   //gr_xyCenter_hodo->Draw("p same");  // now using hodo_fit
   gr_xyCenter_hodo_fit->Draw("p same");
   gr_xyCenter_bgo->Draw("p same");
-  gr_xyCenter->Draw("p same"); // don't draw for now
-  gr_xyCenter_calo->Draw("p same");
+  //gr_xyCenter->Draw("p same"); // don't draw for now
+  //gr_xyCenter_calo->Draw("p same");
   //gr_xyPos_fit->Draw("p same");
 
 
@@ -319,7 +299,7 @@ void drawSinglePositionPlot( const std::string& outputdir, TFile* file, const st
 
   h2_xyPos_bgo->Draw("same");
   h2_xyPos_hodo->Draw("same");
-  h2_xyPos_calo->Draw("same");
+  //h2_xyPos_calo->Draw("same");
   //h2_xyPos->Draw("same");
 
 
@@ -334,7 +314,7 @@ void drawSinglePositionPlot( const std::string& outputdir, TFile* file, const st
   gr_xyCenter_hodo_fit->Draw("p same");
   gr_xyCenter_bgo->Draw("p same");
   //gr_xyCenter->Draw("p same");
-  gr_xyCenter_calo->Draw("p same");
+  //gr_xyCenter_calo->Draw("p same");
   //gr_xyPos_fit->Draw("p same");
 
 
@@ -348,128 +328,6 @@ void drawSinglePositionPlot( const std::string& outputdir, TFile* file, const st
   delete legend;
 
 }
-
-
-
-
-void drawSinglePlot( const std::string& outputdir, const std::string& saveName, TFile* file, const std::string& varName, const std::string& selection, const std::string& axisName, int nChannels, int nBins, float xMin, float xMax, bool plotLog ) {
-
-
-  TTree* tree = (TTree*)file->Get("tree_passedEvents");
-
-
-  std::vector<int> colors;
-  colors.push_back( 46 );
-  colors.push_back( 38 );
-  colors.push_back( 30 );
-  colors.push_back( 42 );
-  colors.push_back( 29 );
-  colors.push_back( kBlack );
-  colors.push_back( kGreen );
-  colors.push_back( kBlue  );
-
-  float yMax_leg = 0.8;
-  float yMin_leg = yMax_leg-0.05*nChannels;
-  TLegend* legend = new TLegend( 0.6, yMin_leg, 0.9, yMax_leg );
-  legend->SetTextSize(0.035);
-  legend->SetFillColor(0);
-
-  float yMax=0.;
-  std::vector<TH1D*> histos;
-
-  for(unsigned i=0; i<nChannels; ++i ) {
-
-    std::string histoName( Form("histo_%d", i) );
-    TH1D* h1 = new TH1D( histoName.c_str(), "", nBins, xMin, xMax );
-    tree->Project( histoName.c_str(), Form("%s[%d]", varName.c_str(), i), selection.c_str() );
-
-    h1->SetLineColor( colors[i] );
-    h1->SetLineWidth( 2 );
-
-    TF1* f1 = new TF1( Form("gaus_%d", i), "gaus", 10., 45. );
-    f1->SetLineColor( colors[i] );
-    f1->SetLineWidth( 2 );
-    h1->Fit( f1, "R+" );
-  
-    histos.push_back(h1);
-
-    legend->AddEntry( h1, Form("Channel %d", i), "L" );
-
-
-    float thisMax = h1->GetMaximum();
-    if( thisMax>yMax ) yMax = thisMax;
-
-  }
-
-  
-
-
-  TCanvas* c1 = new TCanvas( "c1_new", "", 600, 600 );
-  c1->cd();
-  if( plotLog ) c1->SetLogy();
-
-
-  float yScaleFactor = (plotLog) ? 5.  : 1.1;
-  float yMin         = (plotLog) ? 1. :  0.;
-
-
-  TH2D* h2_axes = new TH2D("axes_new", "", 10, xMin, xMax, 10, yMin, yMax*yScaleFactor );
-  h2_axes->SetXTitle( axisName.c_str() );
-  h2_axes->SetYTitle( "Entries" );
-
-  h2_axes->Draw();
-
-  legend->Draw("Same");
-
-  TPaveText* label_top = DrawTools::getLabelTop();
-  TPaveText* label_run = DrawTools::getLabelRun(runName, !plotLog);
-  label_top->Draw("same");
-  label_run->Draw("same");
-
-  for(unsigned i=0; i<nChannels; ++i ) 
-    histos[i]->Draw("same");
-
-  gPad->RedrawAxis();
-
-  c1->SaveAs( Form("%s/%s.eps", outputdir.c_str(), saveName.c_str()) );
-  c1->SaveAs( Form("%s/%s.pdf", outputdir.c_str(), saveName.c_str()) );
-  c1->SaveAs( Form("%s/%s.png", outputdir.c_str(), saveName.c_str()) );
-
-
-  c1->Clear();
-
-  // and now draw also individual channels:
-  for( unsigned i=0; i<nChannels; ++i ) {
-  
-    h2_axes->Draw();
-    label_top->Draw("Same");
-    label_run->Draw("Same");
-
-    histos[i]->SetLineColor(46);
-    histos[i]->Draw("same");
-
-    TPaveText* labelChannel = new TPaveText( 0.65, 0.8, 0.9, 0.85, "brNDC" );
-    labelChannel->SetTextSize( 0.035 );
-    labelChannel->SetFillColor( 0 );
-    labelChannel->AddText( Form("Channel %d", i) );
-    labelChannel->Draw("same");
-  
-    c1->SaveAs( Form("%s/%s_%d.eps", outputdir.c_str(), saveName.c_str(), i) );
-    c1->SaveAs( Form("%s/%s_%d.pdf", outputdir.c_str(), saveName.c_str(), i) );
-    c1->SaveAs( Form("%s/%s_%d.png", outputdir.c_str(), saveName.c_str(), i) );
-
-    delete histos[i];
-
-  }
-
-
-  delete c1;
-  delete h2_axes;
-  delete legend;
-
-}
-
-
 
 
 
@@ -548,48 +406,66 @@ void fitHodoWithBeam( const std::string& outputdir, const std::string& suffix, T
 
 
 
-/*
-TGraphErrors* getFitPositionCeF3( TFile* file ) {
 
-  TH1D* h1_cef3_corr_0 = (TH1D*)file->Get("cef3_corr_0");
-  TH1D* h1_cef3_corr_1 = (TH1D*)file->Get("cef3_corr_1");
-  TH1D* h1_cef3_corr_2 = (TH1D*)file->Get("cef3_corr_2");
-  TH1D* h1_cef3_corr_3 = (TH1D*)file->Get("cef3_corr_3");
-  
-  float position = 12. - 0.696;
+void drawPositionResolutionXY( const std::string& outputdir, TFile* file, const std::string& runName, const std::string& name1, const std::string& name2 ) {
 
-  int nBins = 80;
+  std::string treeName1 = (name1=="Beam") ? name1 : "Pos_" + name1;
+  std::string treeName2 = (name2=="Beam") ? name2 : "Pos_" + name2;
+
+  TTree* tree = (TTree*)file->Get("posTree");
+
+  int nBins = 50;
   float xMax = 40.;
-  TH2D* h2_energyMap = new TH2D("energyMap", "", nBins, -xMax, xMax, nBins, -xMax, xMax);
 
-  //   0    1
-  //          
-  //   3    2
-  h2_energyMap->SetBinContent( h2_energyMap->GetXaxis()->FindBin(-position), h2_energyMap->GetYaxis()->FindBin(+position), h1_cef3_corr_0->GetMean() );
-  h2_energyMap->SetBinContent( h2_energyMap->GetXaxis()->FindBin(+position), h2_energyMap->GetYaxis()->FindBin(+position), h1_cef3_corr_1->GetMean() );
-  h2_energyMap->SetBinContent( h2_energyMap->GetXaxis()->FindBin(+position), h2_energyMap->GetYaxis()->FindBin(-position), h1_cef3_corr_2->GetMean() );
-  h2_energyMap->SetBinContent( h2_energyMap->GetXaxis()->FindBin(-position), h2_energyMap->GetYaxis()->FindBin(-position), h1_cef3_corr_3->GetMean() );
+  TH1D* h1_resoX = new TH1D("resoX", "", nBins, -xMax, xMax);
+  TH1D* h1_resoY = new TH1D("resoY", "", nBins, -xMax, xMax);
+
+  tree->Project( "resoX", Form("x%s-x%s", treeName1.c_str(), treeName2.c_str()), "isSingleEle_scintFront && bgo_corr_ok" );
+  tree->Project( "resoY", Form("y%s-y%s", treeName1.c_str(), treeName2.c_str()), "isSingleEle_scintFront && bgo_corr_ok" );
+
+  h1_resoX->SetLineColor(38);
+  h1_resoX->SetLineWidth(2);
+  h1_resoY->SetLineColor(46);
+  h1_resoY->SetLineWidth(2);
 
 
-  TF2* f2_gaus = new TF2( "gaus2d", DoubleGauss,  -1.1*position, -1.1*position, 1.1*position, 1.1*position, 4 );
-  f2_gaus->FixParameter(0, h1_cef3_corr_0->GetEntries() );
-  f2_gaus->SetParameter(1, 0.);
-  f2_gaus->SetParameter(2, 0.);
-  f2_gaus->SetParameter(3, 25.);
+  TCanvas* c1 = new TCanvas("cc", "", 600, 600);
+  c1->cd();
 
-  f2_gaus->SetParLimits(1, -30., 30.);
-  f2_gaus->SetParLimits(2, -30., 30.);
-  f2_gaus->SetParLimits(3, 5., 35.);
+  TH2D* h2_axes = new TH2D("axes", "", 10, -xMax, xMax, 10, 0., h1_resoX->GetMaximum()*1.3);
+  h2_axes->SetXTitle( Form("%s - %s [mm]", name1.c_str(), name2.c_str()) );  
+  h2_axes->SetYTitle( "Entries" );
+  h2_axes->Draw();
 
-  h2_energyMap->Fit( f2_gaus, "RN" );
+  h1_resoX->Draw("same");
+  h1_resoY->Draw("same");
 
-  TGraphErrors* gr_xyPos_fit = new TGraphErrors(0);
-  gr_xyPos_fit->SetPoint(0, f2_gaus->GetParameter(1), f2_gaus->GetParameter(2) );
-  gr_xyPos_fit->SetPointError(0, f2_gaus->GetParameter(3), f2_gaus->GetParameter(3) );
+  TPaveText* labelTop = DrawTools::getLabelTop();
+  labelTop->Draw("same");
 
-  delete h2_energyMap;
+  TPaveText* label_x = new TPaveText( 0.2, 0.8, 0.5, 0.9, "brNDC" );
+  label_x->SetTextSize( 0.038 );
+  label_x->SetTextColor(38);
+  label_x->SetFillColor(0);
+  label_x->AddText( Form("Mean(x): %.2f", h1_resoX->GetMean()) ); 
+  label_x->AddText( Form("RMS(x) : %.2f", h1_resoX->GetRMS()) ); 
+  label_x->Draw("same");
 
-  return gr_xyPos_fit;
+  TPaveText* label_y = new TPaveText( 0.6, 0.8, 0.9, 0.9, "brNDC" );
+  label_y->SetTextSize( 0.038 );
+  label_y->SetTextColor(46);
+  label_y->SetFillColor(0);
+  label_y->AddText( Form("Mean(y): %.2f", h1_resoY->GetMean()) ); 
+  label_y->AddText( Form("RMS(y) : %.2f", h1_resoY->GetRMS()) ); 
+  label_y->Draw("same");
+  
+  gPad->RedrawAxis();
+
+  c1->SaveAs( Form("%s/posReso_%s_vs_%s.eps", outputdir.c_str(), name1.c_str(), name2.c_str()) );
+  c1->SaveAs( Form("%s/posReso_%s_vs_%s.png", outputdir.c_str(), name1.c_str(), name2.c_str()) );
+  c1->SaveAs( Form("%s/posReso_%s_vs_%s.pdf", outputdir.c_str(), name1.c_str(), name2.c_str()) );
+
+  delete c1;
+  delete h2_axes;
 
 }
-*/
