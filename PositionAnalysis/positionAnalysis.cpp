@@ -14,6 +14,7 @@
 
 #include "fastDQM_CeF3_BTF.h"
 #include "interface/RunHelper.h"
+#include "interface/PositionTools.h"
 
 //#include "hodo_efficiency.dat"
 
@@ -251,7 +252,11 @@ int main( int argc, char* argv[] ) {
   outTree->Branch( "isSingleEle_scintFront", &isSingleEle_scintFront, "isSingleEle_scintFront/O" );
   outTree->Branch( "nHodoClustersX", &nHodoClustersX, "nHodoClustersX/I" );
   outTree->Branch( "nHodoClustersY", &nHodoClustersY, "nHodoClustersY/I" );
+  outTree->Branch( "pos_hodoClustX", pos_hodoClustX, "pos_hodoClustX[nHodoClustersX]/F" );
+  outTree->Branch( "pos_hodoClustY", pos_hodoClustY, "pos_hodoClustY[nHodoClustersY]/F" );
   outTree->Branch( "cef3_corr", cef3_corr, "cef3_corr[4]/F" );
+  outTree->Branch( "bgo_corr", bgo_corr, "bgo_corr[8]/F" );
+  outTree->Branch( "bgo_corr_ok", &bgo_corr_ok, "bgo_corr_ok/O");
   outTree->Branch( "r02", &r02_, "r02_/F" );
   outTree->Branch( "r13", &r13_, "r13_/F" );
   outTree->Branch( "xBeam", &xBeam, "xBeam/F" );
@@ -441,6 +446,8 @@ int main( int argc, char* argv[] ) {
       yPosW_bgo.push_back(bgo_corr[7]*ybgo[7]);
       
 
+      //PositionTools::getBGOPosition( v_bgo_corr, xPos_bgo_, yPos_bgo_ );
+      
       xPos_bgo_ = sumVector( xPosW_bgo )/eTot_bgo_corr;
       yPos_bgo_ = sumVector( yPosW_bgo )/eTot_bgo_corr;
       
