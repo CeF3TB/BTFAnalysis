@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 
 #include "TFile.h"
 #include "TTree.h"
@@ -150,6 +151,23 @@ int main( int argc, char* argv[] ) {
   c1->SaveAs(Form("%s/asymm_vs_beam.eps", outdir.c_str()));
   c1->SaveAs(Form("%s/asymm_vs_beam.png", outdir.c_str()));
   c1->SaveAs(Form("%s/asymm_vs_beam.pdf", outdir.c_str()));
+
+
+  std::string posCalibFileXName = outdir + "/posCalib_x.txt";
+  ofstream ofs_x( posCalibFileXName.c_str() );
+  ofs_x << line_x->GetParameter(0) << std::endl;
+  ofs_x << line_x->GetParameter(1) << std::endl;
+  ofs_x.close();
+
+  std::string posCalibFileYName = outdir + "/posCalib_y.txt";
+  ofstream ofs_y( posCalibFileYName.c_str() );
+  ofs_y << line_y->GetParameter(0) << std::endl;
+  ofs_y << line_y->GetParameter(1) << std::endl;
+  ofs_y.close();
+
+  std::cout << "-> BGO position calibration constants saved in:" << std::endl;
+  std::cout << "    X: " << posCalibFileXName << std::endl;
+  std::cout << "    Y: " << posCalibFileYName << std::endl;
 
   return 0;
 
