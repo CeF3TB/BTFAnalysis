@@ -239,24 +239,3 @@ void RunHelper::getBeamPosition( const std::string& runName, float& beamX, float
 
 
 
-void RunHelper::getBGOCoordinates( int iChannel, float& x , float& y ) {
-
-  if( iChannel==0 ) {
-    x = -532.0+511.; y = -178.0+201.;
-  } else if( iChannel==1 ) {
-    x = -510.0+511.; y = -178.0+201.;
-  } else if( iChannel==2 ) {
-    x = -488.0+511.; y = -180.0+201.;
-  } else if( iChannel==3 ) {
-    x = -534.0+511.; y = -200.1+201.;
-  } else if( iChannel==4 ) {
-    x = -488.0+511.; y = -202.1+201.;
-  } else if( iChannel==5 ) {
-    x = -534.0+511.; y = -222.1+201.;
-  } else if( iChannel==6 ) {
-    x = -512.0+511.; y = -224.1+201.;
-  } else if( iChannel==7 ) {
-    x = -490.0+511.; y = -224.1+201.;
-  }
-
-}

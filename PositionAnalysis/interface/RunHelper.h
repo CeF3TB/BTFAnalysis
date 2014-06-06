@@ -13,7 +13,6 @@ class RunHelper {
  public:
 
   static void getBeamPosition( const std::string& runNamei, float& xBeam, float& yBeam );
-  static void getBGOCoordinates( int iChannel, float& x , float& y );
 
 };
 
