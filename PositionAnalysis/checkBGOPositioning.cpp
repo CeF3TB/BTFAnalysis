@@ -49,10 +49,13 @@ struct Histo2AndName {
 
 TH2D* getSingleHisto( TTree* tree, const std::string& name, const std::string& varName, const std::string& varExpr, const std::string& cuts );
 std::pair<TH1D*,TH1D*> getBiasAndResoHistos( TH2D* h2 );
+std::pair<TH1D*,TH1D*> getBiasAndResoHistosHodo( const std::string& outputdir, TH2D* h2 );
 void checkLateralScan( const std::string& outputdir, const std::string& name, TTree* tree, const std::string& refVar, const std::string& axisName, const std::string& cut );
 void drawPerformancePlot( const std::string& outputdir, const std::string& name, const std::string& var, std::vector< HistoAndName > hn, const std::string& bias_reso, const std::string& axisName, float xMin, float xMax );
 void drawProjections( const std::string& outputdir, const std::string& name, std::vector<Histo2AndName> hn, const std::string& var );
 void checkBGOScan( const std::string& outputdir, const std::string& name, TTree* tree );
+void checkHodo( const std::string& outputdir, const std::string& name, TTree* tree, const std::string& var, const std::string& cut );
+TF1* fitHodoWithBeam( const std::string& outputdir, const std::string& suffix, TH1D* h1, float bias, float r );
 
 
 int main( int argc, char* argv[] ) {
@@ -91,6 +94,16 @@ int main( int argc, char* argv[] ) {
   TTree* tree_hodo = (TTree*)file_hodo->Get("posTree");
   checkLateralScan( outputdir, "hodo" , tree_hodo, "Pos_hodo", "Hodoscope", "nHodoClustersX==1 && nHodoClustersY==1 && nFibres_hodoClustX[0]<=2 && nFibres_hodoClustY[0]<=2" );
 
+  checkHodo( outputdir, "horizHodo", tree, "x", "run==149 || run==150 || run==151" );
+  checkHodo( outputdir, "vertHodo" , tree, "y", "run==160 || run==161 || run==162" );
+
+  checkHodo( outputdir, "diag02Hodo" , tree, "x", "run==176 || run==177 || run==94" );
+  checkHodo( outputdir, "diag02Hodo" , tree, "y", "run==176 || run==177 || run==94" );
+
+  checkHodo( outputdir, "diag13Hodo" , tree, "x", "run==136 || run==141" );
+  checkHodo( outputdir, "diag13Hodo" , tree, "y", "run==136 || run==141" );
+
+
   //TFile* file_bgo = TFile::Open(Form("PosAnTrees_%s/BGORuns.root", tag.c_str()));
   //TTree* tree_bgo = (TTree*)file_bgo->Get("posTree");
   //checkBGOScan( outputdir, "bgo", tree_bgo );
@@ -99,6 +112,26 @@ int main( int argc, char* argv[] ) {
 
 }
 
+
+
+void checkHodo( const std::string& outputdir, const std::string& name, TTree* tree, const std::string& var, const std::string& cut ) {
+
+  std::string fullCuts = cut + " && isSingleEle_scintFront && nHodoClustersX==1 && nHodoClustersY==1 && nFibres_hodoClustX[0]<=2 && nFibres_hodoClustY[0]<=2";
+    
+  TH2D* h2_hodo = getSingleHisto( tree, name, Form("hodo_%s", var.c_str()), Form("(%sPos_hodo-%sBeam):%sBeam", var.c_str(), var.c_str(), var.c_str()), fullCuts );
+
+  std::pair<TH1D*,TH1D*> p_hodo = getBiasAndResoHistosHodo(outputdir, h2_hodo);
+
+  std::vector< HistoAndName > hn_bias_hodo;
+  hn_bias_hodo.push_back( HistoAndName(p_hodo.first, "Hodoscope") );
+
+  std::vector< HistoAndName > hn_reso_hodo;
+  hn_reso_hodo.push_back( HistoAndName(p_hodo.second, "Hodoscope") );
+   
+  drawPerformancePlot( outputdir, name, var, hn_bias_hodo, "bias", Form("Beam %s Position [mm]", var.c_str()), -4., 4. );
+  drawPerformancePlot( outputdir, name, var, hn_reso_hodo, "reso", Form("Beam %s Position [mm]", var.c_str()), -4., 4. );
+
+}
 
 
 void checkBGOScan( const std::string& outputdir, const std::string& name, TTree* tree ) {
@@ -335,10 +368,10 @@ void checkLateralScan( const std::string& outputdir, const std::string& name, TT
   hn_reso_y.push_back( HistoAndName(p_wa_y.second, "Weighted Average") );
   hn_reso_y.push_back( HistoAndName(p_wa_log_y.second, "Log-Weighted Average") );
 
-  if( name!="vert" ) drawPerformancePlot( outputdir, name, "x", hn_bias_x, "bias", Form("%s x Position [mm]", axisName.c_str()), -10., 10. );
-  if( name!="horiz") drawPerformancePlot( outputdir, name, "y", hn_bias_y, "bias", Form("%s x Position [mm]", axisName.c_str()), -10., 10. );
-  if( name!="vert" ) drawPerformancePlot( outputdir, name, "x", hn_reso_x, "reso", Form("%s y Position [mm]", axisName.c_str()), -10., 10. );
-  if( name!="horiz") drawPerformancePlot( outputdir, name, "y", hn_reso_y, "reso", Form("%s y Position [mm]", axisName.c_str()), -10., 10. );
+  if( name!="vert" ) drawPerformancePlot( outputdir, name, "x", hn_bias_x, "bias", Form("%s x Position [mm]", axisName.c_str()), -15., 15. );
+  if( name!="horiz") drawPerformancePlot( outputdir, name, "y", hn_bias_y, "bias", Form("%s y Position [mm]", axisName.c_str()), -15., 15. );
+  if( name!="vert" ) drawPerformancePlot( outputdir, name, "x", hn_reso_x, "reso", Form("%s x Position [mm]", axisName.c_str()), -15., 15. );
+  if( name!="horiz") drawPerformancePlot( outputdir, name, "y", hn_reso_y, "reso", Form("%s y Position [mm]", axisName.c_str()), -15., 15. );
 
 }
 
@@ -376,6 +409,43 @@ std::pair<TH1D*,TH1D*> getBiasAndResoHistos( TH2D* h2 ) {
 
 
 
+std::pair<TH1D*,TH1D*> getBiasAndResoHistosHodo( const std::string& outputdir, TH2D* h2 ) {
+
+  int  nBins = h2->GetXaxis()->GetNbins();
+  float xMin = h2->GetXaxis()->GetXmin();
+  float xMax = h2->GetXaxis()->GetXmax();
+
+  TH1D* h1_bias = new TH1D( Form("bias_%s", h2->GetName()), "", nBins, xMin, xMax );
+  TH1D* h1_reso = new TH1D( Form("reso_%s", h2->GetName()), "", nBins, xMin, xMax );
+
+  for( unsigned i=0; i<nBins; ++i ) {
+
+    int iBin = i+1;
+    TH1D* h1_proj = h2->ProjectionY(Form("%s_%d", h2->GetName(), iBin), iBin, iBin);
+
+    if( h1_proj->GetEntries()>0 ) {
+
+      TF1* f1 = fitHodoWithBeam( outputdir, h1_proj->GetName(), h1_proj, h2->GetXaxis()->GetBinCenter(iBin), 3. );
+ 
+      h1_bias->SetBinContent( iBin, f1->GetParameter(1) );
+      h1_bias->SetBinError  ( iBin, f1->GetParError(1) );
+      h1_reso->SetBinContent( iBin, f1->GetParameter(2) );
+      h1_reso->SetBinError  ( iBin, f1->GetParError(2) );
+
+    }
+
+  }
+
+  std::pair<TH1D*,TH1D*> returnPair;
+  returnPair.first  = h1_bias;
+  returnPair.second = h1_reso;
+
+  return returnPair;
+
+}
+
+
+
 
 TH2D* getSingleHisto( TTree* tree, const std::string& name, const std::string& varName, const std::string& varExpr, const std::string& cuts ) {
 
@@ -394,8 +464,8 @@ TH2D* getSingleHisto( TTree* tree, const std::string& name, const std::string& v
 void drawProjections( const std::string& outputdir, const std::string& name, std::vector<Histo2AndName> hn, const std::string& var ) {
 
   std::vector<int> colors;
-  colors.push_back( 38 );
   colors.push_back( 46 );
+  colors.push_back( 38 );
   colors.push_back( 29 );
   colors.push_back( 42 );
   colors.push_back( 40 );
@@ -483,8 +553,8 @@ void drawPerformancePlot( const std::string& outputdir, const std::string& name,
 
 
   std::vector<int> colors;
-  colors.push_back( 38 );
   colors.push_back( 46 );
+  colors.push_back( 38 );
   colors.push_back( 29 );
   colors.push_back( 42 );
   colors.push_back( 40 );
@@ -500,31 +570,15 @@ void drawPerformancePlot( const std::string& outputdir, const std::string& name,
   c1->Clear();
   c1->cd();
 
+  float yMax_leg = 0.91;
+  float yMin_leg = yMax_leg - (float)(hn.size())*0.06;
 
-  // first: bias
-  //float xMax = (name=="bgo") ? 40. : 15.;
-  float yMin = (isReso) ? 0.  : -1.;
-  float yMax = (isReso) ? 15. : 3.;
-  TString name_tstr(name);
-  if( name_tstr.Contains("bgo") ) {
-    if(!isReso )
-      yMin = -12.;
-    yMax = 12.;
-  }
-
-  TH2D* h2_axes = new TH2D("axes", "", 10, xMin, xMax, 10, yMin, yMax );
-  h2_axes->SetXTitle( axisName.c_str() );
-  //h2_axes->SetXTitle( Form( "Beam %s Position [mm]", var.c_str() ) );
-  if(isReso)
-    h2_axes->SetYTitle( "RMS(Estimate - Beam) [mm]" );
-  else
-    h2_axes->SetYTitle( "Estimate - Beam [mm]" );
-
-  
-
-  TLegend* legend = new TLegend( 0.2, 0.69, 0.4, 0.92 );
+  TLegend* legend = new TLegend( 0.2, yMin_leg, 0.4, yMax_leg );
   legend->SetFillColor(0);
   legend->SetTextSize(0.033);
+
+  float yMax = -999.;
+  float yMin = +999.;
 
   for( unsigned i=0; i<hn.size(); ++i ) {
 
@@ -540,15 +594,46 @@ void drawPerformancePlot( const std::string& outputdir, const std::string& name,
     hn[i].histo->Fit(f1, "R+");
 
     legend->AddEntry( hn[i].histo, hn[i].name.c_str(), "P" );
+
+    if( hn[i].histo->GetMaximum() > yMax ) yMax = hn[i].histo->GetMaximum();
+    if( hn[i].histo->GetMinimum() < yMin ) yMin = hn[i].histo->GetMinimum();
   
   }
 
+
+  if( isReso ) yMin = 0.;
+  else yMin -= 1.;
+  if( isReso ) yMax += 6.;
+  else yMax += 2.;
+ 
+
+  TH2D* h2_axes = new TH2D("axes", "", 10, xMin, xMax, 10, yMin, yMax );
+  h2_axes->SetXTitle( axisName.c_str() );
+  if(isReso)
+    h2_axes->SetYTitle( "RMS(Estimate - Reference) [mm]" );
+  else
+    h2_axes->SetYTitle( "Estimate - Reference [mm]" );
+
+  
+
   h2_axes->Draw();
+
+  legend->Draw("same");
+
+  if( isReso ) {
+
+    float nominalReso = (var=="x") ? 4. : 3.;
+  
+    TLine* line_nominalReso = new TLine( xMin, nominalReso, xMax, nominalReso );
+    line_nominalReso->SetLineStyle(2);
+    line_nominalReso->Draw("same");
+
+  }
+
 
   for( unsigned i=0; i<hn.size(); ++i )
     hn[i].histo->Draw("p same");
 
-  legend->Draw("same");
 
   TLine* lineZero = new TLine(xMin, 0., xMax, 0.);
   lineZero->Draw("same");
@@ -568,4 +653,44 @@ void drawPerformancePlot( const std::string& outputdir, const std::string& name,
 
 }
 
+
+
+TF1* fitHodoWithBeam( const std::string& outputdir, const std::string& suffix, TH1D* h1, float bias, float r ) {
+
+  //h1->Rebin(5);
+  float nentries =  h1->GetEntries();
+
+  float xFitMin = -bias-4.5;
+  float xFitMax = -bias+4.5;
+
+  TF1* f1_gaus = new TF1( Form("f1_%s", suffix.c_str()), "gaus" );
+  f1_gaus->SetRange(xFitMin, xFitMax);
+  //f1_gaus->SetParameter(0, nentries);
+  f1_gaus->FixParameter(0, nentries);
+  f1_gaus->SetParameter(1, 0.);
+
+  //f1_gaus->SetParLimits(0, 0.01*nentries, nentries);
+  f1_gaus->SetParLimits(1, -40., 40.);
+  f1_gaus->SetParameter(2, r );
+
+  h1->Fit(f1_gaus, "RL+" );
+  TCanvas* c1 = new TCanvas("c1_temp", "", 600, 600);
+  c1->cd();
+  h1->SetLineColor(kRed);
+  h1->SetLineWidth(2);
+  h1->SetXTitle("Hodo Position - Beam [mm]");
+  h1->SetYTitle("Entries");
+  h1->Draw("");
+
+  //f1_gaus->SetRange(-40., 40.);
+  //f1_gaus->Draw("same");
+  c1->SaveAs(Form("%s/tmpFit%s.eps", outputdir.c_str(), suffix.c_str()));
+  c1->SaveAs(Form("%s/tmpFit%s.pdf", outputdir.c_str(), suffix.c_str()));
+  c1->SaveAs(Form("%s/tmpFit%s.png", outputdir.c_str(), suffix.c_str()));
+  delete c1;
+
+
+  return f1_gaus;
+
+}
 
