@@ -49,9 +49,10 @@ struct Histo2AndName {
 
 TH2D* getSingleHisto( TTree* tree, const std::string& name, const std::string& varName, const std::string& varExpr, const std::string& cuts );
 std::pair<TH1D*,TH1D*> getBiasAndResoHistos( TH2D* h2 );
-void checkLateralScan( const std::string& outputdir, const std::string& name, TTree* tree, const std::string& cut );
-void drawPerformancePlot( const std::string& outputdir, const std::string& name, const std::string& var, std::vector< HistoAndName > hn, const std::string& bias_reso );
+void checkLateralScan( const std::string& outputdir, const std::string& name, TTree* tree, const std::string& refVar, const std::string& axisName, const std::string& cut );
+void drawPerformancePlot( const std::string& outputdir, const std::string& name, const std::string& var, std::vector< HistoAndName > hn, const std::string& bias_reso, const std::string& axisName, float xMin, float xMax );
 void drawProjections( const std::string& outputdir, const std::string& name, std::vector<Histo2AndName> hn, const std::string& var );
+void checkBGOScan( const std::string& outputdir, const std::string& name, TTree* tree );
 
 
 int main( int argc, char* argv[] ) {
@@ -80,12 +81,19 @@ int main( int argc, char* argv[] ) {
   std::string outputdir = "BGOPositioningPlots_" + tag;
   system(Form("mkdir -p %s", outputdir.c_str()));
 
-  checkLateralScan( outputdir, "all"    , tree, "(yBeam==0. && abs(xBeam)>0.2) || (xBeam==0. && abs(yBeam)>0.2) || (xBeam==yBeam && xBeam>0.) || (xBeam==-yBeam && xBeam>0.)" );
-  checkLateralScan( outputdir, "horiz"  , tree, "yBeam==0. && abs(xBeam)>0.2" );
-  checkLateralScan( outputdir, "vert"   , tree, "xBeam==0. && abs(yBeam)>0.2" );
-  checkLateralScan( outputdir, "diag13" , tree, "xBeam==yBeam && xBeam>0." );
-  checkLateralScan( outputdir, "diag02" , tree, "xBeam==-yBeam && xBeam>0." );
+  checkLateralScan( outputdir, "all"    , tree, "Beam", "Beam", "(yBeam==0. && abs(xBeam)>0.2) || (xBeam==0. && abs(yBeam)>0.2) || (xBeam==yBeam && xBeam>0.) || (xBeam==-yBeam && xBeam>0.)" );
+  checkLateralScan( outputdir, "horiz"  , tree, "Beam", "Beam", "yBeam==0. && abs(xBeam)>0.2" );
+  checkLateralScan( outputdir, "vert"   , tree, "Beam", "Beam", "xBeam==0. && abs(yBeam)>0.2" );
+  checkLateralScan( outputdir, "diag13" , tree, "Beam", "Beam", "xBeam==yBeam && xBeam>0." );
+  checkLateralScan( outputdir, "diag02" , tree, "Beam", "Beam", "xBeam==-yBeam && xBeam>0." );
 
+  TFile* file_hodo = TFile::Open(Form("PosAnTrees_%s/PosAn_BTF_246_beam.root", tag.c_str()));
+  TTree* tree_hodo = (TTree*)file_hodo->Get("posTree");
+  checkLateralScan( outputdir, "hodo" , tree_hodo, "Pos_hodo", "Hodoscope", "nHodoClustersX==1 && nHodoClustersY==1 && nFibres_hodoClustX[0]<=2 && nFibres_hodoClustY[0]<=2" );
+
+  //TFile* file_bgo = TFile::Open(Form("PosAnTrees_%s/BGORuns.root", tag.c_str()));
+  //TTree* tree_bgo = (TTree*)file_bgo->Get("posTree");
+  //checkBGOScan( outputdir, "bgo", tree_bgo );
 
   return 0;
 
@@ -93,29 +101,191 @@ int main( int argc, char* argv[] ) {
 
 
 
-void checkLateralScan( const std::string& outputdir, const std::string& name, TTree* tree, const std::string& cut ) {
+void checkBGOScan( const std::string& outputdir, const std::string& name, TTree* tree ) {
 
-  TH2D* h2_asymm_x = getSingleHisto( tree, name, "asymm_x", "(xPos_bgo_asymm-xBeam):xBeam", cut );
-  TH2D* h2_asymm_y = getSingleHisto( tree, name, "asymm_y", "(yPos_bgo_asymm-yBeam):yBeam", cut );
-  TH2D* h2_asymm_log_x = getSingleHisto( tree, name, "asymm_log_x", "(xPos_bgo_asymmlog-xBeam):xBeam", cut );
-  TH2D* h2_asymm_log_y = getSingleHisto( tree, name, "asymm_log_y", "(yPos_bgo_asymmlog-yBeam):yBeam", cut );
-  TH2D* h2_wa_x = getSingleHisto( tree, name, "wa_x", "(xPos_bgo_wa-xBeam):xBeam", cut );
-  TH2D* h2_wa_y = getSingleHisto( tree, name, "wa_y", "(yPos_bgo_wa-yBeam):yBeam", cut );
-  TH2D* h2_wa_log_x = getSingleHisto( tree, name, "wa_log_x", "(xPos_bgo_walog-xBeam):xBeam", cut );
-  TH2D* h2_wa_log_y = getSingleHisto( tree, name, "wa_log_y", "(yPos_bgo_walog-yBeam):yBeam", cut );
+  std::vector<int> runs;
+  runs.push_back(229); //0
+  runs.push_back(231); //1
+  runs.push_back(233); //2
+  runs.push_back(237); //3
+  runs.push_back(235); //4
+  runs.push_back(239); //5
+  runs.push_back(241); //6
+  runs.push_back(243); //7
 
-//TFile* file = TFile::Open("prova.root", "recreate");
-//file->cd();
-//  h2_asymm_x->Write();
-//  h2_asymm_y->Write();
-//  h2_asymm_log_x->Write();
-//  h2_asymm_log_y->Write();
-//  h2_wa_x->Write();
-//  h2_wa_y->Write();
-//  h2_wa_log_x->Write();
-//  h2_wa_log_y->Write();
-//file->Close();
-//exit(1);
+
+  float xMin = -0.5;
+  float xMax = (-0.5+(float)runs.size());
+
+  TH1D* h1_bias_asymm_x = new TH1D( Form("%s_bias_asymm_x_vs_chan", name.c_str()), "", runs.size(), xMin, xMax );
+  TH1D* h1_bias_asymm_log_x = new TH1D( Form("%s_bias_asymm_log_x_vs_chan", name.c_str()), "", runs.size(), xMin, xMax );
+  TH1D* h1_bias_wa_x = new TH1D( Form("%s_bias_wa_x_vs_chan", name.c_str()), "", runs.size(), xMin, xMax );
+  TH1D* h1_bias_wa_log_x = new TH1D( Form("%s_bias_wa_log_x_vs_chan", name.c_str()), "", runs.size(), xMin, xMax );
+
+  TH1D* h1_reso_asymm_x = new TH1D( Form("%s_reso_asymm_x_vs_chan", name.c_str()), "", runs.size(), xMin, xMax );
+  TH1D* h1_reso_asymm_log_x = new TH1D( Form("%s_reso_asymm_log_x_vs_chan", name.c_str()), "", runs.size(), xMin, xMax );
+  TH1D* h1_reso_wa_x = new TH1D( Form("%s_reso_wa_x_vs_chan", name.c_str()), "", runs.size(), xMin, xMax );
+  TH1D* h1_reso_wa_log_x = new TH1D( Form("%s_reso_wa_log_x_vs_chan", name.c_str()), "", runs.size(), xMin, xMax );
+
+  TH1D* h1_bias_asymm_y = new TH1D( Form("%s_bias_asymm_y_vs_chan", name.c_str()), "", runs.size(), xMin, xMax );
+  TH1D* h1_bias_asymm_log_y = new TH1D( Form("%s_bias_asymm_log_y_vs_chan", name.c_str()), "", runs.size(), xMin, xMax );
+  TH1D* h1_bias_wa_y = new TH1D( Form("%s_bias_wa_y_vs_chan", name.c_str()), "", runs.size(), xMin, xMax );
+  TH1D* h1_bias_wa_log_y = new TH1D( Form("%s_bias_wa_log_y_vs_chan", name.c_str()), "", runs.size(), xMin, xMax );
+
+  TH1D* h1_reso_asymm_y = new TH1D( Form("%s_reso_asymm_y_vs_chan", name.c_str()), "", runs.size(), xMin, xMax );
+  TH1D* h1_reso_asymm_log_y = new TH1D( Form("%s_reso_asymm_log_y_vs_chan", name.c_str()), "", runs.size(), xMin, xMax );
+  TH1D* h1_reso_wa_y = new TH1D( Form("%s_reso_wa_y_vs_chan", name.c_str()), "", runs.size(), xMin, xMax );
+  TH1D* h1_reso_wa_log_y = new TH1D( Form("%s_reso_wa_log_y_vs_chan", name.c_str()), "", runs.size(), xMin, xMax );
+
+
+
+  for( unsigned i=0; i<runs.size(); ++i ) {
+
+    std::string cut(Form("run==%d", runs[i]));
+
+    TH2D* h2_asymm_x = getSingleHisto( tree, name, "asymm_x", "(xPos_bgo_asymm-xBeam):xBeam", cut );
+    TH2D* h2_asymm_y = getSingleHisto( tree, name, "asymm_y", "(yPos_bgo_asymm-yBeam):yBeam", cut );
+    TH2D* h2_asymm_log_x = getSingleHisto( tree, name, "asymm_log_x", "(xPos_bgo_asymmlog-xBeam):xBeam", cut );
+    TH2D* h2_asymm_log_y = getSingleHisto( tree, name, "asymm_log_y", "(yPos_bgo_asymmlog-yBeam):yBeam", cut );
+    TH2D* h2_wa_x = getSingleHisto( tree, name, "wa_x", "(xPos_bgo_wa-xBeam):xBeam", cut );
+    TH2D* h2_wa_y = getSingleHisto( tree, name, "wa_y", "(yPos_bgo_wa-yBeam):yBeam", cut );
+    TH2D* h2_wa_log_x = getSingleHisto( tree, name, "wa_log_x", "(xPos_bgo_walog-xBeam):xBeam", cut );
+    TH2D* h2_wa_log_y = getSingleHisto( tree, name, "wa_log_y", "(yPos_bgo_walog-yBeam):yBeam", cut );
+
+    std::vector< Histo2AndName > hn_x;
+    hn_x.push_back( Histo2AndName(h2_asymm_x, "Asymmetry") );
+    hn_x.push_back( Histo2AndName(h2_asymm_log_x, "Log-Asymmetry") );
+    hn_x.push_back( Histo2AndName(h2_wa_x, "Weighted Average") );
+    hn_x.push_back( Histo2AndName(h2_wa_log_x, "Log-Weighted Average") );
+
+    std::vector< Histo2AndName > hn_y;
+    hn_y.push_back( Histo2AndName(h2_asymm_y, "Asymmetry") );
+    hn_y.push_back( Histo2AndName(h2_asymm_log_y, "Log-Asymmetry") );
+    hn_y.push_back( Histo2AndName(h2_wa_y, "Weighted Average") );
+    hn_y.push_back( Histo2AndName(h2_wa_log_y, "Log-Weighted Average") );
+
+    drawProjections( outputdir, Form("%s_%d", name.c_str(), i), hn_x, "x" );
+    drawProjections( outputdir, Form("%s_%d", name.c_str(), i), hn_y, "y" );
+
+
+
+    std::pair<TH1D*,TH1D*> p_asymm_x = getBiasAndResoHistos(h2_asymm_x);
+    std::pair<TH1D*,TH1D*> p_asymm_y = getBiasAndResoHistos(h2_asymm_y);
+    std::pair<TH1D*,TH1D*> p_asymm_log_x = getBiasAndResoHistos(h2_asymm_log_x);
+    std::pair<TH1D*,TH1D*> p_asymm_log_y = getBiasAndResoHistos(h2_asymm_log_y);
+    std::pair<TH1D*,TH1D*> p_wa_x = getBiasAndResoHistos(h2_wa_x);
+    std::pair<TH1D*,TH1D*> p_wa_y = getBiasAndResoHistos(h2_wa_y);
+    std::pair<TH1D*,TH1D*> p_wa_log_x = getBiasAndResoHistos(h2_wa_log_x);
+    std::pair<TH1D*,TH1D*> p_wa_log_y = getBiasAndResoHistos(h2_wa_log_y);
+
+    TH1D* refHisto_x = p_asymm_x.first;
+    TH1D* refHisto_y = p_asymm_y.first;
+
+
+    for( unsigned ibin=1; ibin<refHisto_x->GetNbinsX()+1; ibin++ ) {
+
+      if( refHisto_x->GetBinError(ibin)>0. ) {
+ 
+        h1_bias_asymm_x->SetBinContent(i+1, p_asymm_x.first->GetBinContent(ibin));
+        h1_bias_asymm_log_x->SetBinContent(i+1, p_asymm_log_x.first->GetBinContent(ibin));
+        h1_bias_wa_x->SetBinContent(i+1, p_wa_x.first->GetBinContent(ibin));
+        h1_bias_wa_log_x->SetBinContent(i+1, p_wa_log_x.first->GetBinContent(ibin));
+
+        h1_bias_asymm_x->SetBinError(i+1, p_asymm_x.first->GetBinError(ibin));
+        h1_bias_asymm_log_x->SetBinError(i+1, p_asymm_log_x.first->GetBinError(ibin));
+        h1_bias_wa_x->SetBinError(i+1, p_wa_x.first->GetBinError(ibin));
+        h1_bias_wa_log_x->SetBinError(i+1, p_wa_log_x.first->GetBinError(ibin));
+
+        h1_reso_asymm_x->SetBinContent(i+1, p_asymm_x.second->GetBinContent(ibin));
+        h1_reso_asymm_log_x->SetBinContent(i+1, p_asymm_log_x.second->GetBinContent(ibin));
+        h1_reso_wa_x->SetBinContent(i+1, p_wa_x.second->GetBinContent(ibin));
+        h1_reso_wa_log_x->SetBinContent(i+1, p_wa_log_x.second->GetBinContent(ibin));
+
+        h1_reso_asymm_x->SetBinError(i+1, p_asymm_x.second->GetBinError(ibin));
+        h1_reso_asymm_log_x->SetBinError(i+1, p_asymm_log_x.second->GetBinError(ibin));
+        h1_reso_wa_x->SetBinError(i+1, p_wa_x.second->GetBinError(ibin));
+        h1_reso_wa_log_x->SetBinError(i+1, p_wa_log_x.second->GetBinError(ibin));
+       
+      }
+
+
+      if( refHisto_y->GetBinError(ibin)>0. ) {
+ 
+        h1_bias_asymm_y->SetBinContent(i+1, p_asymm_y.first->GetBinContent(ibin));
+        h1_bias_asymm_log_y->SetBinContent(i+1, p_asymm_log_y.first->GetBinContent(ibin));
+        h1_bias_wa_y->SetBinContent(i+1, p_wa_y.first->GetBinContent(ibin));
+        h1_bias_wa_log_y->SetBinContent(i+1, p_wa_log_y.first->GetBinContent(ibin));
+
+        h1_bias_asymm_y->SetBinError(i+1, p_asymm_y.first->GetBinError(ibin));
+        h1_bias_asymm_log_y->SetBinError(i+1, p_asymm_log_y.first->GetBinError(ibin));
+        h1_bias_wa_y->SetBinError(i+1, p_wa_y.first->GetBinError(ibin));
+        h1_bias_wa_log_y->SetBinError(i+1, p_wa_log_y.first->GetBinError(ibin));
+
+        h1_reso_asymm_y->SetBinContent(i+1, p_asymm_y.second->GetBinContent(ibin));
+        h1_reso_asymm_log_y->SetBinContent(i+1, p_asymm_log_y.second->GetBinContent(ibin));
+        h1_reso_wa_y->SetBinContent(i+1, p_wa_y.second->GetBinContent(ibin));
+        h1_reso_wa_log_y->SetBinContent(i+1, p_wa_log_y.second->GetBinContent(ibin));
+
+        h1_reso_asymm_y->SetBinError(i+1, p_asymm_y.second->GetBinError(ibin));
+        h1_reso_asymm_log_y->SetBinError(i+1, p_asymm_log_y.second->GetBinError(ibin));
+        h1_reso_wa_y->SetBinError(i+1, p_wa_y.second->GetBinError(ibin));
+        h1_reso_wa_log_y->SetBinError(i+1, p_wa_log_y.second->GetBinError(ibin));
+
+      }
+
+    }  // for ibin
+
+  }  // for i run
+
+        
+  std::vector< HistoAndName > hn_bias_x;
+  hn_bias_x.push_back( HistoAndName(h1_bias_asymm_x, "Asymmetry") );
+  hn_bias_x.push_back( HistoAndName(h1_bias_asymm_log_x, "Log-Asymmetry") );
+  hn_bias_x.push_back( HistoAndName(h1_bias_wa_x, "Weighted Average") );
+  hn_bias_x.push_back( HistoAndName(h1_bias_wa_log_x, "Log-Weighted Average") );
+
+  std::vector< HistoAndName > hn_reso_x;
+  hn_reso_x.push_back( HistoAndName(h1_reso_asymm_x, "Asymmetry") );
+  hn_reso_x.push_back( HistoAndName(h1_reso_asymm_log_x, "Log-Asymmetry") );
+  hn_reso_x.push_back( HistoAndName(h1_reso_wa_x, "Weighted Average") );
+  hn_reso_x.push_back( HistoAndName(h1_reso_wa_log_x, "Log-Weighted Average") );
+        
+  std::vector< HistoAndName > hn_bias_y;
+  hn_bias_y.push_back( HistoAndName(h1_bias_asymm_y, "Asymmetry") );
+  hn_bias_y.push_back( HistoAndName(h1_bias_asymm_log_y, "Log-Asymmetry") );
+  hn_bias_y.push_back( HistoAndName(h1_bias_wa_y, "Weighted Average") );
+  hn_bias_y.push_back( HistoAndName(h1_bias_wa_log_y, "Log-Weighted Average") );
+
+  std::vector< HistoAndName > hn_reso_y;
+  hn_reso_y.push_back( HistoAndName(h1_reso_asymm_y, "Asymmetry") );
+  hn_reso_y.push_back( HistoAndName(h1_reso_asymm_log_y, "Log-Asymmetry") );
+  hn_reso_y.push_back( HistoAndName(h1_reso_wa_y, "Weighted Average") );
+  hn_reso_y.push_back( HistoAndName(h1_reso_wa_log_y, "Log-Weighted Average") );
+
+   
+  drawPerformancePlot( outputdir, name, "x", hn_bias_x, "bias", "BGO Channel", xMin, xMax );
+  drawPerformancePlot( outputdir, name, "x", hn_reso_x, "reso", "BGO Channel", xMin, xMax );
+  drawPerformancePlot( outputdir, name, "y", hn_bias_y, "bias", "BGO Channel", xMin, xMax );
+  drawPerformancePlot( outputdir, name, "y", hn_reso_y, "reso", "BGO Channel", xMin, xMax );
+
+    
+
+}
+
+
+
+
+void checkLateralScan( const std::string& outputdir, const std::string& name, TTree* tree, const std::string& refVar, const std::string& axisName, const std::string& cut ) {
+
+  TH2D* h2_asymm_x = getSingleHisto( tree, name, "asymm_x", Form("(xPos_bgo_asymm-x%s):x%s", refVar.c_str(), refVar.c_str()), cut );
+  TH2D* h2_asymm_y = getSingleHisto( tree, name, "asymm_y", Form("(yPos_bgo_asymm-y%s):y%s", refVar.c_str(), refVar.c_str()), cut );
+  TH2D* h2_asymm_log_x = getSingleHisto( tree, name, "asymm_log_x", Form("(xPos_bgo_asymmlog-x%s):x%s", refVar.c_str(), refVar.c_str()), cut );
+  TH2D* h2_asymm_log_y = getSingleHisto( tree, name, "asymm_log_y", Form("(yPos_bgo_asymmlog-y%s):y%s", refVar.c_str(), refVar.c_str()), cut );
+  TH2D* h2_wa_x = getSingleHisto( tree, name, "wa_x", Form("(xPos_bgo_wa-x%s):x%s", refVar.c_str(), refVar.c_str()), cut );
+  TH2D* h2_wa_y = getSingleHisto( tree, name, "wa_y", Form("(yPos_bgo_wa-y%s):y%s", refVar.c_str(), refVar.c_str()), cut );
+  TH2D* h2_wa_log_x = getSingleHisto( tree, name, "wa_log_x", Form("(xPos_bgo_walog-x%s):x%s", refVar.c_str(), refVar.c_str()), cut );
+  TH2D* h2_wa_log_y = getSingleHisto( tree, name, "wa_log_y", Form("(yPos_bgo_walog-y%s):y%s", refVar.c_str(), refVar.c_str()), cut );
+
 
   std::vector< Histo2AndName > hn_x;
   hn_x.push_back( Histo2AndName(h2_asymm_x, "Asymmetry") );
@@ -150,8 +320,8 @@ void checkLateralScan( const std::string& outputdir, const std::string& name, TT
   std::vector< HistoAndName > hn_bias_y;
   hn_bias_y.push_back( HistoAndName(p_asymm_y.first, "Asymmetry") );
   hn_bias_y.push_back( HistoAndName(p_asymm_log_y.first, "Log-Asymmetry") );
-  hn_bias_y.push_back( HistoAndName(p_wa_y.first, "Weighted Ave") );
-  hn_bias_y.push_back( HistoAndName(p_wa_log_y.first, "Log-Weighted Ave") );
+  hn_bias_y.push_back( HistoAndName(p_wa_y.first, "Weighted Average") );
+  hn_bias_y.push_back( HistoAndName(p_wa_log_y.first, "Log-Weighted Average") );
 
   std::vector< HistoAndName > hn_reso_x;
   hn_reso_x.push_back( HistoAndName(p_asymm_x.second, "Asymmetry") );
@@ -162,13 +332,13 @@ void checkLateralScan( const std::string& outputdir, const std::string& name, TT
   std::vector< HistoAndName > hn_reso_y;
   hn_reso_y.push_back( HistoAndName(p_asymm_y.second, "Asymmetry") );
   hn_reso_y.push_back( HistoAndName(p_asymm_log_y.second, "Log-Asymmetry") );
-  hn_reso_y.push_back( HistoAndName(p_wa_y.second, "Weighted Ave") );
-  hn_reso_y.push_back( HistoAndName(p_wa_log_y.second, "Log-Weighted Ave") );
+  hn_reso_y.push_back( HistoAndName(p_wa_y.second, "Weighted Average") );
+  hn_reso_y.push_back( HistoAndName(p_wa_log_y.second, "Log-Weighted Average") );
 
-  if( name!="vert" ) drawPerformancePlot( outputdir, name, "x", hn_bias_x, "bias" );
-  if( name!="horiz") drawPerformancePlot( outputdir, name, "y", hn_bias_y, "bias" );
-  if( name!="vert" ) drawPerformancePlot( outputdir, name, "x", hn_reso_x, "reso" );
-  if( name!="horiz") drawPerformancePlot( outputdir, name, "y", hn_reso_y, "reso" );
+  if( name!="vert" ) drawPerformancePlot( outputdir, name, "x", hn_bias_x, "bias", Form("%s x Position [mm]", axisName.c_str()), -10., 10. );
+  if( name!="horiz") drawPerformancePlot( outputdir, name, "y", hn_bias_y, "bias", Form("%s x Position [mm]", axisName.c_str()), -10., 10. );
+  if( name!="vert" ) drawPerformancePlot( outputdir, name, "x", hn_reso_x, "reso", Form("%s y Position [mm]", axisName.c_str()), -10., 10. );
+  if( name!="horiz") drawPerformancePlot( outputdir, name, "y", hn_reso_y, "reso", Form("%s y Position [mm]", axisName.c_str()), -10., 10. );
 
 }
 
@@ -301,7 +471,7 @@ void drawProjections( const std::string& outputdir, const std::string& name, std
 }
 
 
-void drawPerformancePlot( const std::string& outputdir, const std::string& name, const std::string& var, std::vector< HistoAndName > hn, const std::string& bias_reso ) {
+void drawPerformancePlot( const std::string& outputdir, const std::string& name, const std::string& var, std::vector< HistoAndName > hn, const std::string& bias_reso, const std::string& axisName, float xMin, float xMax ) {
 
   bool isReso;
   if( bias_reso=="bias" ) isReso = false;
@@ -332,12 +502,19 @@ void drawPerformancePlot( const std::string& outputdir, const std::string& name,
 
 
   // first: bias
-  float xMax = 15.;
-  float yMin = (isReso) ? 0. : -1.;
+  //float xMax = (name=="bgo") ? 40. : 15.;
+  float yMin = (isReso) ? 0.  : -1.;
   float yMax = (isReso) ? 15. : 3.;
+  TString name_tstr(name);
+  if( name_tstr.Contains("bgo") ) {
+    if(!isReso )
+      yMin = -12.;
+    yMax = 12.;
+  }
 
-  TH2D* h2_axes = new TH2D("axes", "", 10, -xMax, xMax, 10, yMin, yMax );
-  h2_axes->SetXTitle( Form( "Beam %s Position [mm]", var.c_str() ) );
+  TH2D* h2_axes = new TH2D("axes", "", 10, xMin, xMax, 10, yMin, yMax );
+  h2_axes->SetXTitle( axisName.c_str() );
+  //h2_axes->SetXTitle( Form( "Beam %s Position [mm]", var.c_str() ) );
   if(isReso)
     h2_axes->SetYTitle( "RMS(Estimate - Beam) [mm]" );
   else
@@ -373,7 +550,7 @@ void drawPerformancePlot( const std::string& outputdir, const std::string& name,
 
   legend->Draw("same");
 
-  TLine* lineZero = new TLine(-xMax, 0., xMax, 0.);
+  TLine* lineZero = new TLine(xMin, 0., xMax, 0.);
   lineZero->Draw("same");
 
   TPaveText* labelTop = DrawTools::getLabelTop();
