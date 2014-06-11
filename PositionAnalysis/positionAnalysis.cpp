@@ -244,16 +244,26 @@ int main( int argc, char* argv[] ) {
 
   TTree* outTree = new TTree("posTree","posTree");
   float xPos_calo_, yPos_calo_;
-  float xPos_bgo_, yPos_bgo_;
+  float xPos_hodo_ = 0.;
+  float yPos_hodo_ = 0.;
+  float xPos_bgo_ = 0.;
+  float yPos_bgo_ = 0.;
+  float xPos_bgo_asymm_, yPos_bgo_asymm_;
+  float xPos_bgo_asymmlog_, yPos_bgo_asymmlog_;
+  float xPos_bgo_wa_, yPos_bgo_wa_;
+  float xPos_bgo_walog_, yPos_bgo_walog_;
   float xPos_new_, yPos_new_;
   float xPos_regr2D_, yPos_regr2D_;
   float r02_, r13_;
 
+  outTree->Branch( "run", &runNumber, "run/i" );
   outTree->Branch( "isSingleEle_scintFront", &isSingleEle_scintFront, "isSingleEle_scintFront/O" );
   outTree->Branch( "nHodoClustersX", &nHodoClustersX, "nHodoClustersX/I" );
   outTree->Branch( "nHodoClustersY", &nHodoClustersY, "nHodoClustersY/I" );
   outTree->Branch( "pos_hodoClustX", pos_hodoClustX, "pos_hodoClustX[nHodoClustersX]/F" );
   outTree->Branch( "pos_hodoClustY", pos_hodoClustY, "pos_hodoClustY[nHodoClustersY]/F" );
+  outTree->Branch( "nFibres_hodoClustX", nFibres_hodoClustX, "nFibres_hodoClustX[nHodoClustersX]/I" );
+  outTree->Branch( "nFibres_hodoClustY", nFibres_hodoClustY, "nFibres_hodoClustY[nHodoClustersY]/I" );
   outTree->Branch( "cef3_corr", cef3_corr, "cef3_corr[4]/F" );
   outTree->Branch( "bgo_corr", bgo_corr, "bgo_corr[8]/F" );
   outTree->Branch( "bgo_corr_ok", &bgo_corr_ok, "bgo_corr_ok/O");
@@ -261,8 +271,16 @@ int main( int argc, char* argv[] ) {
   outTree->Branch( "r13", &r13_, "r13_/F" );
   outTree->Branch( "xBeam", &xBeam, "xBeam/F" );
   outTree->Branch( "yBeam", &yBeam, "yBeam/F" );
-  outTree->Branch( "xPos_bgo", &xPos_bgo_, "xPos_bgo_/F" );
-  outTree->Branch( "yPos_bgo", &yPos_bgo_, "yPos_bgo_/F" );
+  outTree->Branch( "xPos_bgo_asymm", &xPos_bgo_asymm_, "xPos_bgo_asymm_/F" );
+  outTree->Branch( "yPos_bgo_asymm", &yPos_bgo_asymm_, "yPos_bgo_asymm_/F" );
+  outTree->Branch( "xPos_bgo_asymmlog", &xPos_bgo_asymmlog_, "xPos_bgo_asymmlog_/F" );
+  outTree->Branch( "yPos_bgo_asymmlog", &yPos_bgo_asymmlog_, "yPos_bgo_asymmlog_/F" );
+  outTree->Branch( "xPos_bgo_wa", &xPos_bgo_wa_, "xPos_bgo_wa_/F" );
+  outTree->Branch( "yPos_bgo_wa", &yPos_bgo_wa_, "yPos_bgo_wa_/F" );
+  outTree->Branch( "xPos_bgo_walog", &xPos_bgo_walog_, "xPos_bgo_walog_/F" );
+  outTree->Branch( "yPos_bgo_walog", &yPos_bgo_walog_, "yPos_bgo_walog_/F" );
+  outTree->Branch( "xPos_hodo", &xPos_hodo_, "xPos_hodo_/F" );
+  outTree->Branch( "yPos_hodo", &yPos_hodo_, "yPos_hodo_/F" );
   outTree->Branch( "xPos_calo", &xPos_calo_, "xPos_calo_/F" );
   outTree->Branch( "yPos_calo", &yPos_calo_, "yPos_calo_/F" );
   outTree->Branch( "xPos_new", &xPos_new_, "xPos_new_/F" );
@@ -287,7 +305,7 @@ int main( int argc, char* argv[] ) {
   std::vector<float> xbgo, ybgo;
   for( unsigned i=0; i<BGO_CHANNELS; ++i ) {
     float x,y;
-    RunHelper::getBGOCoordinates( i, x, y );
+    PositionTools::getBGOCoordinates( i, x, y );
     xbgo.push_back( x );
     ybgo.push_back( y );
   }
@@ -366,8 +384,14 @@ int main( int argc, char* argv[] ) {
 
   for( unsigned iEntry=0; iEntry<nentries; ++iEntry ) {
 
-    xPos_bgo_ = -999.;
-    yPos_bgo_ = -999.;
+    xPos_bgo_asymm_ = -999.;
+    yPos_bgo_asymm_ = -999.;
+    xPos_bgo_asymmlog_ = -999.;
+    yPos_bgo_asymmlog_ = -999.;
+    xPos_bgo_wa_ = -999.;
+    yPos_bgo_wa_ = -999.;
+    xPos_bgo_walog_ = -999.;
+    yPos_bgo_walog_ = -999.;
 
     xPos_calo_ = -999.;
     yPos_calo_ = -999.;
@@ -375,39 +399,39 @@ int main( int argc, char* argv[] ) {
 
     tree->GetEntry(iEntry);
 
-    if( iEntry % 5000 == 0 ) std::cout << "Entry: " << iEntry << " / " << nentries << std::endl;
+    if( iEntry % 10000 == 0 ) std::cout << "Entry: " << iEntry << " / " << nentries << std::endl;
 
     if( !bgo_corr_ok ) continue;
 
     r02_ = cef3_corr[0]/cef3_corr[2];
     r13_ = cef3_corr[1]/cef3_corr[3];
 
+
+
     // FIRST GET POSITION FROM HODOSCOPE:
-
-
-    float xPos_hodo = getMeanposHodo(nHodoClustersX, pos_hodoClustX);
-    float yPos_hodo = getMeanposHodo(nHodoClustersY, pos_hodoClustY);
+    xPos_hodo_ = getMeanposHodo(nHodoClustersX, pos_hodoClustX);
+    yPos_hodo_ = getMeanposHodo(nHodoClustersY, pos_hodoClustY);
 
 
 
-    if( xPos_hodo>-100. )
-      h1_xPos_hodo->Fill(xPos_hodo);
-    if( yPos_hodo>-100. )
-      h1_yPos_hodo->Fill(yPos_hodo);
+    if( xPos_hodo_>-100. )
+      h1_xPos_hodo->Fill(xPos_hodo_);
+    if( yPos_hodo_>-100. )
+      h1_yPos_hodo->Fill(yPos_hodo_);
 
-    if( xPos_hodo>-100. && yPos_hodo>-100. ) 
-      h2_xyPos_hodo->Fill(xPos_hodo, yPos_hodo);
+    if( xPos_hodo_>-100. && yPos_hodo_>-100. ) 
+      h2_xyPos_hodo->Fill(xPos_hodo_, yPos_hodo_);
 
 
     if( isSingleEle_scintFront ) {
 
-      if( xPos_hodo>-100. )
-        h1_xPos_singleEle_hodo->Fill(xPos_hodo);
-      if( yPos_hodo>-100. )
-        h1_yPos_singleEle_hodo->Fill(yPos_hodo);
+      if( xPos_hodo_>-100. )
+        h1_xPos_singleEle_hodo->Fill(xPos_hodo_);
+      if( yPos_hodo_>-100. )
+        h1_yPos_singleEle_hodo->Fill(yPos_hodo_);
 
-      if( xPos_hodo>-100. && yPos_hodo>-100. ) 
-        h2_xyPos_singleEle_hodo->Fill(xPos_hodo, yPos_hodo);
+      if( xPos_hodo_>-100. && yPos_hodo_>-100. ) 
+        h2_xyPos_singleEle_hodo->Fill(xPos_hodo_, yPos_hodo_);
 
     }
 
@@ -446,17 +470,20 @@ int main( int argc, char* argv[] ) {
       yPosW_bgo.push_back(bgo_corr[7]*ybgo[7]);
       
 
-      //PositionTools::getBGOPosition( v_bgo_corr, xPos_bgo_, yPos_bgo_ );
+      PositionTools::getBGOPositionAsymm( v_bgo_corr, xPos_bgo_asymm_, yPos_bgo_asymm_ );
+      PositionTools::getBGOPositionAsymm( v_bgo_corr, xPos_bgo_asymmlog_, yPos_bgo_asymmlog_, true );
+      PositionTools::getBGOPositionWA( v_bgo_corr, xPos_bgo_wa_, yPos_bgo_wa_ );
+      PositionTools::getBGOPositionWA( v_bgo_corr, xPos_bgo_walog_, yPos_bgo_walog_, true );
       
-      xPos_bgo_ = sumVector( xPosW_bgo )/eTot_bgo_corr;
-      yPos_bgo_ = sumVector( yPosW_bgo )/eTot_bgo_corr;
+      //xPos_bgo_ = sumVector( xPosW_bgo )/eTot_bgo_corr;
+      //yPos_bgo_ = sumVector( yPosW_bgo )/eTot_bgo_corr;
       
       h1_xPos_bgo->Fill( xPos_bgo_ );
       h1_yPos_bgo->Fill( yPos_bgo_ );
       h2_xyPos_bgo->Fill( xPos_bgo_, yPos_bgo_ );
 
-      h2_correlation_hodo_bgo_xPos->Fill( xPos_hodo, xPos_bgo_ );
-      h2_correlation_hodo_bgo_yPos->Fill( yPos_hodo, yPos_bgo_ );
+      h2_correlation_hodo_bgo_xPos->Fill( xPos_hodo_, xPos_bgo_ );
+      h2_correlation_hodo_bgo_yPos->Fill( yPos_hodo_, yPos_bgo_ );
       
       if( isSingleEle_scintFront ) {
 
@@ -464,8 +491,8 @@ int main( int argc, char* argv[] ) {
         h1_yPos_singleEle_bgo->Fill( yPos_bgo_ );
         h2_xyPos_singleEle_bgo->Fill( xPos_bgo_, yPos_bgo_ );
 
-        h2_correlation_hodo_bgo_xPos_singleEle->Fill( xPos_hodo, xPos_bgo_ );
-        h2_correlation_hodo_bgo_yPos_singleEle->Fill( yPos_hodo, yPos_bgo_ );
+        h2_correlation_hodo_bgo_xPos_singleEle->Fill( xPos_hodo_, xPos_bgo_ );
+        h2_correlation_hodo_bgo_yPos_singleEle->Fill( yPos_hodo_, yPos_bgo_ );
 
       }
       
@@ -578,8 +605,8 @@ int main( int argc, char* argv[] ) {
           //}
           //h2_xyPos_regr2D->Fill( xPos_regr2D_, yPos_regr2D_ );
 
-          h1_xPos_calo_vs_hodo->Fill( xPos_calo_-xPos_hodo );
-          h1_yPos_calo_vs_hodo->Fill( yPos_calo_-yPos_hodo );
+          h1_xPos_calo_vs_hodo->Fill( xPos_calo_-xPos_hodo_ );
+          h1_yPos_calo_vs_hodo->Fill( yPos_calo_-yPos_hodo_ );
 
           h1_xPos_calo_vs_beam->Fill( xPos_calo_-xBeam );
           h1_yPos_calo_vs_beam->Fill( yPos_calo_-yBeam );
@@ -601,16 +628,16 @@ int main( int argc, char* argv[] ) {
           h1_yPos_new_singleEle->Fill( yPos_new_ );
           h2_xyPos_new_singleEle->Fill( xPos_new_, yPos_new_ );
 
-          h1_xPos_calo_vs_hodo_singleElectron->Fill( xPos_calo_-xPos_hodo );
-          h1_yPos_calo_vs_hodo_singleElectron->Fill( yPos_calo_-yPos_hodo );
+          h1_xPos_calo_vs_hodo_singleElectron->Fill( xPos_calo_-xPos_hodo_ );
+          h1_yPos_calo_vs_hodo_singleElectron->Fill( yPos_calo_-yPos_hodo_ );
 
           h1_xPos_calo_vs_beam_singleElectron->Fill( xPos_calo_-xBeam );
           h1_yPos_calo_vs_beam_singleElectron->Fill( yPos_calo_-yBeam );
 
           if( nHodoClustersX==1 && nHodoClustersY==1 && nFibres_hodoClustX[0]<=2 && nFibres_hodoClustY[0]<=2 ) {
 
-            h1_xPos_calo_vs_hodo_singleElectron_HR->Fill( xPos_calo_-xPos_hodo );
-            h1_yPos_calo_vs_hodo_singleElectron_HR->Fill( yPos_calo_-yPos_hodo );
+            h1_xPos_calo_vs_hodo_singleElectron_HR->Fill( xPos_calo_-xPos_hodo_ );
+            h1_yPos_calo_vs_hodo_singleElectron_HR->Fill( yPos_calo_-yPos_hodo_ );
   
             h1_xPos_calo_vs_beam_singleElectron_HR->Fill( xPos_calo_-xBeam );
             h1_yPos_calo_vs_beam_singleElectron_HR->Fill( yPos_calo_-yBeam );
@@ -618,8 +645,8 @@ int main( int argc, char* argv[] ) {
           }
 
 
-          h2_correlation_cef3_hodo_xPos_singleEle->Fill( xPos, xPos_hodo );
-          h2_correlation_cef3_hodo_yPos_singleEle->Fill( yPos, yPos_hodo );
+          h2_correlation_cef3_hodo_xPos_singleEle->Fill( xPos, xPos_hodo_ );
+          h2_correlation_cef3_hodo_yPos_singleEle->Fill( yPos, yPos_hodo_ );
 
   
           if( bgo_ok && bgo_corr_ok ) {
@@ -819,7 +846,7 @@ float getMeanposHodo( int n, float* pos ) {
   float meanpos = 0.;
 
   for( unsigned i=0; i<n; ++i ) {
-    meanpos += pos[n];
+    meanpos += pos[i];
   }
 
   meanpos /= (float)n;
