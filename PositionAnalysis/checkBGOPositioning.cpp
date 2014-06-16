@@ -85,6 +85,8 @@ int main( int argc, char* argv[] ) {
   system(Form("mkdir -p %s", outputdir.c_str()));
 
   checkLateralScan( outputdir, "all"    , tree, "Beam", "Beam", "(yBeam==0. && abs(xBeam)>0.2) || (xBeam==0. && abs(yBeam)>0.2) || (xBeam==yBeam && xBeam>0.) || (xBeam==-yBeam && xBeam>0.)" );
+  //checkLateralScan( outputdir, "horiz"  , tree, "Beam", "Beam", "yBeam==0." );
+  //checkLateralScan( outputdir, "vert"   , tree, "Beam", "Beam", "xBeam==0." );
   checkLateralScan( outputdir, "horiz"  , tree, "Beam", "Beam", "yBeam==0. && abs(xBeam)>0.2" );
   checkLateralScan( outputdir, "vert"   , tree, "Beam", "Beam", "xBeam==0. && abs(yBeam)>0.2" );
   checkLateralScan( outputdir, "diag13" , tree, "Beam", "Beam", "xBeam==yBeam && xBeam>0." );
@@ -102,6 +104,15 @@ int main( int argc, char* argv[] ) {
 
   checkHodo( outputdir, "diag13Hodo" , tree, "x", "run==136 || run==141" );
   checkHodo( outputdir, "diag13Hodo" , tree, "y", "run==136 || run==141" );
+
+
+  TFile* file_hodo_defoc = TFile::Open(Form("PosAnTrees_%s/PosAn_BTF_248_beam.root", tag.c_str()));
+  TTree* tree_hodo_defoc = (TTree*)file_hodo_defoc->Get("posTree");
+
+  checkHodo( outputdir, "hodoDefoc" , tree_hodo_defoc, "x", "run>0" );
+  checkHodo( outputdir, "hodoDefoc" , tree_hodo_defoc, "y", "run>0" );
+
+  //checkLateralScan( outputdir, "hodoDefoc" , tree_hodo_defoc, "Pos_hodo", "Hodoscope", "nHodoClustersX==1 && nHodoClustersY==1 && nFibres_hodoClustX[0]<=2 && nFibres_hodoClustY[0]<=2" );
 
 
   //TFile* file_bgo = TFile::Open(Form("PosAnTrees_%s/BGORuns.root", tag.c_str()));
