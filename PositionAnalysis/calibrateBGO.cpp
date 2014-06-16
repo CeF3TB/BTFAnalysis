@@ -15,15 +15,18 @@
 
 
 //TH1D* fitSingleChannel( const std::string& outputdir, const std::string& name, const std::string& runName, int iChannel, float calibConst=1. );
-TH1D* fitSingleChannelBGO( const std::string& outputdir, const std::string& name, const std::string& runName, int iChannel, float calibConst=1. );
-TH1D* fitCeF3( const std::string& outputdir, const std::string& name, const std::string& runName );
-TH1D* fitSingleChannel( const std::string& outputdir, const std::string& name, const std::string& runName,  const std::string& varName, const std::string& plotName, int nBins, float xMin, float xMax );
+TH1D* fitSingleChannelBGO( const std::string& outputdir, const std::string& name, const std::string& tag, const std::string& runName, int iChannel, float calibConst=1. );
+TH1D* fitCeF3( const std::string& outputdir, const std::string& name, const std::string& tag, const std::string& runName );
+TH1D* fitSingleChannel( const std::string& outputdir, const std::string& name, const std::string& tag, const std::string& runName,  const std::string& varName, const std::string& plotName, int nBins, float xMin, float xMax );
 void drawHistos( const std::string& outputdir, std::vector<TH1D*> histos, const std::string& name, float yMax, float xMax = 4000. );
 float sumVector( std::vector<float> v );
 
 
 
 int main() {
+
+
+  std::string tag = "V02";
 
 
   DrawTools::setStyle();
@@ -39,7 +42,7 @@ int main() {
   runs.push_back( "BTF_243_20140501-203838_beam" ); // 7
 
 
-  std::string outputdir = "BGOCalibration/";
+  std::string outputdir = "BGOCalibration_" + tag;
   std::string mkdir_command = "mkdir -p " + outputdir;
   system(mkdir_command.c_str());
 
@@ -50,7 +53,7 @@ int main() {
   float yMax = 0.;
 
   for( unsigned i=0; i<runs.size(); ++i ) {
-    TH1D* h1_raw = fitSingleChannelBGO( outputdir, "raw", runs[i], i, 1. );
+    TH1D* h1_raw = fitSingleChannelBGO( outputdir, "raw", tag, runs[i], i, 1. );
     rawHistos.push_back(h1_raw);
     TF1* thisFunc = (TF1*)(h1_raw->GetListOfFunctions()->FindObject(Form("gaussian_%s", runs[i].c_str())));
     calibConstants.push_back(thisFunc->GetParameter(1));
@@ -68,7 +71,7 @@ int main() {
 
   for( unsigned i=0; i<runs.size(); ++i ) {
     float thisCalib = calibAve/calibConstants[i];
-    calibHistos.push_back(fitSingleChannelBGO( outputdir, "calib", runs[i], i, thisCalib ));
+    calibHistos.push_back(fitSingleChannelBGO( outputdir, "calib", tag, runs[i], i, thisCalib ));
     ofs << i << "\t" << thisCalib << std::endl;
   }
 
@@ -84,8 +87,8 @@ int main() {
   std::cout << "Calibration average for BGO: " << calibAve << std::endl;
 
 
-  std::string run_cef3 = "BTF_227_20140501-151233_beam";
-  TH1D* h1_cef3 = fitCeF3( outputdir, "cef3_raw", run_cef3 );
+  std::string run_cef3 = "BTF_246_beam";
+  TH1D* h1_cef3 = fitCeF3( outputdir, "cef3_raw", tag, run_cef3 );
   TF1* f1_cef3 = (TF1*)(h1_cef3->GetListOfFunctions()->FindObject(Form("gaussian_%s", run_cef3.c_str())));
 
   std::cout << "BGO/CeF3 relative calibration: " << calibAve/f1_cef3->GetParameter(1) << std::endl;
@@ -151,31 +154,32 @@ void drawHistos( const std::string& outputdir, std::vector<TH1D*> histos, const 
 
 
 
-TH1D* fitSingleChannelBGO( const std::string& outputdir, const std::string& name, const std::string& runName, int iChannel, float calibConst ) {
+TH1D* fitSingleChannelBGO( const std::string& outputdir, const std::string& name, const std::string& tag, const std::string& runName, int iChannel, float calibConst ) {
 
-  return fitSingleChannel( outputdir, name, runName, Form("bgo_corr[%d]*%f", iChannel, calibConst), Form("Channel %d", iChannel), 50, 0., 4000. );
-
-}
-
-TH1D* fitCeF3( const std::string& outputdir, const std::string& name, const std::string& runName ) {
-
-  return fitSingleChannel( outputdir, name, runName, "cef3_corr[0]+cef3_corr[1]+cef3_corr[2]+cef3_corr[3]", "CeF3", 200, 0., 16000. );
+  return fitSingleChannel( outputdir, name, tag, runName, Form("bgo_corr[%d]*%f", iChannel, calibConst), Form("Channel %d", iChannel), 50, 0., 4000. );
 
 }
 
+TH1D* fitCeF3( const std::string& outputdir, const std::string& name, const std::string& tag, const std::string& runName ) {
+
+  return fitSingleChannel( outputdir, name, tag, runName, "cef3_corr[0]+cef3_corr[1]+cef3_corr[2]+cef3_corr[3]", "CeF3", 200, 0., 16000. );
+
+}
 
 
-TH1D* fitSingleChannel( const std::string& outputdir, const std::string& name, const std::string& runName,  const std::string& varName, const std::string& plotName, int nBins, float xMin, float xMax ) {
+
+TH1D* fitSingleChannel( const std::string& outputdir, const std::string& name, const std::string& tag, const std::string& runName,  const std::string& varName, const std::string& plotName, int nBins, float xMin, float xMax ) {
 
 
-  TFile* file = TFile::Open(Form("PosAn_%s.root", runName.c_str()));
-  TTree* tree = (TTree*)file->Get("tree_passedEvents");
+  TFile* file = TFile::Open(Form("PosAnTrees_%s/PosAn_%s.root", tag.c_str(), runName.c_str()));
+  std::cout << "-> Opened file: " << file->GetName() << std::endl;
+  TTree* tree = (TTree*)file->Get("posTree");
 
   std::string histoName = runName;
   TH1D* h1_bgo = new TH1D(histoName.c_str(), "", nBins, xMin, xMax );
 
   //tree->Project( histoName.c_str(), Form("bgo_corr[%d]*%f", iChannel, calibConst), "scintFront>500. && scintFront<2000.");
-  tree->Project( histoName.c_str(), varName.c_str(), "scintFront>500. && scintFront<2000.");
+  tree->Project( histoName.c_str(), varName.c_str(), "isSingleEle_scintFront" );
 
   TF1* f1 = new TF1( Form("gaussian_%s", runName.c_str()), "gaus(0)" );
   f1->SetRange(1800., 3200.);
@@ -202,7 +206,7 @@ TH1D* fitSingleChannel( const std::string& outputdir, const std::string& name, c
   }
 
 
-  TCanvas* c1 = new TCanvas("c1", "", 600, 600);
+  TCanvas* c1 = new TCanvas("c2", "", 600, 600);
   c1->cd();
 
   h1_bgo->Draw();
@@ -222,6 +226,7 @@ TH1D* fitSingleChannel( const std::string& outputdir, const std::string& name, c
 
   c1->SaveAs( Form("%s/fit_%s_%s.eps", outputdir.c_str(), name.c_str(), runName.c_str()) );
   c1->SaveAs( Form("%s/fit_%s_%s.png", outputdir.c_str(), name.c_str(), runName.c_str()) );
+  c1->SaveAs( Form("%s/fit_%s_%s.pdf", outputdir.c_str(), name.c_str(), runName.c_str()) );
 
   delete c1;
 
