@@ -309,8 +309,6 @@ int main( int argc, char* argv[] ) {
     xbgo.push_back( x );
     ybgo.push_back( y );
   }
-
-
   
   
 
@@ -401,7 +399,7 @@ int main( int argc, char* argv[] ) {
 
     if( iEntry % 10000 == 0 ) std::cout << "Entry: " << iEntry << " / " << nentries << std::endl;
 
-    if( !bgo_corr_ok ) continue;
+    //if( !bgo_corr_ok ) continue;
 
     r02_ = cef3_corr[0]/cef3_corr[2];
     r13_ = cef3_corr[1]/cef3_corr[3];
@@ -551,6 +549,10 @@ int main( int argc, char* argv[] ) {
 
 
         TVector2 vBeam( xBeam, yBeam );
+        if( runNumber==248 ) {
+          xBeam=0.;
+          yBeam=0.;
+        }
         TVector2 dBeam = vBeam.Rotate(-theta);
         diag02_beam_ = dBeam.Y();
         diag13_beam_ = dBeam.X();
