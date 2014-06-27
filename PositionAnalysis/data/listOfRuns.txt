@@ -5,246 +5,247 @@ Cosmics:
 run_BTF_00001_cosmics
 
 High statistic long central runs:
-run_BTF_246_20140501-212512_beam { xTable = 511.0; yTable = 201.1; }
-run_BTF_92_20140430-020137_beam  { xTable = 511.0; yTable = 201.1; } Long run without scintFront
-run_BTF_259_20140502-012847_beam { xTable = 511.0; yTable = 201.1; } Long run without BTF profilometer in front
+run_BTF_246_20140501-212512_beam { xTable = 511.0; yTable = 201.1; } {xBeam= 0 ; yBeam=-0.1}   
+run_BTF_92_20140430-020137_beam  { xTable = 511.0; yTable = 201.1; } {xBeam= 0 ; yBeam=-0.1}   Long run without scintFront
+run_BTF_259_20140502-012847_beam { xTable = 511.0; yTable = 201.1; } {xBeam= 0 ; yBeam=-0.1}   Long run without BTF profilometer in front
 
 
 --------------
 Diagonal scan:
 
-run_BTF_94_20140430-073300_beam { xTable = 514.0; yTable = 198.0; }
-run_BTF_96_20140430-083733_beam { xTable = 517.0; yTable = 195.0; }
-run_BTF_98_20140430-092026_beam { xTable = 520.0; yTable = 192.0; }
-run_BTF_136_20140430-171004_beam { xTable = 514.0; yTable = 204.0; }
-run_BTF_138_20140430-175224_beam { xTable = 511.0; yTable = 201.0; }
-run_BTF_141_20140430-183508_beam { xTable = 508.0; yTable = 198.0; }
-run_BTF_143_20140430-191455_beam { xTable = 505.0; yTable = 195.0; }
-run_BTF_167_20140430-210839_beam { xTable = 502.0; yTable = 192.0; }
-run_BTF_171_20140430-220751_beam { xTable = 502.0; yTable = 210.0; }
-run_BTF_173_20140430-224733_beam { xTable = 505.0; yTable = 207.0; }
-run_BTF_176_20140430-233434_beam { xTable = 508.0; yTable = 204.0; }
-run_BTF_177_20140430-235936_beam { xTable = 508.0; yTable = 204.0; }
-run_BTF_219_20140501-092151_beam { xTable = 499.7; yTable = 189.7; }
-run_BTF_220_20140501-103446_beam { xTable = 499.2; yTable = 189.2; }
-run_BTF_221_20140501-111328_beam { xTable = 498.7; yTable = 188.7; }
-run_BTF_259_20140502-012847_beam { xTable = 511.0; yTable = 201.1; }
-run_BTF_261_20140502-050702_beam { xTable = 501.2; yTable = 190.2; }
-run_BTF_262_20140502-053002_beam { xTable = 501.2; yTable = 190.2; }
-run_BTF_267_20140502-073650_beam { xTable = 522.3; yTable = 212.3; }
-run_BTF_269_20140502-081145_beam { xTable = 499.7; yTable = 212.3; }
-
+run_BTF_94_20140430-073300_beam { xTable = 514.0; yTable = 198.0; } {xBeam= -3.0 ; yBeam=3.0}   
+run_BTF_96_20140430-083733_beam { xTable = 517.0; yTable = 195.0; } {xBeam= -6.0 ; yBeam=6.0}   
+run_BTF_98_20140430-092026_beam { xTable = 520.0; yTable = 192.0; } {xBeam= -9.0 ; yBeam=9.0}   
+run_BTF_136_20140430-171004_beam { xTable = 514.0; yTable = 204.0; } {xBeam= -3.0 ; yBeam=-3.0}  
+run_BTF_138_20140430-175224_beam { xTable = 511.0; yTable = 201.0; } {xBeam= 0.0 ; yBeam= 0.0}   
+run_BTF_141_20140430-183508_beam { xTable = 508.0; yTable = 198.0; } {xBeam= 3.0 ; yBeam= 3.0}   
+run_BTF_143_20140430-191455_beam { xTable = 505.0; yTable = 195.0; } {xBeam= 6.0 ; yBeam= 6.0}   
+run_BTF_167_20140430-210839_beam { xTable = 502.0; yTable = 192.0; } {xBeam= 9.0 ; yBeam= 9.0}   
+run_BTF_171_20140430-220751_beam { xTable = 502.0; yTable = 210.0; } {xBeam= 9.0 ; yBeam= -9.0}  
+run_BTF_173_20140430-224733_beam { xTable = 505.0; yTable = 207.0; } {xBeam= 6.0 ; yBeam= -6.0}  
+run_BTF_176_20140430-233434_beam { xTable = 508.0; yTable = 204.0; } {xBeam= 3.0 ; yBeam= -3.0}  
+run_BTF_177_20140430-235936_beam { xTable = 508.0; yTable = 204.0; } {xBeam= 3.0 ; yBeam= -3.0}  
+run_BTF_219_20140501-092151_beam { xTable = 499.7; yTable = 189.7; } {xBeam= 11.3 ; yBeam=11.3}  
+run_BTF_220_20140501-103446_beam { xTable = 499.2; yTable = 189.2; } {xBeam= 11.8 ; yBeam=11.8}  
+run_BTF_221_20140501-111328_beam { xTable = 498.7; yTable = 188.7; } {xBeam= 12.3 ; yBeam=12.3}  
+run_BTF_259_20140502-012847_beam { xTable = 511.0; yTable = 201.1; } {xBeam= 0.0 ; yBeam= -0.1}  
+run_BTF_261_20140502-050702_beam { xTable = 501.2; yTable = 190.2; } {xBeam= 9.8 ; yBeam= 10.8}  
+run_BTF_262_20140502-053002_beam { xTable = 501.2; yTable = 190.2; } {xBeam= 9.8 ; yBeam= 10.8}  
+run_BTF_267_20140502-073650_beam { xTable = 522.3; yTable = 212.3; } {xBeam= -11.3 ; yBeam-11.3}
+run_BTF_269_20140502-081145_beam { xTable = 499.7; yTable = 212.3; } {xBeam= 11.3 ; yBeam=-11.3} 
+                                                                     
 --------------
 CrossScan:
 
-run_BTF_144_20140430-200741_beam  { xTable = 499.0; yTable = 201.0; }
-run_BTF_145_20140430-201024_beam  { xTable = 501.0; yTable = 201.0; }
-run_BTF_146_20140430-201243_beam  { xTable = 503.0; yTable = 201.0; }
-run_BTF_147_20140430-201509_beam  { xTable = 505.0; yTable = 201.0; }
-run_BTF_148_20140430-201719_beam  { xTable = 507.0; yTable = 201.0; }
-run_BTF_149_20140430-201913_beam  { xTable = 509.0; yTable = 201.0; }
-run_BTF_150_20140430-202236_beam  { xTable = 511.0; yTable = 201.0; }
-run_BTF_151_20140430-202639_beam  { xTable = 513.0; yTable = 201.0; }
-run_BTF_152_20140430-202852_beam  { xTable = 515.0; yTable = 201.0; }
-run_BTF_153_20140430-203054_beam  { xTable = 517.0; yTable = 201.0; }
-run_BTF_154_20140430-203255_beam  { xTable = 519.0; yTable = 201.0; }
-run_BTF_155_20140430-203551_beam  { xTable = 521.0; yTable = 201.0; }
-run_BTF_156_20140430-203818_beam  { xTable = 523.0; yTable = 201.0; }
-run_BTF_157_20140430-204053_beam  { xTable = 511.0; yTable = 193.0; }
-run_BTF_158_20140430-204306_beam  { xTable = 511.0; yTable = 195.0; }
-run_BTF_159_20140430-204525_beam  { xTable = 511.0; yTable = 197.0; }
-run_BTF_160_20140430-204719_beam  { xTable = 511.0; yTable = 199.0; }
-run_BTF_161_20140430-204931_beam  { xTable = 511.0; yTable = 201.0; }
-run_BTF_162_20140430-205129_beam  { xTable = 511.0; yTable = 203.0; }
-run_BTF_163_20140430-205337_beam  { xTable = 511.0; yTable = 205.0; }
-run_BTF_164_20140430-205542_beam  { xTable = 511.0; yTable = 207.0; }
-run_BTF_165_20140430-205756_beam  { xTable = 511.0; yTable = 209.0; }
+run_BTF_144_20140430-200741_beam  { xTable = 499.0; yTable = 201.0; } {xBeam= 12.0 ; yBeam=0.0}   
+run_BTF_145_20140430-201024_beam  { xTable = 501.0; yTable = 201.0; } {xBeam= 10.0 ; yBeam=0.0}   
+run_BTF_146_20140430-201243_beam  { xTable = 503.0; yTable = 201.0; } {xBeam= 8.0 ; yBeam= 0.0}   
+run_BTF_147_20140430-201509_beam  { xTable = 505.0; yTable = 201.0; } {xBeam= 6.0 ; yBeam= 0.0}   
+run_BTF_148_20140430-201719_beam  { xTable = 507.0; yTable = 201.0; } {xBeam= 4.0 ; yBeam= 0.0}   
+run_BTF_149_20140430-201913_beam  { xTable = 509.0; yTable = 201.0; } {xBeam= 2.0 ; yBeam= 0.0}   
+run_BTF_150_20140430-202236_beam  { xTable = 511.0; yTable = 201.0; } {xBeam= 0.0 ; yBeam= 0.0}   
+run_BTF_151_20140430-202639_beam  { xTable = 513.0; yTable = 201.0; } {xBeam= -2.0 ; yBeam=0.0}   
+run_BTF_152_20140430-202852_beam  { xTable = 515.0; yTable = 201.0; } {xBeam= -4.0 ; yBeam=0.0}   
+run_BTF_153_20140430-203054_beam  { xTable = 517.0; yTable = 201.0; } {xBeam= -6.0 ; yBeam=0.0}   
+run_BTF_154_20140430-203255_beam  { xTable = 519.0; yTable = 201.0; } {xBeam= -8.0 ; yBeam=0.0}   
+run_BTF_155_20140430-203551_beam  { xTable = 521.0; yTable = 201.0; } {xBeam= -10.0 ; yBeam0.0} = 
+run_BTF_156_20140430-203818_beam  { xTable = 523.0; yTable = 201.0; } {xBeam= -12.0 ; yBeam0.0} = 
+run_BTF_157_20140430-204053_beam  { xTable = 511.0; yTable = 193.0; } {xBeam= 0.0 ; yBeam= 8.0}   
+run_BTF_158_20140430-204306_beam  { xTable = 511.0; yTable = 195.0; } {xBeam= 0.0 ; yBeam= 6.0}   
+run_BTF_159_20140430-204525_beam  { xTable = 511.0; yTable = 197.0; } {xBeam= 0.0 ; yBeam= 4.0}   
+run_BTF_160_20140430-204719_beam  { xTable = 511.0; yTable = 199.0; } {xBeam= 0.0 ; yBeam= 2.0}   
+run_BTF_161_20140430-204931_beam  { xTable = 511.0; yTable = 201.0; } {xBeam= 0.0 ; yBeam= 0.0}   
+run_BTF_162_20140430-205129_beam  { xTable = 511.0; yTable = 203.0; } {xBeam= 0.0 ; yBeam= -2.0}  
+run_BTF_163_20140430-205337_beam  { xTable = 511.0; yTable = 205.0; } {xBeam= 0.0 ; yBeam= -4.0}  
+run_BTF_164_20140430-205542_beam  { xTable = 511.0; yTable = 207.0; } {xBeam= 0.0 ; yBeam= -6.0}  
+run_BTF_165_20140430-205756_beam  { xTable = 511.0; yTable = 209.0; } {xBeam= 0.0 ; yBeam= -8.0}  
 
-run_BTF_286_20140502-153528_beam { xTable = 511.0; yTable = 201; }
-run_BTF_287_20140502-155208_beam { xTable = 511.0; yTable = 201; }
-run_BTF_259_20140502-012847_beam { xTable = 511.0; yTable = 201; }
-run_BTF_308_20140503-002534_beam { xTable = 511.0; yTable = 201; }
-run_BTF_293_20140502-180258_beam { xTable = 511.0; yTable = 201; }
-run_BTF_314_20140503-024715_beam { xTable = 511.0; yTable = 201; }
+run_BTF_286_20140502-153528_beam { xTable = 511.0; yTable = 201; } {xBeam= 0.0 ; yBeam=0.0}
+run_BTF_287_20140502-155208_beam { xTable = 511.0; yTable = 201; } {xBeam= 0.0 ; yBeam=0.0}
+run_BTF_259_20140502-012847_beam { xTable = 511.0; yTable = 201; } {xBeam= 0.0 ; yBeam=0.0}
+run_BTF_308_20140503-002534_beam { xTable = 511.0; yTable = 201; } {xBeam= 0.0 ; yBeam=0.0}
+run_BTF_293_20140502-180258_beam { xTable = 511.0; yTable = 201; } {xBeam= 0.0 ; yBeam=0.0}
+run_BTF_314_20140503-024715_beam { xTable = 511.0; yTable = 201; } {xBeam= 0.0 ; yBeam=0.0}
 --------------
 Defocused Beam:
 
-run_BTF_248_20140501-233432_beam { xTable = 504.0; yTable = 203.6; } (center with defocused beam)
-run_BTF_249_20140501-235021_beam { xTable = 504.0; yTable = 200.6; }
-run_BTF_250_20140501-235852_beam { xTable = 504.0; yTable = 206.6; }
-run_BTF_251_20140502-000714_beam { xTable = 501.0; yTable = 203.6; }|					   
-run_BTF_252_20140502-001459_beam { xTable = 501.0; yTable = 203.6; }|(same position as 249 since beam loss)
-run_BTF_253_20140502-001904_beam { xTable = 507.0; yTable = 203.6; }|
-run_BTF_254_20140502-002540_beam { xTable = 507.0; yTable = 203.6; }|					   
-run_BTF_255_20140502-003744_beam { xTable = 507.0; yTable = 203.6; }|(same position as 253 since beam loss)
+run_BTF_248_20140501-233432_beam { xTable = 504.0; yTable = 203.6; } {xBeam= 7.0 ; yBeam= -2.6}  (center with defocused beam)
+run_BTF_249_20140501-235021_beam { xTable = 504.0; yTable = 200.6; } {xBeam= 7.0 ; yBeam= 0.4}  
+run_BTF_250_20140501-235852_beam { xTable = 504.0; yTable = 206.6; } {xBeam= 7.0 ; yBeam= -5.6} 
+run_BTF_251_20140502-000714_beam { xTable = 501.0; yTable = 203.6; } {xBeam= 10.0 ; yBeam=-2.6} |					   
+run_BTF_252_20140502-001459_beam { xTable = 501.0; yTable = 203.6; } {xBeam= 10.0 ; yBeam=-2.6} |(same position as 249 since beam loss)
+run_BTF_253_20140502-001904_beam { xTable = 507.0; yTable = 203.6; } {xBeam= 4.0 ; yBeam= -2.6} |
+run_BTF_254_20140502-002540_beam { xTable = 507.0; yTable = 203.6; } {xBeam= 4.0 ; yBeam= -2.6} |					   
+run_BTF_255_20140502-003744_beam { xTable = 507.0; yTable = 203.6; } {xBeam= 4.0 ; yBeam= -2.6} |(same position as 253 since beam loss)
 
 Scan of aereas close to cracks and fibers:
-run_BTF_261_20140502-050702_beam { xTable = 501.2 yTable = 190.2 } ->  beam nominally centered just inside the chamfer already scanned in runs 220-223
-run_BTF_262_20140502-053002_beam { xTable = 501.2 yTable = 190.2 } ->  the same as run 261 but with HV lowered to 1400V to study better the overflows
-run_BTF_263_20140502-055520_beam { xTable = 502.0 yTable = 196.5 } ->  point in an intermediate position between the two previous main position scans
-run_BTF_264_20140502-061806_beam { xTable = 506.5 yTable = 192.0 } ->  point in an intermediate position between the two previous main position scans
-run_BTF_265_20140502-064134_beam { xTable = 522.3 yTable = 188.7 } ->  corner CeF3 ch0
-run_BTF_267_20140502-073650_beam { xTable = 522.3 yTable = 212.3 } ->  corner CeF3 ch3
-run_BTF_269_20140502-081145_beam { xTable = 499.7 yTable = 212.3 } ->  corner CeF3 ch2
-run_BTF_271_20140502-084836_beam { xTable = 499.2 yTable = 211.8 } ->  corner CeF3 ch2 diagonal point  top right   (******* to be corrected in database -> corrected (RP) ******)
-run_BTF_273_20140502-091826_beam { xTable = 499.2 yTable = 212.8 } ->  corner CeF3 ch2 diagonal point  bottom 
-run_BTF_275_20140502-095051_beam { xTable = 500.2 yTable = 212.8 } ->  corner CeF3 ch2 diagonal point  bottom left
-run_BTF_277_20140502-101815_beam { xTable = 500.2 yTable = 211.8 } ->  corner CeF3 ch2 diagonal point  top left
+run_BTF_261_20140502-050702_beam { xTable = 501.2; yTable = 190.2 } {xBeam= 9.8 ; yBeam= 10.8}    ->  beam nominally centered just inside the chamfer already scanned in runs 220-223
+run_BTF_262_20140502-053002_beam { xTable = 501.2; yTable = 190.2 } {xBeam= 9.8 ; yBeam= 10.8}    ->  the same as run 261 but with HV lowered to 1400V to study better the overflows
+run_BTF_263_20140502-055520_beam { xTable = 502.0; yTable = 196.5 } {xBeam= 9.0 ; yBeam= 4.5}     ->  point in an intermediate position between the two previous main position scans
+run_BTF_264_20140502-061806_beam { xTable = 506.5; yTable = 192.0 } {xBeam= 4.5 ; yBeam= 9.0}     ->  point in an intermediate position between the two previous main position scans
+run_BTF_265_20140502-064134_beam { xTable = 522.3; yTable = 188.7 } {xBeam= -11.3 ; yBeam12.3} =  ->  corner CeF3 ch0
+run_BTF_267_20140502-073650_beam { xTable = 522.3; yTable = 212.3 } {xBeam= -11.3 ; yBeam-11.3}=  ->  corner CeF3 ch3
+run_BTF_269_20140502-081145_beam { xTable = 499.7; yTable = 212.3 } {xBeam= 11.3 ; yBeam=-11.3}   ->  corner CeF3 ch2
+run_BTF_271_20140502-084836_beam { xTable = 499.2; yTable = 211.8 } {xBeam= 11.8 ; yBeam=-10.8}   ->  corner CeF3 ch2 diagonal point  top right   (******* to be corrected in database -> corrected (RP) ******)
+run_BTF_273_20140502-091826_beam { xTable = 499.2; yTable = 212.8 } {xBeam= 11.8 ; yBeam=-11.8}   ->  corner CeF3 ch2 diagonal point  bottom 
+run_BTF_275_20140502-095051_beam { xTable = 500.2; yTable = 212.8 } {xBeam= 10.8 ; yBeam=-11.8}   ->  corner CeF3 ch2 diagonal point  bottom left
+run_BTF_277_20140502-101815_beam { xTable = 500.2; yTable = 211.8 } {xBeam= 10.8 ; yBeam=-10.8}   ->  corner CeF3 ch2 diagonal point  top left
 --------------
 Energy Scan:
 ==== Energy = 294.8 MeV =====
-run_BTF_286_20140502-153528_beam  { xTable =511 yTable = 201 }|  ~20k events taken before beam lost == NOMINAL CENTRAL POSITION
-run_BTF_287_20140502-155208_beam  { xTable =511 yTable = 201 }| taking other 15k events with the same configuration as above = NOMINAL CENTRAL POSITION
-run_BTF_288_20140502-160526_beam  { xTable =514 yTable = 201 }
-run_BTF_289_20140502-162954_beam  { xTable =508 yTable = 201 }
-run_BTF_290_20140502-165355_beam  { xTable =511 yTable = 198 }
-run_BTF_291_20140502-173020_beam  { xTable =511 yTable  =204 }
+run_BTF_286_20140502-153528_beam  { xTable = 511; yTable = 201 } {xBeam= 0.0 ; yBeam= 0.0} |  ~20k events taken before beam lost == NOMINAL CENTRAL POSITION
+run_BTF_287_20140502-155208_beam  { xTable = 511; yTable = 201 } {xBeam= 0.0 ; yBeam= 0.0}| taking other 15k events with the same configuration as above = NOMINAL CENTRAL POSITION
+run_BTF_288_20140502-160526_beam  { xTable = 514; yTable = 201 } {xBeam= -3.0 ; yBeam=0.0}
+run_BTF_289_20140502-162954_beam  { xTable = 508; yTable = 201 } {xBeam= 3.0 ; yBeam= 0.0}
+run_BTF_290_20140502-165355_beam  { xTable = 511; yTable = 198 } {xBeam= 0.0 ; yBeam= 3.0}
+run_BTF_291_20140502-173020_beam  { xTable = 511; yTable = 204 } {xBeam= 0.0 ; yBeam= -3.0}
 
 ==== Energy = 196.5 MeV ===== 
-run_BTF_293_20140502-180258_beam {xTable =511 yTable=201  }== NOMINAL CENTRAL POSITION
-run_BTF_294_20140502-182641_beam {xTable =514 yTable=201.1}|run crashed after pause (error reading adc 792)
-run_BTF_297_20140502-191955_beam {xTable =514 yTable=201.1}|taking 15k events in the same configuration
-run_BTF_298_20140502-193309_beam {xTable =508 yTable=201.1}
-run_BTF_299_20140502-200053_beam {xTable =511 yTable=198  }
-run_BTF_300_20140502-203003_beam {xTable =511 yTable=204  }
-run_BTF_302_20140502-210038_beam {xTable =511 yTable=204  }
+run_BTF_293_20140502-180258_beam {xTable = 511; yTable = 201  } {xBeam= 0.0 ; yBeam= 0.0} == NOMINAL CENTRAL POSITION
+run_BTF_294_20140502-182641_beam {xTable = 514; yTable = 201.1} {xBeam= -3.0 ; yBeam=-0.1}|run crashed after pause (error reading adc 792)
+run_BTF_297_20140502-191955_beam {xTable = 514; yTable = 201.1} {xBeam= -3.0 ; yBeam=-0.1}|taking 15k events in the same configuration
+run_BTF_298_20140502-193309_beam {xTable = 508; yTable = 201.1} {xBeam= 3.0 ; yBeam= -0.1}
+run_BTF_299_20140502-200053_beam {xTable = 511; yTable = 198  } {xBeam= 0.0 ; yBeam= 3.0} 
+run_BTF_300_20140502-203003_beam {xTable = 511; yTable = 204  } {xBeam= 0.0 ; yBeam= -3.0}
+run_BTF_302_20140502-210038_beam {xTable = 511; yTable = 204  } {xBeam= 0.0 ; yBeam= -3.0}
 
 ==== Energy = 147.4 MeV ===== 
-run_BTF_308_20140503-002534_beam  {xTable =511 yTable=201.1} == NOMINAL CENTRAL POSITION
-run_BTF_309_20140503-005049_beam  {xTable =514 yTable=201.1} 
-run_BTF_310_20140503-011510_beam  {xTable =508 yTable=201.1}
-run_BTF_311_20140503-013737_beam  {xTable =511 yTable=198.1}
-run_BTF_312_20140503-015933_beam  {xTable =511 yTable=204.1} 
+run_BTF_308_20140503-002534_beam  {xTable = 511; yTable = 201.1} {xBeam= 0.0 ; yBeam= -0.1} == NOMINAL CENTRAL POSITION
+run_BTF_309_20140503-005049_beam  {xTable = 514; yTable = 201.1} {xBeam= -3.0 ; yBeam=-0.1} 
+run_BTF_310_20140503-011510_beam  {xTable = 508; yTable = 201.1} {xBeam= 3.0 ; yBeam= -0.1}
+run_BTF_311_20140503-013737_beam  {xTable = 511; yTable = 198.1} {xBeam= 0.0 ; yBeam= 2.9} 
+run_BTF_312_20140503-015933_beam  {xTable = 511; yTable = 204.1} {xBeam= 0.0 ; yBeam= -3.1} 
+
 
 ==== Energy = 98.3 MeV ===== 
-Run 314 {xTable =511 yTable=201.1} == NOMINAL CENTRAL POSITION
-Run 315 {xTable =514 yTable=201.1}
-Run 316 {xTable =508 yTable=201.1}
-Run 317 {xTable =511 yTable=198.1}
-Run 318 {xTable =511 yTable=204.1} 
+run_BTF_314_20140503-024715_beam  {xTable = 511; yTable = 201.1} {xBeam= 0.0 ; yBeam= -0.1} == NOMINAL CENTRAL POSITION
+run_BTF_315_20140503-030856_beam  {xTable = 514; yTable = 201.1} {xBeam= -3.0 ; yBeam=-0.1}
+run_BTF_316_20140503-033040_beam  {xTable = 508; yTable = 201.1} {xBeam= 3.0 ; yBeam= -0.1}
+run_BTF_317_20140503-035259_beam  {xTable = 511; yTable = 198.1} {xBeam= 0.0 ; yBeam= 2.9} 
+run_BTF_318_20140503-041551_beam  {xTable = 511; yTable = 204.1} {xBeam= 0.0 ; yBeam= -3.1} 
 --------------
 Runs with tilted beam:
 
-run_BTF_321_20140503-053105_beam {xTable = 511   yTable=201.1} DHSTB002 = 331.7 A (nominal)
-run_BTF_323_20140503-070141_beam {xTable = 494.7 yTable=201.1}  DHSTB002 = 328.4 A exp. tilt = 0.45 deg
-run_BTF_324_20140503-074214_beam {xTable = 478.4 yTable=201.1}  DHSTB002 = 325.1 A exp. tilt = 0.90 deg
-run_BTF_329_20140503-085651_beam {xTable = 470.3 yTable=201.1}  DHSTB002 = 323.5 A exp. tilt = 1.12 deg
-run_BTF_330_20140503-090118_beam {xTable = 471.3 yTable=201.1}  DHSTB002 = 323.5 A 
+run_BTF_321_20140503-053105_beam {xTable = 511  ; yTable = 201.1} {xBeam= 0.0 ; yBeam=  -0.1}DHSTB002 = 331.7 A (nominal)
+run_BTF_323_20140503-070141_beam {xTable = 494.7; yTable = 201.1} {xBeam= 16.3 ; yBeam= -0.1} DHSTB002 = 328.4 A exp. tilt = 0.45 deg
+run_BTF_324_20140503-074214_beam {xTable = 478.4; yTable = 201.1} {xBeam= 32.6 ; yBeam= -0.1} DHSTB002 = 325.1 A exp. tilt = 0.90 deg
+run_BTF_329_20140503-085651_beam {xTable = 470.3; yTable = 201.1} {xBeam= 40.7 ; yBeam= -0.1} DHSTB002 = 323.5 A exp. tilt = 1.12 deg
+run_BTF_330_20140503-090118_beam {xTable = 471.3; yTable = 201.1} {xBeam= 39.7 ; yBeam= -0.1} DHSTB002 = 323.5 A 
 --------------
 
 Lateral Scan of Cef3:
 
 ---Lower statistic with 1 cm step
-run_BTF_351_20140503-145953_beam {xTable=876.6,yTable=184.1} 
-run_BTF_352_20140503-150638_beam {xTable=875.6,yTable=184.1}
-run_BTF_353_20140503-150946_beam {xTable=874.6,yTable=184.1}
-run_BTF_354_20140503-151354_beam {xTable=873.6,yTable=184.1}
-run_BTF_355_20140503-151647_beam {xTable=872.6,yTable=184.1}
-run_BTF_356_20140503-151959_beam {xTable=871.6,yTable=184.1}
-run_BTF_357_20140503-152432_beam {xTable=871.6,yTable=184.1}
-run_BTF_358_20140503-152844_beam {xTable=870.6,yTable=184.1}
-run_BTF_359_20140503-153046_beam {xTable=869.6,yTable=184.1}
-run_BTF_360_20140503-153258_beam {xTable=868.6,yTable=184.1}
-run_BTF_361_20140503-153529_beam {xTable=867.6,yTable=184.1}
-run_BTF_362_20140503-153828_beam {xTable=866.6,yTable=184.1}
-run_BTF_363_20140503-154022_beam {xTable=865.6,yTable=184.1}
-run_BTF_364_20140503-154211_beam {xTable=864.6,yTable=184.1}
-run_BTF_365_20140503-154403_beam {xTable=863.6,yTable=184.1}
-run_BTF_366_20140503-154601_beam {xTable=862.6,yTable=184.1}
-run_BTF_367_20140503-154806_beam {xTable=861.6,yTable=184.1}
-run_BTF_368_20140503-155004_beam {xTable=860.6,yTable=184.1}
-run_BTF_369_20140503-155205_beam {xTable=859.6,yTable=184.1}
-run_BTF_370_20140503-155359_beam {xTable=858.6,yTable=184.1}
-run_BTF_371_20140503-155717_beam {xTable=857.6,yTable=184.1}
-run_BTF_372_20140503-155955_beam {xTable=857.6,yTable=184.1}
-run_BTF_373_20140503-160435_beam {xTable=857.6,yTable=184.1}
-run_BTF_374_20140503-161332_beam {xTable=857.6,yTable=184.1}
-run_BTF_375_20140503-161535_beam {xTable=856.6,yTable=184.1}
-run_BTF_376_20140503-161730_beam {xTable=855.6,yTable=184.1}
-run_BTF_377_20140503-162451_beam {xTable=854.6,yTable=184.1}
-run_BTF_378_20140503-163206_beam {xTable=854.6,yTable=184.1}
-run_BTF_379_20140503-163443_beam {xTable=853.6,yTable=184.1}
-run_BTF_380_20140503-163645_beam {xTable=852.6,yTable=184.1}
-run_BTF_381_20140503-163835_beam {xTable=851.6,yTable=184.1}
-run_BTF_382_20140503-164038_beam {xTable=850.6,yTable=184.1}
-run_BTF_383_20140503-164548_beam {xTable=849.6,yTable=184.1}
-run_BTF_384_20140503-164810_beam {xTable=848.6,yTable=184.1}
-run_BTF_385_20140503-165351_beam {xTable=849.6,yTable=184.1}
-run_BTF_386_20140503-170059_beam {xTable=849.6,yTable=184.1}
-run_BTF_388_20140503-171233_beam {xTable=849.6,yTable=184.1}
-run_BTF_389_20140503-171428_beam {xTable=848.6,yTable=184.1}
-run_BTF_390_20140503-172020_beam {xTable=847.6,yTable=184.1}
-run_BTF_391_20140503-173152_beam {xTable=846.6,yTable=184.1}
-run_BTF_392_20140503-173343_beam {xTable=845.6,yTable=184.1}
-run_BTF_393_20140503-173536_beam {xTable=844.6,yTable=184.1}
-run_BTF_394_20140503-173728_beam {xTable=843.6,yTable=184.1}
-run_BTF_395_20140503-173913_beam {xTable=842.6,yTable=184.1}
-run_BTF_396_20140503-174237_beam {xTable=842.6,yTable=184.1}
-run_BTF_398_20140503-175011_beam {xTable=841.6,yTable=184.1}
-run_BTF_399_20140503-175317_beam {xTable=840.6,yTable=184.1}
-run_BTF_400_20140503-175552_beam {xTable=839.6,yTable=184.1}
+run_BTF_351_20140503-145953_beam {xTable = 876.6; yTable = 184.1} {xBeam= -365.6 ; yBeam=16.9}
+run_BTF_352_20140503-150638_beam {xTable = 875.6; yTable = 184.1} {xBeam= -364.6 ; yBeam=16.9}
+run_BTF_353_20140503-150946_beam {xTable = 874.6; yTable = 184.1} {xBeam= -363.6 ; yBeam=16.9}
+run_BTF_354_20140503-151354_beam {xTable = 873.6; yTable = 184.1} {xBeam= -362.6 ; yBeam=16.9}
+run_BTF_355_20140503-151647_beam {xTable = 872.6; yTable = 184.1} {xBeam= -361.6 ; yBeam=16.9}
+run_BTF_356_20140503-151959_beam {xTable = 871.6; yTable = 184.1} {xBeam= -360.6 ; yBeam=16.9}
+run_BTF_357_20140503-152432_beam {xTable = 871.6; yTable = 184.1} {xBeam= -360.6 ; yBeam=16.9}
+run_BTF_358_20140503-152844_beam {xTable = 870.6; yTable = 184.1} {xBeam= -359.6 ; yBeam=16.9}
+run_BTF_359_20140503-153046_beam {xTable = 869.6; yTable = 184.1} {xBeam= -358.6 ; yBeam=16.9}
+run_BTF_360_20140503-153258_beam {xTable = 868.6; yTable = 184.1} {xBeam= -357.6 ; yBeam=16.9}
+run_BTF_361_20140503-153529_beam {xTable = 867.6; yTable = 184.1} {xBeam= -356.6 ; yBeam=16.9}
+run_BTF_362_20140503-153828_beam {xTable = 866.6; yTable = 184.1} {xBeam= -355.6 ; yBeam=16.9}
+run_BTF_363_20140503-154022_beam {xTable = 865.6; yTable = 184.1} {xBeam= -354.6 ; yBeam=16.9}
+run_BTF_364_20140503-154211_beam {xTable = 864.6; yTable = 184.1} {xBeam= -353.6 ; yBeam=16.9}
+run_BTF_365_20140503-154403_beam {xTable = 863.6; yTable = 184.1} {xBeam= -352.6 ; yBeam=16.9}
+run_BTF_366_20140503-154601_beam {xTable = 862.6; yTable = 184.1} {xBeam= -351.6 ; yBeam=16.9}
+run_BTF_367_20140503-154806_beam {xTable = 861.6; yTable = 184.1} {xBeam= -350.6 ; yBeam=16.9}
+run_BTF_368_20140503-155004_beam {xTable = 860.6; yTable = 184.1} {xBeam= -349.6 ; yBeam=16.9}
+run_BTF_369_20140503-155205_beam {xTable = 859.6; yTable = 184.1} {xBeam= -348.6 ; yBeam=16.9}
+run_BTF_370_20140503-155359_beam {xTable = 858.6; yTable = 184.1} {xBeam= -347.6 ; yBeam=16.9}
+run_BTF_371_20140503-155717_beam {xTable = 857.6; yTable = 184.1} {xBeam= -346.6 ; yBeam=16.9}
+run_BTF_372_20140503-155955_beam {xTable = 857.6; yTable = 184.1} {xBeam= -346.6 ; yBeam=16.9}
+run_BTF_373_20140503-160435_beam {xTable = 857.6; yTable = 184.1} {xBeam= -346.6 ; yBeam=16.9}
+run_BTF_374_20140503-161332_beam {xTable = 857.6; yTable = 184.1} {xBeam= -346.6 ; yBeam=16.9}
+run_BTF_375_20140503-161535_beam {xTable = 856.6; yTable = 184.1} {xBeam= -345.6 ; yBeam=16.9}
+run_BTF_376_20140503-161730_beam {xTable = 855.6; yTable = 184.1} {xBeam= -344.6 ; yBeam=16.9}
+run_BTF_377_20140503-162451_beam {xTable = 854.6; yTable = 184.1} {xBeam= -343.6 ; yBeam=16.9}
+run_BTF_378_20140503-163206_beam {xTable = 854.6; yTable = 184.1} {xBeam= -343.6 ; yBeam=16.9}
+run_BTF_379_20140503-163443_beam {xTable = 853.6; yTable = 184.1} {xBeam= -342.6 ; yBeam=16.9}
+run_BTF_380_20140503-163645_beam {xTable = 852.6; yTable = 184.1} {xBeam= -341.6 ; yBeam=16.9}
+run_BTF_381_20140503-163835_beam {xTable = 851.6; yTable = 184.1} {xBeam= -340.6 ; yBeam=16.9}
+run_BTF_382_20140503-164038_beam {xTable = 850.6; yTable = 184.1} {xBeam= -339.6 ; yBeam=16.9}
+run_BTF_383_20140503-164548_beam {xTable = 849.6; yTable = 184.1} {xBeam= -338.6 ; yBeam=16.9}
+run_BTF_384_20140503-164810_beam {xTable = 848.6; yTable = 184.1} {xBeam= -337.6 ; yBeam=16.9}
+run_BTF_385_20140503-165351_beam {xTable = 849.6; yTable = 184.1} {xBeam= -338.6 ; yBeam=16.9}
+run_BTF_386_20140503-170059_beam {xTable = 849.6; yTable = 184.1} {xBeam= -338.6 ; yBeam=16.9}
+run_BTF_388_20140503-171233_beam {xTable = 849.6; yTable = 184.1} {xBeam= -338.6 ; yBeam=16.9}
+run_BTF_389_20140503-171428_beam {xTable = 848.6; yTable = 184.1} {xBeam= -337.6 ; yBeam=16.9}
+run_BTF_390_20140503-172020_beam {xTable = 847.6; yTable = 184.1} {xBeam= -336.6 ; yBeam=16.9}
+run_BTF_391_20140503-173152_beam {xTable = 846.6; yTable = 184.1} {xBeam= -335.6 ; yBeam=16.9}
+run_BTF_392_20140503-173343_beam {xTable = 845.6; yTable = 184.1} {xBeam= -334.6 ; yBeam=16.9}
+run_BTF_393_20140503-173536_beam {xTable = 844.6; yTable = 184.1} {xBeam= -333.6 ; yBeam=16.9}
+run_BTF_394_20140503-173728_beam {xTable = 843.6; yTable = 184.1} {xBeam= -332.6 ; yBeam=16.9}
+run_BTF_395_20140503-173913_beam {xTable = 842.6; yTable = 184.1} {xBeam= -331.6 ; yBeam=16.9}
+run_BTF_396_20140503-174237_beam {xTable = 842.6; yTable = 184.1} {xBeam= -331.6 ; yBeam=16.9}
+run_BTF_398_20140503-175011_beam {xTable = 841.6; yTable = 184.1} {xBeam= -330.6 ; yBeam=16.9}
+run_BTF_399_20140503-175317_beam {xTable = 840.6; yTable = 184.1} {xBeam= -329.6 ; yBeam=16.9}
+run_BTF_400_20140503-175552_beam {xTable = 839.6; yTable = 184.1} {xBeam= -328.6 ; yBeam=16.9}
 
 
 Higher statistic with bigger step:
-run_BTF_401_20140503-180333_beam {xTable=861.6,yTable=184.1}
-run_BTF_402_20140503-181215_beam {xTable=861.6,yTable=184.1}|
-run_BTF_403_20140503-182043_beam {xTable=861.6,yTable=184.1}| same position
-run_BTF_404_20140503-183301_beam {xTable=861.6,yTable=184.1}
-run_BTF_406_20140503-185619_beam {xTable=856.0,yTable=184.1}|
-run_BTF_407_20140503-190812_beam {xTable=856.0,yTable=184.1}|
-run_BTF_408_20140503-192522_beam {xTable=856.0,yTable=184.1}|
-run_BTF_409_20140503-193725_beam {xTable=856.0,yTable=184.1}|
-run_BTF_410_20140503-194359_beam {xTable=856.0,yTable=184.1}|
-run_BTF_411_20140503-201006_beam {xTable=856.0,yTable=184.1}|
-run_BTF_412_20140503-201526_beam {xTable=856.0,yTable=184.1}|
-run_BTF_413_20140503-203029_beam {xTable=856.0,yTable=184.1}| same position
-run_BTF_414_20140503-204128_beam {xTable=849.5,yTable=184.1}|
-run_BTF_415_20140503-205931_beam {xTable=849.5,yTable=184.1}| same position
-run_BTF_416_20140503-211104_beam {xTable=843.0,yTable=184.1} |	      
-run_BTF_417_20140503-212432_beam {xTable=843.0,yTable=184.1} | same position
-run_BTF_418_20140503-214230_beam {xTable=836.5,yTable=184.1} |	      
-run_BTF_419_20140503-215442_beam {xTable=836.5,yTable=184.1} | same position
-run_BTF_420_20140503-221426_beam {xTable=830.,yTable=184.1}
-run_BTF_421_20140503-224206_beam {xTable=823.5,yTable=184.1}
-run_BTF_422_20140503-232532_beam {xTable=817.,yTable=184.1}
-run_BTF_423_20140503-235924_beam {xTable=810.5,yTable=184.1}
-run_BTF_424_20140504-001731_beam {xTable=804.,yTable=184.1}|	      
-run_BTF_431_20140504-024022_beam {xTable=804.,yTable=184.1}| same position
-run_BTF_425_20140504-004729_beam {xTable=797.5,yTable=184.1}|	      
-run_BTF_442_20140504-070753_beam {xTable=797.5,yTable=184.1}| same position
-run_BTF_426_20140504-011816_beam {xTable=791.,yTable=184.1}
-run_BTF_427_20140504-013632_beam {xTable=784.5,yTable=184.1}|	      
-run_BTF_429_20140504-015155_beam {xTable=784.5,yTable=184.1}| same position
-run_BTF_430_20140504-020834_beam {xTable=778.,yTable=184.1}
-run_BTF_432_20140504-024845_beam {xTable=771.5,yTable=184.1}
-run_BTF_433_20140504-032321_beam {xTable=765.,yTable=184.1}
-run_BTF_434_20140504-035702_beam {xTable=758.5,yTable=184.1}
-run_BTF_435_20140504-043309_beam {xTable=752.,yTable=184.1}
-run_BTF_436_20140504-050038_beam {xTable=745.5,yTable=184.1}
-run_BTF_437_20140504-053930_beam {xTable=739.,yTable=184.1}
-run_BTF_438_20140504-060603_beam {xTable=745.5,yTable=184.1}
-run_BTF_439_20140504-063129_beam {xTable=726.,yTable=184.1}
+run_BTF_401_20140503-180333_beam {xTable = 861.6; yTable = 184.1} {xBeam= -350.6 ; yBeam=16.9}
+run_BTF_402_20140503-181215_beam {xTable = 861.6; yTable = 184.1} {xBeam= -350.6 ; yBeam=16.9}|
+run_BTF_403_20140503-182043_beam {xTable = 861.6; yTable = 184.1} {xBeam= -350.6 ; yBeam=16.9}| same position
+run_BTF_404_20140503-183301_beam {xTable = 861.6; yTable = 184.1} {xBeam= -350.6 ; yBeam=16.9}
+run_BTF_406_20140503-185619_beam {xTable = 856.0; yTable = 184.1} {xBeam= -345.0 ; yBeam=16.9}|
+run_BTF_407_20140503-190812_beam {xTable = 856.0; yTable = 184.1} {xBeam= -345.0 ; yBeam=16.9}|
+run_BTF_408_20140503-192522_beam {xTable = 856.0; yTable = 184.1} {xBeam= -345.0 ; yBeam=16.9}|
+run_BTF_409_20140503-193725_beam {xTable = 856.0; yTable = 184.1} {xBeam= -345.0 ; yBeam=16.9}|
+run_BTF_410_20140503-194359_beam {xTable = 856.0; yTable = 184.1} {xBeam= -345.0 ; yBeam=16.9}|
+run_BTF_411_20140503-201006_beam {xTable = 856.0; yTable = 184.1} {xBeam= -345.0 ; yBeam=16.9}|
+run_BTF_412_20140503-201526_beam {xTable = 856.0; yTable = 184.1} {xBeam= -345.0 ; yBeam=16.9}|
+run_BTF_413_20140503-203029_beam {xTable = 856.0; yTable = 184.1} {xBeam= -345.0 ; yBeam=16.9}| same position
+run_BTF_414_20140503-204128_beam {xTable = 849.5; yTable = 184.1} {xBeam= -338.5 ; yBeam=16.9}|
+run_BTF_415_20140503-205931_beam {xTable = 849.5; yTable = 184.1} {xBeam= -338.5 ; yBeam=16.9}| same position
+run_BTF_416_20140503-211104_beam {xTable = 843.0; yTable = 184.1} {xBeam= -332.0 ; yBeam=16.9} |	      
+run_BTF_417_20140503-212432_beam {xTable = 843.0; yTable = 184.1} {xBeam= -332.0 ; yBeam=16.9} | same position
+run_BTF_418_20140503-214230_beam {xTable = 836.5; yTable = 184.1} {xBeam= -325.5 ; yBeam=16.9} |	      
+run_BTF_419_20140503-215442_beam {xTable = 836.5; yTable = 184.1} {xBeam= -325.5 ; yBeam=16.9} | same position
+run_BTF_420_20140503-221426_beam {xTable = 830.; yTable = 184.1} {xBeam= -319.0 ; yBeam=16.9}
+run_BTF_421_20140503-224206_beam {xTable = 823.5; yTable = 184.1} {xBeam= -312.5 ; yBeam=16.9}
+run_BTF_422_20140503-232532_beam {xTable = 817.; yTable = 184.1} {xBeam= -306.0 ; yBeam=16.9}
+run_BTF_423_20140503-235924_beam {xTable = 810.5; yTable = 184.1} {xBeam= -299.5 ; yBeam=16.9}
+run_BTF_424_20140504-001731_beam {xTable = 804.; yTable = 184.1}|{xBeam= -293.0 ; yBeam=16.9}	      
+run_BTF_431_20140504-024022_beam {xTable = 804.; yTable = 184.1}|{xBeam= -293.0 ; yBeam=16.9} same position
+run_BTF_425_20140504-004729_beam {xTable = 797.5; yTable = 184.1} {xBeam= -286.5 ; yBeam=16.9}|	      
+run_BTF_442_20140504-070753_beam {xTable = 797.5; yTable = 184.1} {xBeam= -286.5 ; yBeam=16.9}| same position
+run_BTF_426_20140504-011816_beam {xTable = 791.; yTable = 184.1} {xBeam= -280.0 ; yBeam=16.9}
+run_BTF_427_20140504-013632_beam {xTable = 784.5; yTable = 184.1} {xBeam= -273.5 ; yBeam=16.9}|	      
+run_BTF_429_20140504-015155_beam {xTable = 784.5; yTable = 184.1} {xBeam= -273.5 ; yBeam=16.9}| same position
+run_BTF_430_20140504-020834_beam {xTable = 778.; yTable = 184.1} {xBeam= -267.0 ; yBeam=16.9}
+run_BTF_432_20140504-024845_beam {xTable = 771.5; yTable = 184.1} {xBeam= -260.5 ; yBeam=16.9}
+run_BTF_433_20140504-032321_beam {xTable = 765.; yTable = 184.1} {xBeam= -254.0 ; yBeam=16.9}
+run_BTF_434_20140504-035702_beam {xTable = 758.5; yTable = 184.1} {xBeam= -247.5 ; yBeam=16.9}
+run_BTF_435_20140504-043309_beam {xTable = 752.; yTable = 184.1} {xBeam= -241.0 ; yBeam=16.9}
+run_BTF_436_20140504-050038_beam {xTable = 745.5; yTable = 184.1} {xBeam= -234.5 ; yBeam=16.9}
+run_BTF_437_20140504-053930_beam {xTable = 739.; yTable = 184.1} {xBeam= -228.0 ; yBeam=16.9}
+run_BTF_438_20140504-060603_beam {xTable = 745.5; yTable = 184.1} {xBeam= -234.5 ; yBeam=16.9}
+run_BTF_439_20140504-063129_beam {xTable = 726.; yTable = 184.1} {xBeam= -215.0 ; yBeam=16.9}
 --------------
 Background Run:
-run_BTF_514_20140504-204024_beam {xTable=732.6,yTable=184.1} 
+run_BTF_514_20140504-204024_beam {xTable = 732.6; yTable = 184.1} {xBeam= -221.6 ; yBeam=16.9}
 --------------
 BGO calibration wo hodoscope:
 
-run_BTF_530_20140505-014707_beam  {xTable=530,yTable=178}
-run_BTF_531_20140505-020502_beam  {xTable=532,yTable=200}
-run_BTF_533_20140505-024712_beam  {xTable=532,yTable=222}
-run_BTF_534_20140505-031520_beam  {xTable=510,yTable=224}
-run_BTF_535_20140505-035012_beam  {xTable=488,yTable=224}
-run_BTF_536_20140505-043018_beam  {xTable=486,yTable=202}
-run_BTF_537_20140505-050526_beam  {xTable=486,yTable=180}
-							
-run_BTF_540_20140505-061520_beam  {xTable=463,yTable=180}
-run_BTF_541_20140505-063215_beam  {xTable=463,yTable=177} -  Point 1 - Beam
-run_BTF_542_20140505-065232_beam  {xTable=466,yTable=180} -  Point 9 - Beam
-run_BTF_544_20140505-070956_beam  {xTable=463,yTable=183} -  Point 5 - Beam
-run_BTF_545_20140505-073416_beam  {xTable=460,yTable=180} -  Point 13 - Beam
-run_BTF_546_20140505-081143_beam  {xTable=463,yTable=174}-  Point 2 - Beam  (change beam id in DB from 19->48 due to problem in GUI visualization on BTF PC)
-run_BTF_547_20140505-083729_beam  {xTable=469,yTable=180}-  Point 10 - Beam (change beam id in DB from 19->48 due to problem in GUI visualization on BTF PC)
+run_BTF_530_20140505-014707_beam  {xTable = 530; yTable = 178} {xBeam= -19.0 ; yBeam= 23.0}  
+run_BTF_531_20140505-020502_beam  {xTable = 532; yTable = 200} {xBeam= -21.0 ; yBeam= 1.0}   
+run_BTF_533_20140505-024712_beam  {xTable = 532; yTable = 222} {xBeam= -21.0 ; yBeam= -21.0} 
+run_BTF_534_20140505-031520_beam  {xTable = 510; yTable = 224} {xBeam= 1.0 ; yBeam=   -23.0} 
+run_BTF_535_20140505-035012_beam  {xTable = 488; yTable = 224} {xBeam= 23.0 ; yBeam=  -23.0} 
+run_BTF_536_20140505-043018_beam  {xTable = 486; yTable = 202} {xBeam= 25.0 ; yBeam=  -1.0}  
+run_BTF_537_20140505-050526_beam  {xTable = 486; yTable = 180} {xBeam= 25.0 ; yBeam=  21.0}  
+
+run_BTF_540_20140505-061520_beam  {xTable = 463; yTable = 180} {xBeam= 48.0 ; yBeam=  21.0}  
+run_BTF_541_20140505-063215_beam  {xTable = 463; yTable = 177} {xBeam= 48.0 ; yBeam=  24.0}   -  Point 1 - Beam
+run_BTF_542_20140505-065232_beam  {xTable = 466; yTable = 180} {xBeam= 45.0 ; yBeam=  21.0}   -  Point 9 - Beam
+run_BTF_544_20140505-070956_beam  {xTable = 463; yTable = 183} {xBeam= 48.0 ; yBeam=  18.0}   -  Point 5 - Beam
+run_BTF_545_20140505-073416_beam  {xTable = 460; yTable = 180} {xBeam= 51.0 ; yBeam=  21.0}   -  Point 13 - Beam
+run_BTF_546_20140505-081143_beam  {xTable = 463; yTable = 174} {xBeam= 48.0 ; yBeam=  27.0}  -  Point 2 - Beam  (change beam id in DB from 19->48 due to problem in GUI visualization on BTF PC)
+run_BTF_547_20140505-083729_beam  {xTable = 469; yTable = 180} {xBeam= 42.0 ; yBeam=  21.0}  -  Point 10 - Beam (change beam id in DB from 19->48 due to problem in GUI visualization on BTF PC)
 
 interrupted due to beam unavailability
 //******************************** CROS SCAN ON CENTRAL CRYSTAL STEP = +/- 3mm ************************************//
