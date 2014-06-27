@@ -12,7 +12,7 @@
 #include "TLegend.h"
 
 #include "TMath.h"
-#include "/Users/micheli/work/BTFAnalysis_20140515/PositionAnalysis/fastDQM_CeF3_BTF.h"
+#include "../PositionAnalysis/fastDQM_CeF3_BTF.h"
 #include "TTree.h"
 
 struct FitResults {
