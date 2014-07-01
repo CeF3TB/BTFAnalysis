@@ -191,7 +191,7 @@ int main( int argc, char* argv[] ) {
 
   }
 
-  FitResults fr_0 = fitSingleHisto( h1_cef3_corr_tot, 0.,0., 1000., 12000. );
+  FitResults fr_0 = fitSingleHisto( h1_cef3_corr_tot, 0.,0., 1000., 11500. );
 
   outfile->cd();
   h1_cef3_corr_tot->Write();
