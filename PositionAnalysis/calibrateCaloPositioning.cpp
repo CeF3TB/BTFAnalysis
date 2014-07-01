@@ -12,6 +12,7 @@
 #include "fastDQM_CeF3_BTF.h"
 #include "interface/HodoCluster.h"
 #include "interface/RunHelper.h"
+#include "interface/PositionTools.h"
 
 #include "hodo_efficiency.dat"
 
@@ -46,7 +47,7 @@ int main( int argc, char* argv[] ) {
   std::vector<float> xbgo, ybgo;
   for( unsigned i=0; i<BGO_CHANNELS; ++i ) {
     float x,y;
-    RunHelper::getBGOCoordinates( i, x, y );
+    PositionTools::getBGOCoordinates( i, x, y );
     xbgo.push_back( x );
     ybgo.push_back( y );
   }

@@ -17,6 +17,7 @@
 
 #include "interface/DrawTools.h"
 #include "interface/RunHelper.h"
+#include "interface/PositionTools.h"
 
 #include "fastDQM_CeF3_BTF.h"
 
@@ -193,7 +194,7 @@ void drawSinglePositionPlot( const std::string& outputdir, TFile* file, const st
   for( unsigned i=0; i<BGO_CHANNELS; ++i ) {
 
     float x,y;
-    RunHelper::getBGOCoordinates( i, x, y );
+    PositionTools::getBGOCoordinates( i, x, y );
     TBox* b_bgo0 = new TBox( x-bgoFrontSize/2., y-bgoFrontSize/2., x+bgoFrontSize/2., y+bgoFrontSize/2. );
     b_bgo0->SetFillColor(0);
     b_bgo0->SetFillStyle(0);
