@@ -307,22 +307,25 @@ FitResults fitSingleHisto( TH1D* histo, double pedMin, double pedMax, double xMi
   lineLow2->SetLineWidth(2);
   lineUp2->SetLineWidth(2);
   lineLow1->SetLineColor(kRed);
-  lineLow2->SetLineColor(kRed);
-  lineUp2->SetLineColor(kRed);
+  lineLow2->SetLineColor(kBlue);
+  lineUp2->SetLineColor(kBlue);
 
   std::cout<<f1->GetParameter(2)-2*f1->GetParameter(3)<<" "<<2*f1->GetParameter(2)-2*sqrt(2)*f1->GetParameter(3)<<std::endl;
   histo->SetXTitle( "ADC Counts" );
   histo->Draw();
+  TString histoName(histo->GetName());
+  c1->SaveAs( histoName + ".eps" );
+  c1->SaveAs( histoName + ".png" );
   lineLow1->Draw("same");
   lineLow2->Draw("same");
   lineUp2->Draw("same");
 
-  TString histoName(histo->GetName());
 
 
 
-  c1->SaveAs( histoName + ".eps" );
-  c1->SaveAs( histoName + ".png" );
+
+  c1->SaveAs( histoName + "_sigma.eps" );
+  c1->SaveAs( histoName + "_sigma.png" );
 
   FitResults fr;
   fr.ped_mu = f1_ped->GetParameter(1);
