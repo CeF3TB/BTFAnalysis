@@ -133,6 +133,19 @@ run_BTF_329_20140503-085651_beam {xTable = 470.3; yTable = 201.1} {xBeam= 40.7 ;
 run_BTF_330_20140503-090118_beam {xTable = 471.3; yTable = 201.1} {xBeam= 39.7 ; yBeam= -0.1} DHSTB002 = 323.5 A 
 --------------
 
+Runs with tilted box:
+
+-tilt of 1 degree. table centered in (509,201)
+run_BTF_334_20140503-103227_beam {xTable =509 ; yTable=201} {xBeam= 2.0 ; yBeam= 0.0}
+run_BTF_335_20140503-105047_beam {xTable =509 ; yTable=201} {xBeam= 2.0 ; yBeam= 0.0}
+
+-tilt of 3 degrees. table centered in (507.5,201)
+run_BTF_341_20140503-115519_beam {xTable =507.5 ; yTable=201} {xBeam= 3.5 ; yBeam= 0.0}
+
+-tilt of 5 degrees. table centered in (507.5,201)
+run_BTF_344_20140503-124045_beam  {xTable =507.5 ; yTable=201} {xBeam= 3.5 ; yBeam= 0.0} run stopped for beam loss.
+hodo shows anomalous behavior. no additional runs taken with 5 degrees tilt. 
+
 Lateral Scan of Cef3:
 
 ---Lower statistic with 1 cm step
