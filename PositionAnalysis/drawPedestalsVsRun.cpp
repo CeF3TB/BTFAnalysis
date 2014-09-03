@@ -1,3 +1,4 @@
+#include <cstdlib>
 #include "interface/DrawTools.h"
 #include "TFile.h"
 #include "TH1D.h"
@@ -29,7 +30,7 @@ int main() {
 
   TFile* file = TFile::Open("pedestalFile.root");
 
-  system( "mkdir -p pedestalPlots" );
+  std::system( "mkdir -p pedestalPlots" );
 
   drawPedestals( file, "cef3" );
   drawPedestals( file, "bgo" );

@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <cmath>
+#include <cstdlib>
 
 #include "TFile.h"
 #include "TTree.h"
@@ -82,7 +83,7 @@ int main( int argc, char* argv[] ) {
   DrawTools::setStyle();
 
   std::string outputdir = "BGOPositioningPlots_" + tag;
-  system(Form("mkdir -p %s", outputdir.c_str()));
+  std::system(Form("mkdir -p %s", outputdir.c_str()));
 
   checkLateralScan( outputdir, "all"    , tree, "Beam", "Beam", "(yBeam==0. && abs(xBeam)>0.2) || (xBeam==0. && abs(yBeam)>0.2) || (xBeam==yBeam && xBeam>0.) || (xBeam==-yBeam && xBeam>0.)" );
   checkLateralScan( outputdir, "horiz"  , tree, "Beam", "Beam", "yBeam==0. && abs(xBeam)>0.2" );
@@ -548,7 +549,7 @@ void drawPerformancePlot( const std::string& outputdir, const std::string& name,
   else if( bias_reso=="reso" ) isReso = true;
   else {
     std::cout << "ERROR! bias_reso has to be either 'bias' or 'reso'. Exiting." << std::endl;
-    exit(91);
+    std::exit(91);
   }
 
 

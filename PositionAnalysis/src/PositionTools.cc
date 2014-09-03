@@ -2,6 +2,7 @@
 #include "../fastDQM_CeF3_BTF.h"
 #include <iostream>
 #include <cmath>
+#include <cstdlib>
 
 
 
@@ -28,7 +29,7 @@ void PositionTools::getBGOCoordinates( int iChannel, float& x , float& y ) {
     x = -490.0+511.; y = -224.1+201.;
   } else {
     std::cout << "[PositionTools::getBGOCoordinates] ERROR! BGO index must be between 0 and 7!" << std::endl;
-    exit(99);
+    std::exit(99);
   } 
 
 

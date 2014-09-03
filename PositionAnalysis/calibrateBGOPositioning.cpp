@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <cmath>
+#include <cstdlib>
 
 #include "TFile.h"
 #include "TTree.h"
@@ -191,7 +192,7 @@ int main( int argc, char* argv[] ) {
   }
 
   std::string outputdir = "BGOPositioningPlots_" + tag;
-  system(Form("mkdir -p %s", outputdir.c_str()));
+  std::system(Form("mkdir -p %s", outputdir.c_str()));
 
   FitResults fr_asymm = drawAndGetCoeff( outputdir, "asymm", hp_asymm_x, hp_asymm_y );
   FitResults fr_asymm_log = drawAndGetCoeff( outputdir, "asymm_log", hp_asymm_x_log, hp_asymm_y_log );
