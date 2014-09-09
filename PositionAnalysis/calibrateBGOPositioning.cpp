@@ -53,6 +53,11 @@ int main( int argc, char* argv[] ) {
   TTree* tree = (TTree*)file->Get("posTree");
 
 
+  unsigned int run;
+  tree->SetBranchAddress( "run", &run );
+  unsigned int event;
+  tree->SetBranchAddress( "event", &event );
+
   bool isSingleEle_scintFront;
   tree->SetBranchAddress( "isSingleEle_scintFront", &isSingleEle_scintFront );
   bool bgo_corr_ok;
@@ -108,7 +113,7 @@ int main( int argc, char* argv[] ) {
     tree->GetEntry(i);
 
     if( !isSingleEle_scintFront ) continue;
-    if( !bgo_corr_ok ) continue;
+    //if( !bgo_corr_ok ) continue;
 
 
     std::vector<float> v_bgo_corr;
@@ -214,7 +219,8 @@ int main( int argc, char* argv[] ) {
     // FIFTH METHOD: WEIGHTED AVERAGE ADDING ALSO CEF3
 
     float etot_cef3 = cef3_corr[0] + cef3_corr[1] + cef3_corr[2] + cef3_corr[3];
-    float sumw_calo = sumw + 0.79*etot_cef3;
+    float etot_cef3_calib = 0.79*etot_cef3;
+    float sumw_calo = sumw + etot_cef3_calib;
 
     float wa_calo_x = wa_x * sumw / sumw_calo;
     float wa_calo_y = wa_y * sumw / sumw_calo;
@@ -223,18 +229,39 @@ int main( int argc, char* argv[] ) {
     hp_wa_calo_y->Fill( yBeam, wa_calo_y );
 
 
+
+
     // SIXTH METHOD: LOG-WEIGHTED AVERAGE ADDING ALSO CEF3
 
-    float etot_cef3_log = ( etot_cef3>=1. ) ? log(etot_cef3) : 0.;
 
-    float sumw_calo_log = sumw_log + 0.79*etot_cef3_log;
+    float wacalolog_x=0.;
+    float wacalolog_y=0.;
+    float sumwcalolog = 0.;
 
-    float wa_calo_log_x = wa_log_x * sumw_log / sumw_calo_log;
-    float wa_calo_log_y = wa_log_y * sumw_log / sumw_calo_log;
 
-    hp_wa_calo_log_x->Fill( xBeam, wa_calo_log_x );
-    hp_wa_calo_log_y->Fill( yBeam, wa_calo_log_y );
+    for( unsigned i=0; i<v_bgo_corr.size(); ++i ) {
 
+      float xbgo, ybgo;
+      PositionTools::getBGOCoordinates( i, xbgo, ybgo );
+
+      float w = (v_bgo_corr[i]>=1.) ? log(v_bgo_corr[i]) : 0.;
+
+      wacalolog_x += w*xbgo;
+      wacalolog_y += w*ybgo;
+      sumwcalolog += w;
+
+    }
+
+    float etot_cef3_log = (etot_cef3_calib>=1.) ? log(etot_cef3_calib) : 0.;
+    
+    sumwcalolog += etot_cef3_log;
+
+    wacalolog_x /= sumwcalolog;
+    wacalolog_y /= sumwcalolog;
+
+
+    hp_wa_calo_log_x->Fill( xBeam, wacalolog_x );
+    hp_wa_calo_log_y->Fill( yBeam, wacalolog_y );
 
     
   }
