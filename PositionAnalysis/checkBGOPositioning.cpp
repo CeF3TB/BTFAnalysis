@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <cmath>
+#include <cstdlib>
 
 #include "TFile.h"
 #include "TTree.h"
@@ -83,7 +84,7 @@ int main( int argc, char* argv[] ) {
   DrawTools::setStyle();
 
   std::string outputdir = "BGOPositioningPlots_" + tag;
-  system(Form("mkdir -p %s", outputdir.c_str()));
+  std::system(Form("mkdir -p %s", outputdir.c_str()));
 
 
   std::vector< std::pair< std::string, std::string> > names; // first is varName, second is legendName
@@ -556,7 +557,7 @@ void drawPerformancePlot( const std::string& outputdir, const std::string& name,
   else if( bias_reso=="reso" ) isReso = true;
   else {
     std::cout << "ERROR! bias_reso has to be either 'bias' or 'reso'. Exiting." << std::endl;
-    exit(91);
+    std::exit(91);
   }
 
 

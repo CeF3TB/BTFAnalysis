@@ -27,6 +27,9 @@ makeAnalysisTree: makeAnalysisTree.cpp RunHelper.o HodoCluster.o EnergyCalibrati
 positionAnalysis: HodoCluster.o RunHelper.o PositionTools.o positionAnalysis.cpp hodo_efficiency.dat
 	$(CC) -Wall $(INCLUDES) -o positionAnalysis positionAnalysis.cpp HodoCluster.o RunHelper.o PositionTools.o $(ROOTFLAG) $(EXTRALIBS)
 
+singleElectronSelection: HodoCluster.o RunHelper.o PositionTools.o singleElectronSelection.cpp hodo_efficiency.dat
+	$(CC) -Wall $(INCLUDES) -o singleElectronSelection singleElectronSelection.cpp HodoCluster.o RunHelper.o PositionTools.o $(ROOTFLAG) $(EXTRALIBS)
+
 drawPositionAnalysis: DrawTools.o RunHelper.o PositionTools.o drawPositionAnalysis.cpp 
 	$(CC) -Wall $(INCLUDES) -o drawPositionAnalysis drawPositionAnalysis.cpp DrawTools.o RunHelper.o PositionTools.o $(ROOTFLAG) $(EXTRALIBS)
 
@@ -106,6 +109,7 @@ PositionTools.o: src/PositionTools.cc
 clean:
 	rm *.o
 	rm positionAnalysis
+	rm singleElectronSelection
 	rm drawCaloPositioning
 	rm drawPositionAnalysis 
 	rm hodoscopeAnalysis

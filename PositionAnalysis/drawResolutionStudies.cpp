@@ -1,5 +1,5 @@
 #include <cmath>
-
+#include <cstdlib>
 #include "TFile.h"
 #include "TTree.h"
 #include "TGraphErrors.h"
@@ -76,7 +76,7 @@ int main( int argc, char* argv[]) {
 
   std::string outputdir = "ResolutionStudiesPlots_"+tag;
   std::string mkdir_command = "mkdir -p " + outputdir;
-  system( mkdir_command.c_str() );
+  std::system( mkdir_command.c_str() );
   
   TF1* f1_data = FitTools::fitSingleElectronPeak( outputdir, "data", tree_data );
 

@@ -9,6 +9,7 @@
 #include <vector>
 #include <string>
 #include <fstream>
+#include <cstdlib>
 
 #include "interface/DrawTools.h"
 
@@ -45,7 +46,7 @@ int main() {
 
   std::string outputdir = "BGOCalibration_" + tag;
   std::string mkdir_command = "mkdir -p " + outputdir;
-  system(mkdir_command.c_str());
+  std::system(mkdir_command.c_str());
 
 
   std::vector<TH1D*> rawHistos;

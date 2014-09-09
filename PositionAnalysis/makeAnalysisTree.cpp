@@ -2,12 +2,14 @@
 #include <fstream>
 #include <iostream>
 #include <cmath>
+#include <vector>
 
-#include "TH1D.h"
-#include "TH2D.h"
+#include "TH1.h"
+#include "TH2.h"
 #include "TFile.h"
 #include "TTree.h"
 #include "TVector2.h"
+#include "TString.h"
 #include "TF1.h"
 
 
@@ -17,7 +19,7 @@
 #include "interface/CalibrationUtility.h"
 #include "interface/EnergyCalibration.h"
 
-
+#include "TApplication.h"
 
 
 
@@ -29,11 +31,9 @@ bool checkVector( std::vector<float> v, float theMax=4095. );
 std::vector<HodoCluster*> getHodoClusters( std::vector<float> hodo_corr, int nClusterMax );
 
 
-
-
-
-
 int main( int argc, char* argv[] ) {
+
+  TApplication* a = new TApplication("a", 0, 0);
 
 
   std::string runName = "precalib_BGO_pedestal_noSource";
@@ -412,8 +412,8 @@ int main( int argc, char* argv[] ) {
 
 std::vector< std::pair<float, float> > getPedestals( const std::string& type, const std::string& fileName, int runNumber ) {
 
-
   int nChannels=-1;
+
   if( type=="cef3" ) {
     nChannels    = CEF3_CHANNELS;
   } else if( type=="bgo" ) {
@@ -426,6 +426,7 @@ std::vector< std::pair<float, float> > getPedestals( const std::string& type, co
     std::cout << "ERROR! Unkown type '" << type << "'!" << std::endl;
     std::cout << "Don't know what pedestals you're looking for." << std::endl;
     std::cout << "Exiting." << std::endl;
+
     exit(77);
   }
 
@@ -436,13 +437,18 @@ std::vector< std::pair<float, float> > getPedestals( const std::string& type, co
   std::vector< std::pair<float, float> > peds;
 
   for( unsigned i=0; i<nChannels; ++i ) {
+
     TH1D* h1_ped = (TH1D*)file->Get(Form("%s_%d", type.c_str(), i));
+    
     int iped = runNumber;
+
     float ped=-1.;
     float pedrms=0.;
     while( ped<0. ) { // get closest run before current one
-      ped = h1_ped->GetBinContent(iped); 
+      ped = h1_ped->GetBinContent(iped);
+      
       pedrms = h1_ped->GetBinError(iped);
+
       iped--;
     }
     std::pair<float, float>  thispair;
