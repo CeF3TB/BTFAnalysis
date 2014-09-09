@@ -13,6 +13,7 @@
 
 #include "TMath.h"
 #include "../PositionAnalysis/fastDQM_CeF3_BTF.h"
+#include "../PositionAnalysis/interface/DrawTools.h"
 #include "TTree.h"
 
 struct FitResults {
@@ -549,7 +550,7 @@ std::vector< std::pair<float, float> > getPedestals( const std::string& type, co
   }
 
     
-
+  DrawTools::setStyle();
   TFile* file = TFile::Open(fileName.c_str());
 
   std::vector< std::pair<float, float> > peds;
