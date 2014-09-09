@@ -7,13 +7,13 @@
 #include "TH1D.h"
 #include "TFile.h"
 #include "TTree.h"
+#include "TProfile.h"
 #include "TCanvas.h"
 
 #include "fastDQM_CeF3_BTF.h"
-#include "interface/HodoCluster.h"
-#include "interface/RunHelper.h"
 
-#include "hodo_efficiency.dat"
+#include "interface/PositionTools.h"
+
 
 
 
@@ -25,31 +25,29 @@ float sumVector( std::vector<float> v );
 int main( int argc, char* argv[] ) {
 
 
-  std::string runName = "precalib_BGO_pedestal_noSource";
+  std::string runName = "BTF_246_beam";
   if( argc>1 ) {
     std::string runName_str(argv[1]);
     runName = runName_str;
   }
 
-  std::string fileName = "PosAn_" + runName + ".root";
+  std::string tag = "V02";
+  if( argc>2 ) {
+    std::string tag_str(argv[2]);
+    tag = tag_str;
+  }
+
+
+  //std::string fileName = "PosAnTrees_" + tag + "/PosAn_" + runName + ".root";
+  std::string fileName = "PosAnTrees_" + tag + "/crossScanFile.root";
   TFile* file = TFile::Open(fileName.c_str());
   if( file==0 ) {
     std::cout << "ERROR! Din't find file " << fileName << std::endl;
     std::cout << "Exiting." << std::endl;
     exit(11);
   }
-  TTree* tree = (TTree*)file->Get("tree_passedEvents");
+  TTree* tree = (TTree*)file->Get("posTree");
 
-
-
-
-  std::vector<float> xbgo, ybgo;
-  for( unsigned i=0; i<BGO_CHANNELS; ++i ) {
-    float x,y;
-    RunHelper::getBGOCoordinates( i, x, y );
-    xbgo.push_back( x );
-    ybgo.push_back( y );
-  }
 
 
 
@@ -57,8 +55,16 @@ int main( int argc, char* argv[] ) {
   tree->SetBranchAddress( "cef3_corr", cef3_corr );
   float bgo_corr[BGO_CHANNELS];
   tree->SetBranchAddress( "bgo_corr", bgo_corr );
-  float scintFront;
-  tree->SetBranchAddress( "scintFront", &scintFront );
+  float xBeam;
+  tree->SetBranchAddress( "xBeam", &xBeam );
+  float yBeam;
+  tree->SetBranchAddress( "yBeam", &yBeam );
+  float xPos_bgo_wa;
+  tree->SetBranchAddress( "xPos_bgo_wa", &xPos_bgo_wa );
+  float yPos_bgo_wa;
+  tree->SetBranchAddress( "yPos_bgo_wa", &yPos_bgo_wa );
+  bool isSingleEle_scintFront;
+  tree->SetBranchAddress( "isSingleEle_scintFront", &isSingleEle_scintFront );
   int nHodoClustersX;
   tree->SetBranchAddress( "nHodoClustersX", &nHodoClustersX );
   int nHodoClustersY;
@@ -81,16 +87,24 @@ int main( int argc, char* argv[] ) {
   outfile->cd();
 
 
-  TH1D* h1_cef3CalibX = new TH1D("cef3CalibX", "", 200, -3., 3.);
-  TH1D* h1_cef3CalibY = new TH1D("cef3CalibY", "", 200, -3., 3.);
+  float xMax = 5.5;
+  int nBins = (int)2.*xMax;
 
+  TProfile* hp_cef3CalibX = new TProfile("cef3CalibX", "", nBins, -xMax, xMax);
+  TProfile* hp_cef3CalibY = new TProfile("cef3CalibY", "", nBins, -xMax, xMax);
+
+
+  std::vector<float> xbgo, ybgo;
+  for( unsigned i=0; i<BGO_CHANNELS; ++i ) {
+    float x,y;
+    PositionTools::getBGOCoordinates( i, x, y );
+    xbgo.push_back( x );
+    ybgo.push_back( y );
+  }
 
 
 
   int nentries = tree->GetEntries();
-
-
-
 
 
 
@@ -102,7 +116,8 @@ int main( int argc, char* argv[] ) {
     if( iEntry % 5000 == 0 ) std::cout << "Entry: " << iEntry << " / " << nentries << std::endl;
 
 
-    bool isSingleElectron = (scintFront>500. && scintFront<2000. && nHodoClustersX==1 && nHodoClustersY==1);
+    bool isSingleElectron = (isSingleEle_scintFront && nHodoClustersX==1 && nHodoClustersY==1);
+    //bool isSingleElectron = (isSingleEle_scintFront);
     if( !isSingleElectron ) continue;
     
 
@@ -116,9 +131,11 @@ int main( int argc, char* argv[] ) {
     float xTarget = pos_hodoClustX[0];  
     float yTarget = pos_hodoClustY[0];  
 
+    //float xTarget = xBeam;  
+    //float yTarget = yBeam;  
 
-
-   
+    std::vector<float> v_bgo_corr;
+    for( unsigned i=0; i<BGO_CHANNELS; ++i ) v_bgo_corr.push_back(bgo_corr[i]);
 
     std::vector<float> xPosW_bgo;
     std::vector<float> yPosW_bgo;
@@ -140,31 +157,43 @@ int main( int argc, char* argv[] ) {
     yPosW_bgo.push_back(bgo_corr[5]*ybgo[5]);
     yPosW_bgo.push_back(bgo_corr[6]*ybgo[6]);
     yPosW_bgo.push_back(bgo_corr[7]*ybgo[7]);
-      
+
 
     float eTot_bgo_corr = 0.;
     for( unsigned i=0; i<BGO_CHANNELS; ++i )
       eTot_bgo_corr += bgo_corr[i];
+
     float eTot_cef3_corr = 0.;
     for( unsigned i=0; i<CEF3_CHANNELS; ++i )
       eTot_cef3_corr += cef3_corr[i];
 
-    float calibX = ( sumVector( xPosW_bgo )/xTarget - eTot_bgo_corr ) / eTot_cef3_corr;
-    float calibY = ( sumVector( yPosW_bgo )/yTarget - eTot_bgo_corr ) / eTot_cef3_corr;
 
-    h1_cef3CalibX->Fill( calibX );
-    h1_cef3CalibY->Fill( calibY );
+    float xPosBGO_wa = sumVector(xPosW_bgo)/eTot_bgo_corr;
+    float yPosBGO_wa = sumVector(yPosW_bgo)/eTot_bgo_corr;
+
+
+    if( eTot_cef3_corr<=0. ) continue;
+
+    if( xTarget!=0. ) {
+      float calibX = ( xPosBGO_wa/xTarget - eTot_bgo_corr )/eTot_cef3_corr;
+      hp_cef3CalibX->Fill( xTarget, calibX );
+    }
+
+    if( yTarget!=0. ) {
+      float calibY = ( yPosBGO_wa/yTarget - eTot_bgo_corr )/eTot_cef3_corr;
+      hp_cef3CalibY->Fill( yTarget, calibY );
+    }
       
 
   }
 
-  std::cout << "X: " << h1_cef3CalibX->GetMean() << " +/- " << h1_cef3CalibX->GetMeanError() << std::endl;
-  std::cout << "Y: " << h1_cef3CalibY->GetMean() << " +/- " << h1_cef3CalibY->GetMeanError() << std::endl;
+  //std::cout << "X: " << h1_cef3CalibX->GetMean() << " +/- " << h1_cef3CalibX->GetMeanError() << std::endl;
+  //std::cout << "Y: " << h1_cef3CalibY->GetMean() << " +/- " << h1_cef3CalibY->GetMeanError() << std::endl;
   
 
   outfile->cd();
-  h1_cef3CalibX->Write();
-  h1_cef3CalibY->Write();
+  hp_cef3CalibX->Write();
+  hp_cef3CalibY->Write();
 
   outfile->Close();
 
