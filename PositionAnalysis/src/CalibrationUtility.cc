@@ -40,6 +40,11 @@ void CalibrationUtility::setTag( const std::string& tag ) {
     tag_cef3_ ="V1";
     tag_bgo_ ="V1";
 
+  }else if( tag=="dev" ) {
+
+    tag_cef3_ ="dev";
+    tag_bgo_ ="V1";
+
   } else {
 
     std::cout << "[CalibrationUtility] :: Tag " << tag << " does not exist. Exiting" << std::endl;
