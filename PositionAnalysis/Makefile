@@ -12,7 +12,7 @@ EXTRALIBS := -L$(ROOTSYS)/lib  -lHtml -lMathCore -lGenVector -lMinuit -lTMVA
 
 
 
-all: positionAnalysis drawPositionAnalysis hodoscopeAnalysis calibrateCeF3 drawHodoClustersVsEnergy drawShitVsDiagonal calibrateBGO drawEnergyScan calibrateCaloPositioning drawCaloPositioning calibrateCeF3Positioning makePedestalFile makeAnalysisTree drawPedestalsVsRun drawResolutionStudies calibrateBGOPositioning checkBGOPositioning singleElectronSelection
+all: positionAnalysis drawPositionAnalysis hodoscopeAnalysis calibrateCeF3 drawHodoClustersVsEnergy drawShitVsDiagonal calibrateBGO drawEnergyScan calibrateCaloPositioning drawCaloPositioning calibrateCeF3Positioning makePedestalFile makeAnalysisTree drawPedestalsVsRun drawResolutionStudies calibrateBGOPositioning checkBGOPositioning singleElectronSelection drawCeF3Intercalibration drawCalibComparison
 
 
 checkRuns: checkRuns.cpp
@@ -72,6 +72,11 @@ drawResolutionStudies: drawResolutionStudies.cpp DrawTools.o FitTools.o
 checkBGOPositioning: checkBGOPositioning.cpp DrawTools.o
 	$(CC) -Wall $(INCLUDES) -o checkBGOPositioning checkBGOPositioning.cpp DrawTools.o $(ROOTFLAG) $(EXTRALIBS)
 
+drawCeF3Intercalibration: drawCeF3Intercalibration.cpp DrawTools.o
+	$(CC) -Wall $(INCLUDES) -o drawCeF3Intercalibration drawCeF3Intercalibration.cpp DrawTools.o $(ROOTFLAG) $(EXTRALIBS)
+
+drawCalibComparison: drawCalibComparison.cpp DrawTools.o
+	$(CC) -Wall $(INCLUDES) -o drawCalibComparison drawCalibComparison.cpp DrawTools.o $(ROOTFLAG) $(EXTRALIBS)
 
 
 
@@ -113,3 +118,4 @@ clean:
 	rm drawShitVsDiagonal
 	rm drawEnergyScan
 	rm drawPedestalsVsRun
+	rm drawCeF3Intercalibration
