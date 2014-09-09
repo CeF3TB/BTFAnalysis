@@ -48,7 +48,7 @@ ResoStruct getRespAndReso( TF1* f1, float energyErrorPercent );
 float getRatioError( float num, float denom, float numErr, float denomErr );
 ResoStruct getRespResoFromHisto( TH1D* h1 );
 void drawLateralScan( const std::string& outputdir, const std::string& name, std::vector<LateralScanStruct> lss, const std::string& axisName, const std::string& fullVarName_mc );
-ResoStruct addPhotoStatistics( ResoStruct rs, float QE );
+ResoStruct addPhotoStatistics( ResoStruct rs );
 
 
 
@@ -64,11 +64,14 @@ int main( int argc, char* argv[]) {
 
   DrawTools::setStyle();
 
-  TFile* file_mc = TFile::Open("EEShash_491MeV_10000ev_smear.root");
+  TFile* file_mc = TFile::Open("EEShash_491MeV_1000ev_smear_bgo.root");
+  //TFile* file_mc = TFile::Open("EEShash_491MeV_10000ev_smear.root");
 
-  TFile* file_data = TFile::Open(Form("PosAnTrees_%s/PosAn_BTF_259_beam.root", tag.c_str()));
+  //TFile* file_data = TFile::Open(Form("analysisTrees_%s/Reco_BTF_246_20140501-212512_beam.root", tag.c_str()));
+  //TFile* file_data = TFile::Open(Form("analysisTrees_%s/Reco_BTF_259_20140502-012847_beam.root", tag.c_str()));
+  TFile* file_data = TFile::Open(Form("analysisTrees_%s/Reco_BTF_321_20140503-053105_beam.root", tag.c_str()));
 
-  TTree* tree_data = (TTree*)file_data->Get("posTree");
+  TTree* tree_data = (TTree*)file_data->Get("recoTree");
   TTree* tree_mc = (TTree*)file_mc->Get("EEShash");
 
   std::string outputdir = "ResolutionStudiesPlots_"+tag;
@@ -91,6 +94,7 @@ int main( int argc, char* argv[]) {
   
   std::cout << std::endl;
   std::cout << "* DATA: " << std::endl;
+  std::cout << "resp: " << rs_data.resp << std::endl;
   std::cout << "reso: " << rs_data.reso << " +/- " << rs_data.reso_error << std::endl;
   std::cout << "Sres: " << rs_data.Sres << " +/- " << rs_data.Sres_error << std::endl;
   
@@ -103,10 +107,10 @@ int main( int argc, char* argv[]) {
   std::cout << "MC Sres hole: "  << rs_hole .Sres << " +/- " << rs_hole .Sres_error << std::endl;
 
   std::cout << std::endl;
-  std::cout << "-> Adding photostatistics to MC (25% QE): " << std::endl;
-  ResoStruct rs_ideal_ps = addPhotoStatistics( rs_ideal, 0.25 );
-  ResoStruct rs_real_ps  = addPhotoStatistics( rs_real, 0.25 );
-  ResoStruct rs_hole_ps  = addPhotoStatistics( rs_hole, 0.25 );
+  std::cout << "-> Adding photostatistics to MC (7% QE): " << std::endl;
+  ResoStruct rs_ideal_ps = addPhotoStatistics( rs_ideal);
+  ResoStruct rs_real_ps  = addPhotoStatistics( rs_real );
+  ResoStruct rs_hole_ps  = addPhotoStatistics( rs_hole );
   
   std::cout << "MC reso ideal: "<< rs_ideal_ps.reso << " +/- " << rs_ideal_ps.reso_error << std::endl;
   std::cout << "MC reso real: " << rs_real_ps .reso << " +/- " << rs_real_ps .reso_error << std::endl;
@@ -117,18 +121,18 @@ int main( int argc, char* argv[]) {
   std::cout << "MC Sres hole: "  << rs_hole_ps .Sres << " +/- " << rs_hole_ps .Sres_error << std::endl;
 
 
-  std::cout << "-> Adding photostatistics to MC (15% QE): " << std::endl;
-  rs_ideal_ps = addPhotoStatistics( rs_ideal, 0.15 );
-  rs_real_ps  = addPhotoStatistics( rs_real, 0.15 );
-  rs_hole_ps  = addPhotoStatistics( rs_hole, 0.15 );
-  
-  std::cout << "MC reso ideal: "<< rs_ideal_ps.reso << " +/- " << rs_ideal_ps.reso_error << std::endl;
-  std::cout << "MC reso real: " << rs_real_ps .reso << " +/- " << rs_real_ps .reso_error << std::endl;
-  std::cout << "MC reso hole: " << rs_hole_ps .reso << " +/- " << rs_hole_ps .reso_error << std::endl;
+  //std::cout << "-> Adding photostatistics to MC (15% QE): " << std::endl;
+  //rs_ideal_ps = addPhotoStatistics( rs_ideal, 0.15 );
+  //rs_real_ps  = addPhotoStatistics( rs_real, 0.15 );
+  //rs_hole_ps  = addPhotoStatistics( rs_hole, 0.15 );
+  //
+  //std::cout << "MC reso ideal: "<< rs_ideal_ps.reso << " +/- " << rs_ideal_ps.reso_error << std::endl;
+  //std::cout << "MC reso real: " << rs_real_ps .reso << " +/- " << rs_real_ps .reso_error << std::endl;
+  //std::cout << "MC reso hole: " << rs_hole_ps .reso << " +/- " << rs_hole_ps .reso_error << std::endl;
 
-  std::cout << "MC Sres ideal: " << rs_ideal_ps.Sres << " +/- " << rs_ideal_ps.Sres_error << std::endl;
-  std::cout << "MC Sres real: "  << rs_real_ps .Sres << " +/- " << rs_real_ps .Sres_error << std::endl;
-  std::cout << "MC Sres hole: "  << rs_hole_ps .Sres << " +/- " << rs_hole_ps .Sres_error << std::endl;
+  //std::cout << "MC Sres ideal: " << rs_ideal_ps.Sres << " +/- " << rs_ideal_ps.Sres_error << std::endl;
+  //std::cout << "MC Sres real: "  << rs_real_ps .Sres << " +/- " << rs_real_ps .Sres_error << std::endl;
+  //std::cout << "MC Sres hole: "  << rs_hole_ps .Sres << " +/- " << rs_hole_ps .Sres_error << std::endl;
 
 
   
@@ -323,6 +327,8 @@ int main( int argc, char* argv[]) {
 ResoStruct getResponseResolutionMC( const std::string& outputdir, TTree* tree, float LYSF[], const std::string& name ) {
 
   std::string fullVarName = getVarName(LYSF);
+  //fullVarName += " + Ebgo";
+  fullVarName = "Ebgo";
 
   TH1D* h1 = new TH1D( name.c_str(), "", 500, 0., 500. );
 
@@ -536,14 +542,17 @@ void drawLateralScan( const std::string& outputdir, const std::string& name, std
 }
 
 
-ResoStruct addPhotoStatistics( ResoStruct rs, float QE ) {
+ResoStruct addPhotoStatistics( ResoStruct rs ) {
 
-  float nPhotons = floor(rs.resp*0.49/QE);
+  // MC response is already in MeV, 0.49 is the number of p.e. per MeV
+  // RM = 90% of energy, so assume 90% of energy (0.9*491) is deposited in central channel
+  float nADC = rs.resp/185.*3200.;
+  float nPhotoElectrons = nADC/35.;
 
-  float poissonError = 100./sqrt( nPhotons ); // in percent
+  float poissonError = 100./sqrt( nPhotoElectrons ); // in percent
 
   rs.reso = sqrt( rs.reso*rs.reso + poissonError*poissonError );
-  rs.Sres = rs.reso*sqrt(0.491);
+  rs.Sres = rs.reso*sqrt(0.491); // E = 491 MeV
 
   return rs;
 

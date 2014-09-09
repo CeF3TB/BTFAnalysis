@@ -1,205 +1,489 @@
 #include <iostream>
-#include <vector>
-#include <string>
-#include <cmath>
 #include <fstream>
+#include <cmath>
 
-#include "TCanvas.h"
 #include "TFile.h"
 #include "TTree.h"
 #include "TH1D.h"
 #include "TH2D.h"
-#include "TF1.h"
-#include "TGraphErrors.h"
-#include "TVector2.h"
 #include "TProfile.h"
+#include "TCanvas.h"
 #include "TLegend.h"
+#include "TF1.h"
+#include "TVector2.h"
 
 #include "interface/DrawTools.h"
-#include "interface/RunHelper.h"
+#include "interface/PositionTools.h"
+
+#include "fastDQM_CeF3_BTF.h"
 
 
 
 
+struct FitResults {
+
+  float p0_x;
+  float p1_x;
+  float p0_y;
+  float p1_y;
+
+};
 
 
 
+FitResults drawAndGetCoeff( const std::string& outputdir, const std::string& name, TProfile* hp_x, TProfile* hp_y );
+float sumVector(std::vector<float> v);
+std::vector<TH1D*> getPerformanceVector( const std::string& name );
 
-int main() {
+
+
+int main( int argc, char* argv[] ) {
+
+
+  std::string runName;
+  if( argc>1 ) {
+    std::string run_str(argv[1]);
+    runName = run_str;
+  }
+
+  std::string tag = "V02";
+  if( argc>2 ) {
+    std::string tag_str(argv[2]);
+    tag = tag_str;
+  }
 
 
   DrawTools::setStyle();
 
-  
-  TFile* file = TFile::Open("TMVA/trainingFile.root");
-  TTree* tree = (TTree*)file->Get("tree_passedEvents");
+
+  TFile* file = TFile::Open(Form("PosAnTrees_%s/%s.root", tag.c_str(), runName.c_str()));
+  TTree* tree = (TTree*)file->Get("posTree");
 
 
+  unsigned int run;
+  tree->SetBranchAddress( "run", &run );
 
-  unsigned int runNumber;
-  tree->SetBranchAddress( "runNumber", &runNumber );
-  bool bgo_corr_ok;
-  tree->SetBranchAddress( "bgo_corr_ok", &bgo_corr_ok );
-  float scintFront;
-  tree->SetBranchAddress( "scintFront", &scintFront );
-  int nHodoClustersX;
-  tree->SetBranchAddress( "nHodoClustersX", &nHodoClustersX );
-  int nHodoClustersY;
-  tree->SetBranchAddress( "nHodoClustersY", &nHodoClustersY );
-  int nFibres_hodoClustX[8];
-  tree->SetBranchAddress( "nFibres_hodoClustX", nFibres_hodoClustX );
-  float pos_hodoClustX[8];
-  tree->SetBranchAddress( "pos_hodoClustX", pos_hodoClustX );
-  int nFibres_hodoClustY[8];
-  tree->SetBranchAddress( "nFibres_hodoClustY", nFibres_hodoClustY );
-  float pos_hodoClustY[8];
-  tree->SetBranchAddress( "pos_hodoClustY", pos_hodoClustY );
+  bool isSingleEle_scintFront;
+  tree->SetBranchAddress( "isSingleEle_scintFront", &isSingleEle_scintFront );
+
   float xBeam;
   tree->SetBranchAddress( "xBeam", &xBeam );
   float yBeam;
   tree->SetBranchAddress( "yBeam", &yBeam );
-  float xCalo;
-  tree->SetBranchAddress( "xPos_calo", &xCalo );
-  float yCalo;
-  tree->SetBranchAddress( "yPos_calo", &yCalo );
-  float cef3[4];
-  tree->SetBranchAddress( "cef3_corr", cef3 );
+
+  float xPos_bgo_wa;
+  tree->SetBranchAddress( "xPos_bgo_wa", &xPos_bgo_wa );
+  float yPos_bgo_wa;
+  tree->SetBranchAddress( "yPos_bgo_wa", &yPos_bgo_wa );
+
+  float cef3_corr[4];
+  tree->SetBranchAddress( "cef3_corr", cef3_corr );
 
 
-  TFile* outfile = TFile::Open( "CeF3PositionCalibration.root", "recreate" );
-  outfile->cd();
 
-  TProfile* hp_diag02_vs_dBeam = new TProfile( "diag02_vs_dBeam", "", 50, -20., 20.);
-  TProfile* hp_diag13_vs_dBeam = new TProfile( "diag13_vs_dBeam", "", 50, -20., 20.);
+  float xMax = 15.5;
+  int nBins = (int)xMax*2.;
 
-  TProfile* hp_diag02_vs_dCalo = new TProfile( "diag02_vs_dCalo", "", 50, -20., 20.);
-  TProfile* hp_diag13_vs_dCalo = new TProfile( "diag13_vs_dCalo", "", 50, -20., 20.);
+  TProfile* hp_asymm_x_vsBeam = new TProfile("asymm_x_vsBeam", "", nBins, -xMax, xMax);
+  TProfile* hp_asymm_y_vsBeam = new TProfile("asymm_y_vsBeam", "", nBins, -xMax, xMax);
+
+  TProfile* hp_asymm_log_x_vsBeam = new TProfile("asymm_log_x_vsBeam", "", nBins, -xMax, xMax);
+  TProfile* hp_asymm_log_y_vsBeam = new TProfile("asymm_log_y_vsBeam", "", nBins, -xMax, xMax);
+
+  TProfile* hp_wa_x_vsBeam = new TProfile("wa_x_vsBeam", "", nBins, -xMax, xMax);
+  TProfile* hp_wa_y_vsBeam = new TProfile("wa_y_vsBeam", "", nBins, -xMax, xMax);
+
+  TProfile* hp_wa_log_x_vsBeam = new TProfile("wa_log_x_vsBeam", "", nBins, -xMax, xMax);
+  TProfile* hp_wa_log_y_vsBeam = new TProfile("wa_log_y_vsBeam", "", nBins, -xMax, xMax);
 
 
-  int nentries = tree->GetEntries();
 
-  int cachedRun = 0;
-  TGraph* gr_run_xyMap = new TGraph(0);
+  TProfile* hp_asymm_x_vsBGO = new TProfile("asymm_x_vsBGO", "", nBins, -xMax, xMax);
+  TProfile* hp_asymm_y_vsBGO = new TProfile("asymm_y_vsBGO", "", nBins, -xMax, xMax);
+
+  TProfile* hp_asymm_log_x_vsBGO = new TProfile("asymm_log_x_vsBGO", "", nBins, -xMax, xMax);
+  TProfile* hp_asymm_log_y_vsBGO = new TProfile("asymm_log_y_vsBGO", "", nBins, -xMax, xMax);
+
+  TProfile* hp_wa_x_vsBGO = new TProfile("wa_x_vsBGO", "", nBins, -xMax, xMax);
+  TProfile* hp_wa_y_vsBGO = new TProfile("wa_y_vsBGO", "", nBins, -xMax, xMax);
+
+  TProfile* hp_wa_log_x_vsBGO = new TProfile("wa_log_x_vsBGO", "", nBins, -xMax, xMax);
+  TProfile* hp_wa_log_y_vsBGO = new TProfile("wa_log_y_vsBGO", "", nBins, -xMax, xMax);
 
 
-  for( unsigned iEntry=0; iEntry<nentries; ++iEntry ) {
+  float dMax = 35.;
 
-    if( iEntry % 100000 == 0 ) std::cout << "Entry: " << iEntry << " / " << nentries << std::endl;
+  TProfile* hp_r13_d_vsBeam = new TProfile("r13_d_vsBeam", "", nBins, 0., dMax);
+  TProfile* hp_r20_d_vsBeam = new TProfile("r20_d_vsBeam", "", nBins, 0., dMax);
 
-    tree->GetEntry(iEntry); 
+  TProfile* hp_r13_d_vsBGO = new TProfile("r13_d_vsBGO", "", nBins, 0., dMax);
+  TProfile* hp_r20_d_vsBGO = new TProfile("r20_d_vsBGO", "", nBins, 0., dMax);
 
-    if( runNumber!=cachedRun ) {
-      cachedRun=runNumber;
-      gr_run_xyMap->SetPoint( gr_run_xyMap->GetN(), xBeam, yBeam );
+  TProfile* hp_r1_d_vsBeam = new TProfile("r1_d_vsBeam", "", nBins, 0., dMax);
+  TProfile* hp_r2_d_vsBeam = new TProfile("r2_d_vsBeam", "", nBins, 0., dMax);
+
+  TProfile* hp_r1_d_vsBGO = new TProfile("r1_d_vsBGO", "", nBins, 0., dMax);
+  TProfile* hp_r2_d_vsBGO = new TProfile("r2_d_vsBGO", "", nBins, 0., dMax);
+
+
+
+
+
+
+  int nentries=tree->GetEntries();
+
+
+  for( unsigned i=0; i<nentries; ++i ) {
+
+    tree->GetEntry(i);
+
+    if( !isSingleEle_scintFront ) continue;
+    if( abs(xBeam)>12. || abs(yBeam)>12. ) continue;
+
+
+    std::vector<float> v_cef3_corr;
+    for( unsigned i=0; i<CEF3_CHANNELS; ++i ) v_cef3_corr.push_back(cef3_corr[i]);
+
+
+
+    //  0   1  
+    //  
+    //  3   2
+
+
+    // FIRST METHOD: LINEAR ASYMM
+
+    float left   = cef3_corr[0]+cef3_corr[3];
+    float right  = cef3_corr[1]+cef3_corr[2];
+    float top    = cef3_corr[0]+cef3_corr[1];
+    float bottom = cef3_corr[2]+cef3_corr[3];
+
+    float asymm_y = (top-bottom)/(top+bottom);
+    float asymm_x = (right-left)/(right+left);
+
+    hp_asymm_x_vsBeam->Fill( xBeam, asymm_x );
+    hp_asymm_y_vsBeam->Fill( yBeam, asymm_y );
+
+    hp_asymm_x_vsBGO ->Fill( xPos_bgo_wa, asymm_x );
+    hp_asymm_y_vsBGO ->Fill( yPos_bgo_wa, asymm_y );
+
+
+
+    // SECOND METHOD: LOG ASYMM
+
+    float left_log   = log(cef3_corr[0])+log(cef3_corr[3]);
+    float right_log  = log(cef3_corr[1])+log(cef3_corr[2]);
+    float top_log    = log(cef3_corr[0])+log(cef3_corr[1]);
+    float bottom_log = log(cef3_corr[2])+log(cef3_corr[3]);
+
+    float asymm_log_y = (top_log-bottom_log)/(top_log+bottom_log);
+    float asymm_log_x = (right_log-left_log)/(right_log+left_log);
+
+    hp_asymm_log_x_vsBeam->Fill( xBeam, asymm_log_x );
+    hp_asymm_log_y_vsBeam->Fill( yBeam, asymm_log_y );
+
+    hp_asymm_log_x_vsBGO ->Fill( xPos_bgo_wa, asymm_log_x );
+    hp_asymm_log_y_vsBGO ->Fill( yPos_bgo_wa, asymm_log_y );
+
+
+    // THIRD METHOD: WEIGHTED AVERAGE
+
+    float wa_x = 0.;
+    float wa_y = 0.;
+    float sumw = 0.;
+
+    for( unsigned i=0; i<v_cef3_corr.size(); ++i ) {
+  
+      float x, y;
+      PositionTools::getCef3Coordinates( i, x, y );
+      float w = v_cef3_corr[i];
+  
+      wa_x += w*x;
+      wa_y += w*y;
+      sumw += w;
+  
     }
+    
+    wa_x /= sumw;
+    wa_y /= sumw;
 
-    bool isScintFrontSingleEle = ( runNumber<100 ) ? (scintFront>120. && scintFront<700.) : (scintFront>500. && scintFront<2000.);
+    hp_wa_x_vsBeam->Fill( xBeam, wa_x );
+    hp_wa_y_vsBeam->Fill( yBeam, wa_y );
 
-    if( !bgo_corr_ok ) continue;
-    if( !isScintFrontSingleEle ) continue;
-
-    float r02 = cef3[0]/cef3[2];
-    float r13 = cef3[1]/cef3[3];
-
-    TVector2 v_Beam(xBeam, yBeam);
-    TVector2 d_Beam = v_Beam.Rotate( -3.14159/4. );
-    float diag13_Beam = d_Beam.X();
-    float diag02_Beam = d_Beam.Y();
-
-    TVector2 v_Calo(xCalo, yCalo);
-    TVector2 d_Calo = v_Calo.Rotate( -3.14159/4. );
-    float diag13_Calo = d_Calo.X();
-    float diag02_Calo = d_Calo.Y();
-
-    hp_diag02_vs_dBeam->Fill(diag02_Beam, r02 );
-    hp_diag13_vs_dBeam->Fill(diag13_Beam, r13 );
-    hp_diag02_vs_dCalo->Fill(diag02_Calo, r02 );
-    hp_diag13_vs_dCalo->Fill(diag13_Calo, r13 );
+    hp_wa_x_vsBGO->Fill( xPos_bgo_wa, wa_x );
+    hp_wa_y_vsBGO->Fill( yPos_bgo_wa, wa_y );
 
 
-  } // for entries
+    // FOURTH METHOD: WEIGHTED AVERAGE WITH LOG WEIGHTS
+
+    float wa_log_x = 0.;
+    float wa_log_y = 0.;
+    float sumw_log = 0.;
+
+    for( unsigned i=0; i<v_cef3_corr.size(); ++i ) {
+  
+      float x, y;
+      PositionTools::getCef3Coordinates( i, x, y );
+      float w = (v_cef3_corr[i]>=1.) ? log(v_cef3_corr[i]) : 0.;
+  
+      wa_log_x += w*x;
+      wa_log_y += w*y;
+      sumw_log += w;
+  
+    }
+    
+    wa_log_x /= sumw_log;
+    wa_log_y /= sumw_log;
+
+    hp_wa_log_x_vsBeam->Fill( xBeam, wa_log_x );
+    hp_wa_log_y_vsBeam->Fill( yBeam, wa_log_y );
+    
+    hp_wa_log_x_vsBGO->Fill( xPos_bgo_wa, wa_log_x );
+    hp_wa_log_y_vsBGO->Fill( yPos_bgo_wa, wa_log_y );
 
 
-  TCanvas* c1 = new TCanvas("c1", "", 600, 600);
-  c1->cd();
+    // now try ratios (study fibres 1 and 2):
 
-  hp_diag02_vs_dBeam->SetLineColor(kBlack);
-  hp_diag13_vs_dBeam->SetLineColor(kRed);
-  hp_diag02_vs_dCalo->SetLineColor(kBlue);
-  hp_diag13_vs_dCalo->SetLineColor(kGreen);
+    float x1, y1;
+    PositionTools::getCef3Coordinates( 1, x1, y1 );
+    float x2, y2;
+    PositionTools::getCef3Coordinates( 2, x2, y2 );
 
+    float r13 = cef3_corr[1]/cef3_corr[3];
+    float r20 = cef3_corr[2]/cef3_corr[0];
 
-  TF1* f1_d02 = new TF1("f1_d02", "pol5", -17., 17.);
-  f1_d02->SetLineColor( kGray);
-  f1_d02->FixParameter( 2, 0. );
-  f1_d02->FixParameter( 5, 0. );
-  //f1_d02->SetParLimits( 2, 0., 0.1 );
-  //f1_d02->SetParameter( 5, 0.05 );
-  //f1_d02->SetParLimits( 5, 0., 0.1 );
-  hp_diag02_vs_dCalo->Fit( f1_d02, "RB" );
+    float eTot = cef3_corr[0]+cef3_corr[1]+cef3_corr[2]+cef3_corr[3];
+    float r1 = cef3_corr[1]/eTot;
+    float r2 = cef3_corr[2]/eTot;
 
-  TF1* f1_d13 = new TF1("f1_d13", "pol5", -17., 17.);
-  f1_d13->SetLineColor(kRed);
-  hp_diag13_vs_dCalo->Fit( f1_d13, "R+" );
+    TVector2 p1(x1, y1);
+    TVector2 p2(x2, y2);
+    TVector2 pBeam(xBeam, yBeam);
+    TVector2 pBGO(xPos_bgo_wa, yPos_bgo_wa);
 
+    TVector2 v_1Beam = p1-pBeam;
+    TVector2 v_2Beam = p2-pBeam;
+    TVector2 v_1BGO = p1-pBGO;
+    TVector2 v_2BGO = p2-pBGO;
 
+    float d_1Beam = v_1Beam.Mod();
+    float d_2Beam = v_2Beam.Mod();
+    float d_1BGO  = v_1BGO .Mod();
+    float d_2BGO  = v_2BGO .Mod();
 
+    
+    hp_r13_d_vsBeam->Fill( d_1Beam, r13 );
+    hp_r20_d_vsBeam->Fill( d_2Beam, r20 );
 
-  TH2D* h2_axes = new TH2D("axes", "", 10, -20., 20., 10, 0., 3.);
-  h2_axes->Draw();
+    hp_r13_d_vsBGO->Fill( d_1BGO, r13 );
+    hp_r20_d_vsBGO->Fill( d_2BGO, r20 );
 
-  TLine* lineone = new TLine( -20., 1., 20., 1. );
+    hp_r1_d_vsBeam->Fill( d_1Beam, r1 );
+    hp_r2_d_vsBeam->Fill( d_2Beam, r2 );
 
-  TLegend* legend = new TLegend( 0.2, 0.55, 0.5, 0.9 );
-  legend->SetFillColor(0);
-  legend->SetTextSize(0.035);
-  legend->AddEntry( f1_d02, "02", "L" );
-  legend->AddEntry( f1_d13, "13", "L" );
-  legend->Draw("same");
-
-  hp_diag02_vs_dCalo->Draw("same");
-  lineone->Draw("same");
-  hp_diag13_vs_dCalo->Draw("same");
-  hp_diag02_vs_dBeam->Draw("same");
-  hp_diag13_vs_dBeam->Draw("same");
-
-  c1->SaveAs("prova.eps"); 
+    hp_r1_d_vsBGO->Fill( d_1BGO, r1 );
+    hp_r2_d_vsBGO->Fill( d_2BGO, r2 );
 
 
+    
+  }
+
+  TFile* outfile = TFile::Open( Form("Cef3Positioning_%s_%s.root", runName.c_str(), tag.c_str()), "recreate" );
   outfile->cd();
 
-  gr_run_xyMap->Write();
+  hp_asymm_x_vsBeam->Write();
+  hp_asymm_y_vsBeam->Write();
 
-  hp_diag02_vs_dBeam->Write();
-  hp_diag13_vs_dBeam->Write();
+  hp_asymm_log_x_vsBeam->Write();
+  hp_asymm_log_y_vsBeam->Write();
 
-  hp_diag02_vs_dCalo->Write();
-  hp_diag13_vs_dCalo->Write(); 
+  hp_wa_x_vsBeam->Write();
+  hp_wa_y_vsBeam->Write();
+
+  hp_wa_log_x_vsBeam->Write();
+  hp_wa_log_y_vsBeam->Write();
+
+
+
+  hp_asymm_x_vsBGO->Write();
+  hp_asymm_y_vsBGO->Write();
+
+  hp_asymm_log_x_vsBGO->Write();
+  hp_asymm_log_y_vsBGO->Write();
+
+  hp_wa_x_vsBGO->Write();
+  hp_wa_y_vsBGO->Write();
+
+  hp_wa_log_x_vsBGO->Write();
+  hp_wa_log_y_vsBGO->Write();
+
+
+
+  hp_r13_d_vsBeam->Write();
+  hp_r20_d_vsBeam->Write();
+
+  hp_r13_d_vsBGO->Write();
+  hp_r20_d_vsBGO->Write();
+
+  hp_r1_d_vsBeam->Write();
+  hp_r2_d_vsBeam->Write();
+
+  hp_r1_d_vsBGO->Write();
+  hp_r2_d_vsBGO->Write();
+
 
   outfile->Close();
 
-  ofstream ofs02("diag02_parameters.txt");
-  ofs02 << f1_d02->GetParameter(0) << std::endl;
-  ofs02 << f1_d02->GetParameter(1) << std::endl;
-  ofs02 << f1_d02->GetParameter(2) << std::endl;
-  ofs02 << f1_d02->GetParameter(3) << std::endl;
-  ofs02 << f1_d02->GetParameter(4) << std::endl;
-  ofs02 << f1_d02->GetParameter(5) << std::endl;
-  ofs02.close();
-  std::cout << "Diag02 fit parameters saved in: diag02_parameters.txt" << std::endl;
+  
 
+  std::string outputdir = "Cef3PositioningPlots_" + runName + "_" + tag;
+  system(Form("mkdir -p %s", outputdir.c_str()));
 
-  ofstream ofs13("diag13_parameters.txt");
-  ofs13 << f1_d13->GetParameter(0) << std::endl;
-  ofs13 << f1_d13->GetParameter(1) << std::endl;
-  ofs13 << f1_d13->GetParameter(2) << std::endl;
-  ofs13 << f1_d13->GetParameter(3) << std::endl;
-  ofs13 << f1_d13->GetParameter(4) << std::endl;
-  ofs13 << f1_d13->GetParameter(5) << std::endl;
-  ofs13.close();
-  std::cout << "Diag13 fit parameters saved in: diag13_parameters.txt" << std::endl;
+  FitResults fr_asymm = drawAndGetCoeff( outputdir, "asymm", hp_asymm_x_vsBeam, hp_asymm_y_vsBeam );
+  FitResults fr_asymm_log = drawAndGetCoeff( outputdir, "asymm_log", hp_asymm_log_x_vsBeam, hp_asymm_log_y_vsBeam );
+  FitResults fr_wa = drawAndGetCoeff( outputdir, "wa", hp_wa_x_vsBeam, hp_wa_y_vsBeam );
+  FitResults fr_wa_log = drawAndGetCoeff( outputdir, "wa_log", hp_wa_log_x_vsBeam, hp_wa_log_y_vsBeam );
+
 
   return 0;
 
 }
 
+
+
+
+
+FitResults drawAndGetCoeff( const std::string& outputdir, const std::string& name, TProfile* hp_x, TProfile* hp_y ) {
+
+
+  TF1* line_x = new TF1(Form("line_%s_x", name.c_str()), "[0]+[1]*x", -10., 10.);
+  line_x->SetLineColor(38);
+  hp_x->SetLineColor(38);
+  hp_x->SetMarkerColor(38);
+  hp_x->SetMarkerSize(1.6);
+  hp_x->SetMarkerStyle(20);
+  hp_x->Fit(line_x, "R");
+
+  TF1* line_y = new TF1(Form("line_%s_y", name.c_str()), "[0]+[1]*x", -10., 10.);
+  line_y->SetLineColor(46);
+  hp_y->SetLineColor(46);
+  hp_y->SetMarkerColor(46);
+  hp_y->SetMarkerSize(1.6);
+  hp_y->SetMarkerStyle(20);
+  hp_y->Fit(line_y, "R");
+
+
+  //std::cout << std::endl;
+  //std::cout << "+++  X: " << std::endl;
+  //std::cout << "p0:   " << line_x->GetParameter(0) << " +/- " << line_x->GetParError(0) << std::endl;
+  //std::cout << "p1:   " << line_x->GetParameter(1) << " +/- " << line_x->GetParError(1) << std::endl;
+
+  //std::cout << std::endl;
+  //std::cout << "+++  Y: " << std::endl;
+  //std::cout << "p0:   " << line_y->GetParameter(0) << " +/- " << line_y->GetParError(0) << std::endl;
+  //std::cout << "p1:   " << line_y->GetParameter(1) << " +/- " << line_y->GetParError(1) << std::endl;
+
+
+
+  TCanvas* c1 = new TCanvas("c2", "", 600., 600.); 
+  c1->cd();
+
+  float yMax = hp_x->GetMaximum()*1.2;
+
+  TH2D* h2_axes = new TH2D("axes", "", 10, -10., 10., 10., -yMax, yMax );
+  h2_axes->SetXTitle("Beam Position [mm]");
+  //h2_axes->SetYTitle("BGO Asymmetry");
+  h2_axes->SetYTitle(name.c_str());
+  h2_axes->Draw();
+
+
+  TLegend* legend = new TLegend( 0.7, 0.2, 0.9, 0.4 );
+  legend->SetTextSize( 0.035 );
+  legend->SetFillColor(0);
+  legend->AddEntry( hp_x, "X", "P" );
+  legend->AddEntry( hp_y, "Y", "P" );
+  //legend->Draw("same");
+
+  hp_x->Draw("P same");
+  hp_y->Draw("P same");
+
+  TPaveText* label_x = new TPaveText( 0.2, 0.7, 0.6, 0.9, "brNDC" );
+  label_x->SetTextSize( 0.044 );
+  label_x->SetTextColor(38);
+  label_x->SetFillColor(0);
+  label_x->AddText( Form("%.3fx + %.3f", line_x->GetParameter(1), line_x->GetParameter(0)) );
+  label_x->Draw("same");
+
+  TPaveText* label_y = new TPaveText( 0.5, 0.3, 0.9, 0.4, "brNDC" );
+  label_y->SetTextSize( 0.044 );
+  label_y->SetTextColor(46);
+  label_y->SetFillColor(0);
+  label_y->AddText( Form("%.3fy + %.3f", line_y->GetParameter(1), line_y->GetParameter(0)) );
+  label_y->Draw("same");
+
+
+  TPaveText* labelTop = DrawTools::getLabelTop();
+  labelTop->Draw("same");
+
+  c1->SaveAs(Form("%s/%s_vs_beam.eps", outputdir.c_str(), name.c_str()));
+  c1->SaveAs(Form("%s/%s_vs_beam.png", outputdir.c_str(), name.c_str()));
+  c1->SaveAs(Form("%s/%s_vs_beam.pdf", outputdir.c_str(), name.c_str()));
+
+
+  std::string posCalibFileXName = outputdir + "/posCalib_" + name + "_x.txt";
+  ofstream ofs_x( posCalibFileXName.c_str() );
+  ofs_x << line_x->GetParameter(0) << std::endl;
+  ofs_x << line_x->GetParameter(1) << std::endl;
+  ofs_x.close();
+
+  std::string posCalibFileYName = outputdir + "/posCalib_" + name + "_y.txt";
+  ofstream ofs_y( posCalibFileYName.c_str() );
+  ofs_y << line_y->GetParameter(0) << std::endl;
+  ofs_y << line_y->GetParameter(1) << std::endl;
+  ofs_y.close();
+
+  std::cout << "-> BGO position calibration constants saved in:" << std::endl;
+  std::cout << "    X: " << posCalibFileXName << std::endl;
+  std::cout << "    Y: " << posCalibFileYName << std::endl;
+
+  FitResults fr;
+  fr.p0_x = line_x->GetParameter(0);
+  fr.p1_x = line_x->GetParameter(1);
+  fr.p0_y = line_y->GetParameter(0);
+  fr.p1_y = line_y->GetParameter(1);
+
+  delete h2_axes;
+  delete c1;
+
+  return fr;
+
+}
+
+
+float sumVector(std::vector<float> v) {
+
+  float s=0.;
+
+  for( unsigned i=0; i<v.size(); ++i ) s+=v[i];
+
+  return s;
+
+}
+
+
+
+std::vector<TH1D*> getPerformanceVector( const std::string& name ) {
+
+  std::vector<TH1D*> v_h1;
+
+  for( unsigned i=-10; i<10; ++i ) {
+
+    TH1D* h1 = new TH1D( Form("%s_%d", name.c_str(), i+10), "", 50, -40., 40. );
+    v_h1.push_back(h1);
+
+  }
+
+
+  return v_h1;
+
+}

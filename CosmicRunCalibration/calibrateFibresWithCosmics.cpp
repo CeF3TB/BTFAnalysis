@@ -13,6 +13,7 @@
 
 #include "TMath.h"
 #include "../PositionAnalysis/fastDQM_CeF3_BTF.h"
+#include "../PositionAnalysis/interface/DrawTools.h"
 #include "TTree.h"
 
 struct FitResults {
@@ -549,7 +550,7 @@ std::vector< std::pair<float, float> > getPedestals( const std::string& type, co
   }
 
     
-
+  DrawTools::setStyle();
   TFile* file = TFile::Open(fileName.c_str());
 
   std::vector< std::pair<float, float> > peds;
@@ -857,6 +858,7 @@ int main( int argc, char* argv[] ) {
   cuncorr_pedSubtracted->SaveAs("uncorrEnergyAllChannelspedSubtracted.png");
   cuncorr_pedSubtracted->SaveAs("uncorrEnergyAllChannelspedSubtracted.eps");
 
+
   TCanvas* cuncorr_pedSubtracted_2 = new TCanvas( "cuncorr_pedSubtracted_2", "", 600, 600 );
 
   cuncorr_pedSubtracted_2->cd();
@@ -1029,6 +1031,26 @@ int main( int argc, char* argv[] ) {
 
   ccorr->SaveAs("corrEnergyAllChannelspedSubtracted.png");
   ccorr->SaveAs("corrEnergyAllChannelspedSubtracted.eps");
+
+  //plot for the paper. all corr channels sum and fit
+  ccorr->Clear();
+  TH1D* h1_cef3_pedSubtracted_sum   = new TH1D("cef3_pedSubtracted_sum",   "", 400, 0., 400.);
+  h1_cef3_pedSubtracted_sum->SetLineWidth(2);
+  h1_cef3_pedSubtracted_sum->Add(h1_cef3_pedSubtracted_corr_0);
+  h1_cef3_pedSubtracted_sum->Add(h1_cef3_pedSubtracted_corr_1);
+  h1_cef3_pedSubtracted_sum->Add(h1_cef3_pedSubtracted_corr_2);
+  h1_cef3_pedSubtracted_sum->Add(h1_cef3_pedSubtracted_corr_3);
+  //  h1_cef3_pedSubtracted_sum->Rebin(2);
+
+  histo_axes->GetXaxis()->SetRangeUser(0.,150.);
+  histo_axes->GetYaxis()->SetRangeUser(50.,h1_cef3_pedSubtracted_sum->GetMaximum()+h1_cef3_pedSubtracted_sum->GetMaximum()*0.10);
+  histo_axes->SetXTitle( "ADC Counts" );
+
+  histo_axes->Draw();
+  h1_cef3_pedSubtracted_sum->Draw("same");
+  ccorr->SaveAs("dummy.png");
+
+
 
   cuncorr_pedSubtracted_2->Clear();
   cuncorr_pedSubtracted_2->cd();

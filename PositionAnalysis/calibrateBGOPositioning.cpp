@@ -54,8 +54,15 @@ int main( int argc, char* argv[] ) {
   TTree* tree = (TTree*)file->Get("posTree");
 
 
+  unsigned int run;
+  tree->SetBranchAddress( "run", &run );
+  unsigned int event;
+  tree->SetBranchAddress( "event", &event );
+
   bool isSingleEle_scintFront;
   tree->SetBranchAddress( "isSingleEle_scintFront", &isSingleEle_scintFront );
+  bool bgo_corr_ok;
+  tree->SetBranchAddress( "bgo_corr_ok", &bgo_corr_ok );
 
   float xBeam;
   tree->SetBranchAddress( "xBeam", &xBeam );
@@ -64,21 +71,30 @@ int main( int argc, char* argv[] ) {
 
   float bgo_corr[8];
   tree->SetBranchAddress( "bgo_corr", bgo_corr );
+  float cef3_corr[8];
+  tree->SetBranchAddress( "cef3_corr", cef3_corr );
 
 
 
 
-  TProfile* hp_asymm_x = new TProfile("asymm_x", "", 20, -10., 10.);
-  TProfile* hp_asymm_y = new TProfile("asymm_y", "", 20, -10., 10.);
+  TProfile* hp_asymm_x = new TProfile("asymm_x", "", 30, -15., 15.);
+  TProfile* hp_asymm_y = new TProfile("asymm_y", "", 30, -15., 15.);
 
-  TProfile* hp_asymm_x_log = new TProfile("asymm_x_log", "", 20, -10., 10.);
-  TProfile* hp_asymm_y_log = new TProfile("asymm_y_log", "", 20, -10., 10.);
+  TProfile* hp_asymm_log_x = new TProfile("asymm_log_x", "", 30, -15., 15.);
+  TProfile* hp_asymm_log_y = new TProfile("asymm_log_y", "", 30, -15., 15.);
 
-  TProfile* hp_wa_x = new TProfile("wa_x", "", 20, -10., 10.);
-  TProfile* hp_wa_y = new TProfile("wa_y", "", 20, -10., 10.);
+  TProfile* hp_wa_x = new TProfile("wa_x", "", 30, -15., 15.);
+  TProfile* hp_wa_y = new TProfile("wa_y", "", 30, -15., 15.);
 
-  TProfile* hp_wa_x_log = new TProfile("wa_x_log", "", 20, -10., 10.);
-  TProfile* hp_wa_y_log = new TProfile("wa_y_log", "", 20, -10., 10.);
+  TProfile* hp_wa_log_x = new TProfile("wa_log_x", "", 30, -15., 15.);
+  TProfile* hp_wa_log_y = new TProfile("wa_log_y", "", 30, -15., 15.);
+
+  TProfile* hp_wa_calo_x = new TProfile("wa_calo_x", "", 30, -15., 15.);
+  TProfile* hp_wa_calo_y = new TProfile("wa_calo_y", "", 30, -15., 15.);
+
+  TProfile* hp_wa_calo_log_x = new TProfile("wa_calo_log_x", "", 30, -15., 15.);
+  TProfile* hp_wa_calo_log_y = new TProfile("wa_calo_log_y", "", 30, -15., 15.);
+
 
 
 
@@ -98,6 +114,7 @@ int main( int argc, char* argv[] ) {
     tree->GetEntry(i);
 
     if( !isSingleEle_scintFront ) continue;
+    //if( !bgo_corr_ok ) continue;
 
 
     std::vector<float> v_bgo_corr;
@@ -117,8 +134,8 @@ int main( int argc, char* argv[] ) {
     float top    = bgo_corr[0]+bgo_corr[1]+bgo_corr[2];
     float bottom = bgo_corr[5]+bgo_corr[6]+bgo_corr[7];
 
-    float asymm_y = (top-bottom)/(top+bottom);
-    float asymm_x = (right-left)/(right+left);
+    float asymm_y = ((top+bottom)>0.) ? (top-bottom)/(top+bottom) : 0.;
+    float asymm_x = ((right+left)>0.) ? (right-left)/(right+left) : 0.;
 
     hp_asymm_x->Fill( xBeam, asymm_x );
     hp_asymm_y->Fill( yBeam, asymm_y );
@@ -126,16 +143,26 @@ int main( int argc, char* argv[] ) {
 
     // SECOND METHOD: LOG ASYMM
 
-    float left_log   = log(bgo_corr[0])+log(bgo_corr[3])+log(bgo_corr[5]);
-    float right_log  = log(bgo_corr[2])+log(bgo_corr[4])+log(bgo_corr[7]);
-    float top_log    = log(bgo_corr[0])+log(bgo_corr[1])+log(bgo_corr[2]);
-    float bottom_log = log(bgo_corr[5])+log(bgo_corr[6])+log(bgo_corr[7]);
+    float logbgo[8];
+    logbgo[0] = (bgo_corr[0]>=1.) ? log(bgo_corr[0]) : 0.;
+    logbgo[1] = (bgo_corr[1]>=1.) ? log(bgo_corr[1]) : 0.;
+    logbgo[2] = (bgo_corr[2]>=1.) ? log(bgo_corr[2]) : 0.;
+    logbgo[3] = (bgo_corr[3]>=1.) ? log(bgo_corr[3]) : 0.;
+    logbgo[4] = (bgo_corr[4]>=1.) ? log(bgo_corr[4]) : 0.;
+    logbgo[5] = (bgo_corr[5]>=1.) ? log(bgo_corr[5]) : 0.;
+    logbgo[6] = (bgo_corr[6]>=1.) ? log(bgo_corr[6]) : 0.;
+    logbgo[7] = (bgo_corr[7]>=1.) ? log(bgo_corr[7]) : 0.;
 
-    float asymm_y_log = (top_log-bottom_log)/(top_log+bottom_log);
-    float asymm_x_log = (right_log-left_log)/(right_log+left_log);
+    float left_log   = logbgo[0]+logbgo[3]+logbgo[5];
+    float right_log  = logbgo[2]+logbgo[4]+logbgo[7];
+    float top_log    = logbgo[0]+logbgo[1]+logbgo[2];
+    float bottom_log = logbgo[5]+logbgo[6]+logbgo[7];
 
-    hp_asymm_x_log->Fill( xBeam, asymm_x_log );
-    hp_asymm_y_log->Fill( yBeam, asymm_y_log );
+    float asymm_log_y = ((top_log+bottom_log)>0.) ? (top_log-bottom_log)/(top_log+bottom_log) : 0.;
+    float asymm_log_x = ((right_log+left_log)>0.) ? (right_log-left_log)/(right_log+left_log) : 0.;
+
+    hp_asymm_log_x->Fill( xBeam, asymm_log_x );
+    hp_asymm_log_y->Fill( yBeam, asymm_log_y );
 
 
     // THIRD METHOD: WEIGHTED AVERAGE
@@ -166,8 +193,8 @@ int main( int argc, char* argv[] ) {
 
     // FOURTH METHOD: WEIGHTED AVERAGE WITH LOG WEIGHTS
 
-    float wa_x_log = 0.;
-    float wa_y_log = 0.;
+    float wa_log_x = 0.;
+    float wa_log_y = 0.;
     float sumw_log = 0.;
 
     for( unsigned i=0; i<v_bgo_corr.size(); ++i ) {
@@ -175,152 +202,82 @@ int main( int argc, char* argv[] ) {
       float xbgo, ybgo;
       PositionTools::getBGOCoordinates( i, xbgo, ybgo );
   
-      float w = log(v_bgo_corr[i]);
+      float w = logbgo[i];
   
-      wa_x_log += w*xbgo;
-      wa_y_log += w*ybgo;
+      wa_log_x += w*xbgo;
+      wa_log_y += w*ybgo;
       sumw_log += w;
   
     }
     
-    wa_x_log /= sumw_log;
-    wa_y_log /= sumw_log;
+    wa_log_x /= sumw_log;
+    wa_log_y /= sumw_log;
 
-    hp_wa_x_log->Fill( xBeam, wa_x_log );
-    hp_wa_y_log->Fill( yBeam, wa_y_log );
+    hp_wa_log_x->Fill( xBeam, wa_log_x );
+    hp_wa_log_y->Fill( yBeam, wa_log_y );
+
+
+    // FIFTH METHOD: WEIGHTED AVERAGE ADDING ALSO CEF3
+
+    float etot_cef3 = cef3_corr[0] + cef3_corr[1] + cef3_corr[2] + cef3_corr[3];
+    float etot_cef3_calib = 0.79*etot_cef3;
+    float sumw_calo = sumw + etot_cef3_calib;
+
+    float wa_calo_x = wa_x * sumw / sumw_calo;
+    float wa_calo_y = wa_y * sumw / sumw_calo;
+
+    hp_wa_calo_x->Fill( xBeam, wa_calo_x );
+    hp_wa_calo_y->Fill( yBeam, wa_calo_y );
+
+
+
+
+    // SIXTH METHOD: LOG-WEIGHTED AVERAGE ADDING ALSO CEF3
+
+
+    float wacalolog_x=0.;
+    float wacalolog_y=0.;
+    float sumwcalolog = 0.;
+
+
+    for( unsigned i=0; i<v_bgo_corr.size(); ++i ) {
+
+      float xbgo, ybgo;
+      PositionTools::getBGOCoordinates( i, xbgo, ybgo );
+
+      float w = (v_bgo_corr[i]>=1.) ? log(v_bgo_corr[i]) : 0.;
+
+      wacalolog_x += w*xbgo;
+      wacalolog_y += w*ybgo;
+      sumwcalolog += w;
+
+    }
+
+    float etot_cef3_log = (etot_cef3_calib>=1.) ? log(etot_cef3_calib) : 0.;
+    
+    sumwcalolog += etot_cef3_log;
+
+    wacalolog_x /= sumwcalolog;
+    wacalolog_y /= sumwcalolog;
+
+
+    hp_wa_calo_log_x->Fill( xBeam, wacalolog_x );
+    hp_wa_calo_log_y->Fill( yBeam, wacalolog_y );
+
     
   }
 
   std::string outputdir = "BGOPositioningPlots_" + tag;
-  std::system(Form("mkdir -p %s", outputdir.c_str()));
+  system(Form("mkdir -p %s", outputdir.c_str()));
 
   FitResults fr_asymm = drawAndGetCoeff( outputdir, "asymm", hp_asymm_x, hp_asymm_y );
-  FitResults fr_asymm_log = drawAndGetCoeff( outputdir, "asymm_log", hp_asymm_x_log, hp_asymm_y_log );
+  FitResults fr_asymm_log = drawAndGetCoeff( outputdir, "asymm_log", hp_asymm_log_x, hp_asymm_log_y );
   FitResults fr_wa = drawAndGetCoeff( outputdir, "wa", hp_wa_x, hp_wa_y );
-  FitResults fr_wa_log = drawAndGetCoeff( outputdir, "wa_log", hp_wa_x_log, hp_wa_y_log );
+  FitResults fr_wa_log = drawAndGetCoeff( outputdir, "wa_log", hp_wa_log_x, hp_wa_log_y );
+  FitResults fr_wa_calo = drawAndGetCoeff( outputdir, "wa_calo", hp_wa_calo_x, hp_wa_calo_y );
+  FitResults fr_wa_calo_log = drawAndGetCoeff( outputdir, "wa_calo_log", hp_wa_calo_log_x, hp_wa_calo_log_y );
 
 
-
-
-/*
-  // second round to test the method performances
-
-  std::vector<TH1D*> vh1_perfx_asymm = getPerformanceVector("asymm_x");
-  std::vector<TH1D*> vh1_perfx_asymm_log = getPerformanceVector("asymm_x_log");
-  std::vector<TH1D*> vh1_perfx_wa = getPerformanceVector("wa_x");
-  std::vector<TH1D*> vh1_perfx_wa_log = getPerformanceVector("wa_x_log");
-
-  std::vector<TH1D*> vh1_perfy_asymm = getPerformanceVector("asymm_y");
-  std::vector<TH1D*> vh1_perfy_asymm_log = getPerformanceVector("asymm_y_log");
-  std::vector<TH1D*> vh1_perfy_wa = getPerformanceVector("wa_y");
-  std::vector<TH1D*> vh1_perfy_wa_log = getPerformanceVector("wa_y_log");
-  
-
-
-
-  for( unsigned i=0; i<nentries; ++i ) {
-
-    tree->GetEntry(i);
-
-    if( !isSingleEle_scintFront ) continue;
-
-
-    std::vector<float> v_bgo_corr;
-    for( unsigned i=0; i<BGO_CHANNELS; ++i ) v_bgo_corr.push_back(bgo_corr[i]);
-
-
-    int iBin_x = 
-
-    // FIRST METHOD: LINEAR ASYMM
-
-    float left   = bgo_corr[0]+bgo_corr[3]+bgo_corr[5];
-    float right  = bgo_corr[2]+bgo_corr[4]+bgo_corr[7];
-    float top    = bgo_corr[0]+bgo_corr[1]+bgo_corr[2];
-    float bottom = bgo_corr[5]+bgo_corr[6]+bgo_corr[7];
-
-    float asymm_y = (top-bottom)/(top+bottom);
-    float asymm_x = (right-left)/(right+left);
-
-    float xPos_asymm = (asymm_x-fr_asymm.p0x)/fr_asymm.p1x;
-    float yPos_asymm = (asymm_y-fr_asymm.p0y)/fr_asymm.p1y;
-
-    
-
-
-    // SECOND METHOD: LOG ASYMM
-
-    float left_log   = log(bgo_corr[0])+log(bgo_corr[3])+log(bgo_corr[5]);
-    float right_log  = log(bgo_corr[2])+log(bgo_corr[4])+log(bgo_corr[7]);
-    float top_log    = log(bgo_corr[0])+log(bgo_corr[1])+log(bgo_corr[2]);
-    float bottom_log = log(bgo_corr[5])+log(bgo_corr[6])+log(bgo_corr[7]);
-
-    float asymm_y_log = (top_log-bottom_log)/(top_log+bottom_log);
-    float asymm_x_log = (right_log-left_log)/(right_log+left_log);
-
-    hp_asymm_x_log->Fill( xBeam, asymm_x_log );
-    hp_asymm_y_log->Fill( yBeam, asymm_y_log );
-
-
-    // THIRD METHOD: WEIGHTED AVERAGE
-
-    std::vector<float> xPosW_bgo;
-    std::vector<float> yPosW_bgo;
-
-    xPosW_bgo.push_back(v_bgo_corr[0]*xbgo[0]);
-    xPosW_bgo.push_back(v_bgo_corr[1]*xbgo[1]);
-    xPosW_bgo.push_back(v_bgo_corr[2]*xbgo[2]);
-    xPosW_bgo.push_back(v_bgo_corr[3]*xbgo[3]);
-    xPosW_bgo.push_back(v_bgo_corr[4]*xbgo[4]);
-    xPosW_bgo.push_back(v_bgo_corr[5]*xbgo[5]);
-    xPosW_bgo.push_back(v_bgo_corr[6]*xbgo[6]);
-    xPosW_bgo.push_back(v_bgo_corr[7]*xbgo[7]);
-    
-    yPosW_bgo.push_back(v_bgo_corr[0]*ybgo[0]);
-    yPosW_bgo.push_back(v_bgo_corr[1]*ybgo[1]);
-    yPosW_bgo.push_back(v_bgo_corr[2]*ybgo[2]);
-    yPosW_bgo.push_back(v_bgo_corr[3]*ybgo[3]);
-    yPosW_bgo.push_back(v_bgo_corr[4]*ybgo[4]);
-    yPosW_bgo.push_back(v_bgo_corr[5]*ybgo[5]);
-    yPosW_bgo.push_back(v_bgo_corr[6]*ybgo[6]);
-    yPosW_bgo.push_back(v_bgo_corr[7]*ybgo[7]);
-
-    float wa_x = sumVector( xPosW_bgo )/sumVector( v_bgo_corr );
-    float wa_y = sumVector( yPosW_bgo )/sumVector( v_bgo_corr );
-    
-    hp_wa_x->Fill( xBeam, wa_x );
-    hp_wa_y->Fill( yBeam, wa_y );
-
-
-    // FOURTH METHOD: WEIGHTED AVERAGE WITH LOG WEIGHTS
-
-    std::vector<float> xPosW_bgo_log;
-    std::vector<float> yPosW_bgo_log;
-
-    xPosW_bgo_log.push_back(log(v_bgo_corr[0])*xbgo[0]);
-    xPosW_bgo_log.push_back(log(v_bgo_corr[1])*xbgo[1]);
-    xPosW_bgo_log.push_back(log(v_bgo_corr[2])*xbgo[2]);
-    xPosW_bgo_log.push_back(log(v_bgo_corr[3])*xbgo[3]);
-    xPosW_bgo_log.push_back(log(v_bgo_corr[4])*xbgo[4]);
-    xPosW_bgo_log.push_back(log(v_bgo_corr[5])*xbgo[5]);
-    xPosW_bgo_log.push_back(log(v_bgo_corr[6])*xbgo[6]);
-    xPosW_bgo_log.push_back(log(v_bgo_corr[7])*xbgo[7]);
-    
-    yPosW_bgo_log.push_back(log(v_bgo_corr[0])*ybgo[0]);
-    yPosW_bgo_log.push_back(log(v_bgo_corr[1])*ybgo[1]);
-    yPosW_bgo_log.push_back(log(v_bgo_corr[2])*ybgo[2]);
-    yPosW_bgo_log.push_back(log(v_bgo_corr[3])*ybgo[3]);
-    yPosW_bgo_log.push_back(log(v_bgo_corr[4])*ybgo[4]);
-    yPosW_bgo_log.push_back(log(v_bgo_corr[5])*ybgo[5]);
-    yPosW_bgo_log.push_back(log(v_bgo_corr[6])*ybgo[6]);
-    yPosW_bgo_log.push_back(log(v_bgo_corr[7])*ybgo[7]);
-
-    float wa_x_log = sumVector( xPosW_bgo_log )/sumVector( v_bgo_corr );
-    float wa_y_log = sumVector( yPosW_bgo_log )/sumVector( v_bgo_corr );
-    
-
-
-  }  
-*/
 
   return 0;
 
@@ -362,12 +319,12 @@ FitResults drawAndGetCoeff( const std::string& outputdir, const std::string& nam
 
 
 
-  TCanvas* c1 = new TCanvas("c1", "", 600., 600.); 
+  TCanvas* c1 = new TCanvas("c2", "", 600., 600.); 
   c1->cd();
 
   float yMax = hp_x->GetMaximum()*1.2;
 
-  TH2D* h2_axes = new TH2D("axes", "", 10, -10., 10., 10., -yMax, yMax );
+  TH2D* h2_axes = new TH2D("axes", "", 10, -15., 15., 10, -yMax, yMax );
   h2_axes->SetXTitle("Beam Position [mm]");
   //h2_axes->SetYTitle("BGO Asymmetry");
   h2_axes->SetYTitle(name.c_str());
@@ -428,6 +385,9 @@ FitResults drawAndGetCoeff( const std::string& outputdir, const std::string& nam
   fr.p1_x = line_x->GetParameter(1);
   fr.p0_y = line_y->GetParameter(0);
   fr.p1_y = line_y->GetParameter(1);
+
+  delete c1;
+  delete h2_axes;
 
   return fr;
 

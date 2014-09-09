@@ -51,7 +51,8 @@ struct Histo2AndName {
 TH2D* getSingleHisto( TTree* tree, const std::string& name, const std::string& varName, const std::string& varExpr, const std::string& cuts );
 std::pair<TH1D*,TH1D*> getBiasAndResoHistos( TH2D* h2 );
 std::pair<TH1D*,TH1D*> getBiasAndResoHistosHodo( const std::string& outputdir, TH2D* h2 );
-void checkLateralScan( const std::string& outputdir, const std::string& name, TTree* tree, const std::string& refVar, const std::string& axisName, const std::string& cut );
+//void checkLateralScan( const std::string& outputdir, const std::string& name, TTree* tree, const std::string& refVar, const std::string& axisName, const std::string& cut );
+void checkLateralScan( const std::string& outputdir, const std::string& name, TTree* tree, std::vector< std::pair< std::string, std::string> > names, const std::string& refVar, const std::string& axisName, const std::string& cut );
 void drawPerformancePlot( const std::string& outputdir, const std::string& name, const std::string& var, std::vector< HistoAndName > hn, const std::string& bias_reso, const std::string& axisName, float xMin, float xMax );
 void drawProjections( const std::string& outputdir, const std::string& name, std::vector<Histo2AndName> hn, const std::string& var );
 void checkBGOScan( const std::string& outputdir, const std::string& name, TTree* tree );
@@ -85,15 +86,22 @@ int main( int argc, char* argv[] ) {
   std::string outputdir = "BGOPositioningPlots_" + tag;
   std::system(Form("mkdir -p %s", outputdir.c_str()));
 
-  checkLateralScan( outputdir, "all"    , tree, "Beam", "Beam", "(yBeam==0. && abs(xBeam)>0.2) || (xBeam==0. && abs(yBeam)>0.2) || (xBeam==yBeam && xBeam>0.) || (xBeam==-yBeam && xBeam>0.)" );
-  checkLateralScan( outputdir, "horiz"  , tree, "Beam", "Beam", "yBeam==0. && abs(xBeam)>0.2" );
-  checkLateralScan( outputdir, "vert"   , tree, "Beam", "Beam", "xBeam==0. && abs(yBeam)>0.2" );
-  checkLateralScan( outputdir, "diag13" , tree, "Beam", "Beam", "xBeam==yBeam && xBeam>0." );
-  checkLateralScan( outputdir, "diag02" , tree, "Beam", "Beam", "xBeam==-yBeam && xBeam>0." );
+
+  std::vector< std::pair< std::string, std::string> > names; // first is varName, second is legendName
+  names.push_back( std::pair<std::string, std::string>("bgo_asymm", "Asymmetry") );
+  names.push_back( std::pair<std::string, std::string>("bgo_asymmlog", "Log-Asymmetry") );
+  names.push_back( std::pair<std::string, std::string>("bgo_wa", "Weighted Average") );
+  names.push_back( std::pair<std::string, std::string>("bgo_walog", "Log-Weighted Average") );
+
+  checkLateralScan( outputdir, "all"    , tree, names, "Beam", "Beam", "(yBeam==0. && abs(xBeam)>0.2) || (xBeam==0. && abs(yBeam)>0.2) || (xBeam==yBeam && xBeam>0.) || (xBeam==-yBeam && xBeam>0.)" );
+  checkLateralScan( outputdir, "horiz"  , tree, names, "Beam", "Beam", "yBeam==0. && abs(xBeam)>0.2" );
+  checkLateralScan( outputdir, "vert"   , tree, names, "Beam", "Beam", "xBeam==0. && abs(yBeam)>0.2" );
+  checkLateralScan( outputdir, "diag13" , tree, names, "Beam", "Beam", "xBeam==yBeam && xBeam>0." );
+  checkLateralScan( outputdir, "diag02" , tree, names, "Beam", "Beam", "xBeam==-yBeam && xBeam>0." );
 
   TFile* file_hodo = TFile::Open(Form("PosAnTrees_%s/PosAn_BTF_246_beam.root", tag.c_str()));
   TTree* tree_hodo = (TTree*)file_hodo->Get("posTree");
-  checkLateralScan( outputdir, "hodo" , tree_hodo, "Pos_hodo", "Hodoscope", "nHodoClustersX==1 && nHodoClustersY==1 && nFibres_hodoClustX[0]<=2 && nFibres_hodoClustY[0]<=2" );
+  checkLateralScan( outputdir, "hodo" , tree_hodo, names, "Pos_hodo", "Hodoscope", "nHodoClustersX==1 && nHodoClustersY==1 && nFibres_hodoClustX[0]<=2 && nFibres_hodoClustY[0]<=2" );
 
   checkHodo( outputdir, "horizHodo", tree, "x", "run==149 || run==150 || run==151" );
   checkHodo( outputdir, "vertHodo" , tree, "y", "run==160 || run==161 || run==162" );
@@ -105,9 +113,28 @@ int main( int argc, char* argv[] ) {
   checkHodo( outputdir, "diag13Hodo" , tree, "y", "run==136 || run==141" );
 
 
+  TFile* file_hodo_defoc = TFile::Open(Form("PosAnTrees_%s/PosAn_BTF_248_beam.root", tag.c_str()));
+  TTree* tree_hodo_defoc = (TTree*)file_hodo_defoc->Get("posTree");
+
+  checkHodo( outputdir, "hodoDefoc" , tree_hodo_defoc, "x", "run>0" );
+  checkHodo( outputdir, "hodoDefoc" , tree_hodo_defoc, "y", "run>0" );
+
+  //checkLateralScan( outputdir, "hodoDefoc" , tree_hodo_defoc, "Pos_hodo", "Hodoscope", "nHodoClustersX==1 && nHodoClustersY==1 && nFibres_hodoClustX[0]<=2 && nFibres_hodoClustY[0]<=2" );
+
+
   //TFile* file_bgo = TFile::Open(Form("PosAnTrees_%s/BGORuns.root", tag.c_str()));
   //TTree* tree_bgo = (TTree*)file_bgo->Get("posTree");
   //checkBGOScan( outputdir, "bgo", tree_bgo );
+
+  std::vector< std::pair< std::string, std::string> > names_calo; // first is varName, second is legendName
+  names_calo.push_back( std::pair<std::string, std::string>("bgo_wa", "BGO Weighted Average") );
+  names_calo.push_back( std::pair<std::string, std::string>("calo_wa", "3x3 Weighted Average") );
+  names_calo.push_back( std::pair<std::string, std::string>("calo_walog", "3x3 Log-Weighted Average") );
+
+  checkLateralScan( outputdir, "horizCalo"  , tree, names_calo, "Beam", "Beam", "yBeam==0. && abs(xBeam)>0.2 " );
+  checkLateralScan( outputdir, "vertCalo"   , tree, names_calo, "Beam", "Beam", "xBeam==0. && abs(yBeam)>0.2 " );
+  checkLateralScan( outputdir, "diag13Calo" , tree, names_calo, "Beam", "Beam", "xBeam==yBeam  && xBeam>0. " );
+  checkLateralScan( outputdir, "diag02Calo" , tree, names_calo, "Beam", "Beam", "xBeam==-yBeam && xBeam>0. " );
 
   return 0;
 
@@ -133,6 +160,57 @@ void checkHodo( const std::string& outputdir, const std::string& name, TTree* tr
   drawPerformancePlot( outputdir, name, var, hn_reso_hodo, "reso", Form("Beam %s Position [mm]", var.c_str()), -4., 4. );
 
 }
+
+
+
+
+
+void checkLateralScan( const std::string& outputdir, const std::string& name, TTree* tree, std::vector< std::pair< std::string, std::string> > names, const std::string& refVar, const std::string& axisName, const std::string& cut ) {
+
+
+  std::vector< Histo2AndName > hn_x;
+  std::vector< Histo2AndName > hn_y;
+
+  std::vector< HistoAndName > hn_bias_x;
+  std::vector< HistoAndName > hn_bias_y;
+
+  std::vector< HistoAndName > hn_reso_x;
+  std::vector< HistoAndName > hn_reso_y;
+
+
+
+  for( unsigned i=0; i<names.size(); ++i ) {
+
+    TH2D* h2_x = getSingleHisto( tree, name, Form("%s_x", names[i].first.c_str()), Form("(xPos_%s-x%s):x%s", names[i].first.c_str(), refVar.c_str(), refVar.c_str()), cut );
+    TH2D* h2_y = getSingleHisto( tree, name, Form("%s_y", names[i].first.c_str()), Form("(yPos_%s-y%s):y%s", names[i].first.c_str(), refVar.c_str(), refVar.c_str()), cut );
+
+    hn_x.push_back( Histo2AndName(h2_x, names[i].second) );
+    hn_y.push_back( Histo2AndName(h2_y, names[i].second) );
+
+    std::pair<TH1D*,TH1D*> p_x = getBiasAndResoHistos(h2_x);
+    std::pair<TH1D*,TH1D*> p_y = getBiasAndResoHistos(h2_y);
+    
+    hn_bias_x.push_back( HistoAndName(p_x.first, names[i].second) );
+    hn_bias_y.push_back( HistoAndName(p_y.first, names[i].second) );
+
+    hn_reso_x.push_back( HistoAndName(p_x.second, names[i].second) );
+    hn_reso_y.push_back( HistoAndName(p_y.second, names[i].second) );
+
+  }
+
+
+  drawProjections( outputdir, name, hn_x, "x" );
+  drawProjections( outputdir, name, hn_y, "y" );
+
+
+  if( name!="vert" ) drawPerformancePlot( outputdir, name, "x", hn_bias_x, "bias", Form("%s x Position [mm]", axisName.c_str()), -15., 15. );
+  if( name!="horiz") drawPerformancePlot( outputdir, name, "y", hn_bias_y, "bias", Form("%s y Position [mm]", axisName.c_str()), -15., 15. );
+  if( name!="vert" ) drawPerformancePlot( outputdir, name, "x", hn_reso_x, "reso", Form("%s x Position [mm]", axisName.c_str()), -15., 15. );
+  if( name!="horiz") drawPerformancePlot( outputdir, name, "y", hn_reso_y, "reso", Form("%s y Position [mm]", axisName.c_str()), -15., 15. );
+
+}
+
+
 
 
 void checkBGOScan( const std::string& outputdir, const std::string& name, TTree* tree ) {
@@ -303,76 +381,6 @@ void checkBGOScan( const std::string& outputdir, const std::string& name, TTree*
   drawPerformancePlot( outputdir, name, "y", hn_reso_y, "reso", "BGO Channel", xMin, xMax );
 
     
-
-}
-
-
-
-
-void checkLateralScan( const std::string& outputdir, const std::string& name, TTree* tree, const std::string& refVar, const std::string& axisName, const std::string& cut ) {
-
-  TH2D* h2_asymm_x = getSingleHisto( tree, name, "asymm_x", Form("(xPos_bgo_asymm-x%s):x%s", refVar.c_str(), refVar.c_str()), cut );
-  TH2D* h2_asymm_y = getSingleHisto( tree, name, "asymm_y", Form("(yPos_bgo_asymm-y%s):y%s", refVar.c_str(), refVar.c_str()), cut );
-  TH2D* h2_asymm_log_x = getSingleHisto( tree, name, "asymm_log_x", Form("(xPos_bgo_asymmlog-x%s):x%s", refVar.c_str(), refVar.c_str()), cut );
-  TH2D* h2_asymm_log_y = getSingleHisto( tree, name, "asymm_log_y", Form("(yPos_bgo_asymmlog-y%s):y%s", refVar.c_str(), refVar.c_str()), cut );
-  TH2D* h2_wa_x = getSingleHisto( tree, name, "wa_x", Form("(xPos_bgo_wa-x%s):x%s", refVar.c_str(), refVar.c_str()), cut );
-  TH2D* h2_wa_y = getSingleHisto( tree, name, "wa_y", Form("(yPos_bgo_wa-y%s):y%s", refVar.c_str(), refVar.c_str()), cut );
-  TH2D* h2_wa_log_x = getSingleHisto( tree, name, "wa_log_x", Form("(xPos_bgo_walog-x%s):x%s", refVar.c_str(), refVar.c_str()), cut );
-  TH2D* h2_wa_log_y = getSingleHisto( tree, name, "wa_log_y", Form("(yPos_bgo_walog-y%s):y%s", refVar.c_str(), refVar.c_str()), cut );
-
-
-  std::vector< Histo2AndName > hn_x;
-  hn_x.push_back( Histo2AndName(h2_asymm_x, "Asymmetry") );
-  hn_x.push_back( Histo2AndName(h2_asymm_log_x, "Log-Asymmetry") );
-  hn_x.push_back( Histo2AndName(h2_wa_x, "Weighted Average") );
-  hn_x.push_back( Histo2AndName(h2_wa_log_x, "Log-Weighted Average") );
-
-  std::vector< Histo2AndName > hn_y;
-  hn_y.push_back( Histo2AndName(h2_asymm_y, "Asymmetry") );
-  hn_y.push_back( Histo2AndName(h2_asymm_log_y, "Log-Asymmetry") );
-  hn_y.push_back( Histo2AndName(h2_wa_y, "Weighted Average") );
-  hn_y.push_back( Histo2AndName(h2_wa_log_y, "Log-Weighted Average") );
-
-  drawProjections( outputdir, name, hn_x, "x" );
-  drawProjections( outputdir, name, hn_y, "y" );
-
-  std::pair<TH1D*,TH1D*> p_asymm_x = getBiasAndResoHistos(h2_asymm_x);
-  std::pair<TH1D*,TH1D*> p_asymm_y = getBiasAndResoHistos(h2_asymm_y);
-  std::pair<TH1D*,TH1D*> p_asymm_log_x = getBiasAndResoHistos(h2_asymm_log_x);
-  std::pair<TH1D*,TH1D*> p_asymm_log_y = getBiasAndResoHistos(h2_asymm_log_y);
-  std::pair<TH1D*,TH1D*> p_wa_x = getBiasAndResoHistos(h2_wa_x);
-  std::pair<TH1D*,TH1D*> p_wa_y = getBiasAndResoHistos(h2_wa_y);
-  std::pair<TH1D*,TH1D*> p_wa_log_x = getBiasAndResoHistos(h2_wa_log_x);
-  std::pair<TH1D*,TH1D*> p_wa_log_y = getBiasAndResoHistos(h2_wa_log_y);
-
-  std::vector< HistoAndName > hn_bias_x;
-  hn_bias_x.push_back( HistoAndName(p_asymm_x.first, "Asymmetry") );
-  hn_bias_x.push_back( HistoAndName(p_asymm_log_x.first, "Log-Asymmetry") );
-  hn_bias_x.push_back( HistoAndName(p_wa_x.first, "Weighted Average") );
-  hn_bias_x.push_back( HistoAndName(p_wa_log_x.first, "Log-Weighted Average") );
-
-  std::vector< HistoAndName > hn_bias_y;
-  hn_bias_y.push_back( HistoAndName(p_asymm_y.first, "Asymmetry") );
-  hn_bias_y.push_back( HistoAndName(p_asymm_log_y.first, "Log-Asymmetry") );
-  hn_bias_y.push_back( HistoAndName(p_wa_y.first, "Weighted Average") );
-  hn_bias_y.push_back( HistoAndName(p_wa_log_y.first, "Log-Weighted Average") );
-
-  std::vector< HistoAndName > hn_reso_x;
-  hn_reso_x.push_back( HistoAndName(p_asymm_x.second, "Asymmetry") );
-  hn_reso_x.push_back( HistoAndName(p_asymm_log_x.second, "Log-Asymmetry") );
-  hn_reso_x.push_back( HistoAndName(p_wa_x.second, "Weighted Average") );
-  hn_reso_x.push_back( HistoAndName(p_wa_log_x.second, "Log-Weighted Average") );
-
-  std::vector< HistoAndName > hn_reso_y;
-  hn_reso_y.push_back( HistoAndName(p_asymm_y.second, "Asymmetry") );
-  hn_reso_y.push_back( HistoAndName(p_asymm_log_y.second, "Log-Asymmetry") );
-  hn_reso_y.push_back( HistoAndName(p_wa_y.second, "Weighted Average") );
-  hn_reso_y.push_back( HistoAndName(p_wa_log_y.second, "Log-Weighted Average") );
-
-  if( name!="vert" ) drawPerformancePlot( outputdir, name, "x", hn_bias_x, "bias", Form("%s x Position [mm]", axisName.c_str()), -15., 15. );
-  if( name!="horiz") drawPerformancePlot( outputdir, name, "y", hn_bias_y, "bias", Form("%s y Position [mm]", axisName.c_str()), -15., 15. );
-  if( name!="vert" ) drawPerformancePlot( outputdir, name, "x", hn_reso_x, "reso", Form("%s x Position [mm]", axisName.c_str()), -15., 15. );
-  if( name!="horiz") drawPerformancePlot( outputdir, name, "y", hn_reso_y, "reso", Form("%s y Position [mm]", axisName.c_str()), -15., 15. );
 
 }
 

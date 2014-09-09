@@ -20,6 +20,7 @@ TH1D* fitSingleChannelBGO( const std::string& outputdir, const std::string& name
 TH1D* fitCeF3( const std::string& outputdir, const std::string& name, const std::string& tag, const std::string& runName );
 TH1D* fitSingleChannel( const std::string& outputdir, const std::string& name, const std::string& tag, const std::string& runName,  const std::string& varName, const std::string& plotName, int nBins, float xMin, float xMax );
 void drawHistos( const std::string& outputdir, std::vector<TH1D*> histos, const std::string& name, float yMax, float xMax = 4000. );
+void drawBGO_vs_Cef3( const std::string& outputdir, TH1D* h1_cef3, std::vector<TH1D*> bgohistos, const std::string& name, float yMax );
 float sumVector( std::vector<float> v );
 
 
@@ -82,6 +83,7 @@ int main() {
   drawHistos( outputdir, calibHistos, "calibSpectra", yMax );
 
 
+
   std::cout << std::endl;
   std::cout << "-> Calibration constants saved in: " << constantsFileName << std::endl;
 
@@ -91,6 +93,8 @@ int main() {
   std::string run_cef3 = "BTF_246_beam";
   TH1D* h1_cef3 = fitCeF3( outputdir, "cef3_raw", tag, run_cef3 );
   TF1* f1_cef3 = (TF1*)(h1_cef3->GetListOfFunctions()->FindObject(Form("gaussian_%s", run_cef3.c_str())));
+
+  drawBGO_vs_Cef3( outputdir, h1_cef3, calibHistos, "bgo_vs_cef3", yMax );
 
   std::cout << "BGO/CeF3 relative calibration: " << calibAve/f1_cef3->GetParameter(1) << std::endl;
   
@@ -121,7 +125,7 @@ void drawHistos( const std::string& outputdir, std::vector<TH1D*> histos, const 
   legend->SetTextSize(0.035);
 
   TH2D* h2_axes = new TH2D("axes", "", 10, 0., xMax, 10, 0., 1.1*yMax );
-  h2_axes->SetXTitle( "BGO ADC Channel" );
+  h2_axes->SetXTitle( "BGO ADC Counts" );
   h2_axes->SetYTitle( "Normalized to Unity" );
   h2_axes->Draw("");
 
@@ -133,6 +137,66 @@ void drawHistos( const std::string& outputdir, std::vector<TH1D*> histos, const 
     legend->AddEntry( histos[i], Form("Channel %d", i), "L" );
 
   }
+
+
+  TPaveText* labelTop = DrawTools::getLabelTop(); 
+  labelTop->Draw("same");
+
+  legend->Draw("same");
+
+  c2->SaveAs( Form("%s/%s.eps", outputdir.c_str(), name.c_str()) );
+  c2->SaveAs( Form("%s/%s.png", outputdir.c_str(), name.c_str()) );
+  c2->SaveAs( Form("%s/%s.pdf", outputdir.c_str(), name.c_str()) );
+
+  delete c2;
+  delete h2_axes;
+
+}
+
+
+
+
+void drawBGO_vs_Cef3( const std::string& outputdir, TH1D* h1_cef3, std::vector<TH1D*> bgohistos, const std::string& name, float yMax ) {
+
+  h1_cef3->SetLineColor(kBlack);
+  h1_cef3->SetLineWidth(2);
+
+  std::vector<int> colors;
+  colors.push_back( 46 );
+  colors.push_back( 38 );
+  colors.push_back( 29 );
+  colors.push_back( 42 );
+  colors.push_back( 40 );
+  colors.push_back( 41 );
+  colors.push_back( 45 );
+  colors.push_back( 30 );
+  colors.push_back( 16 );  
+
+  TCanvas* c2 = new TCanvas("c2", "", 600, 600);
+  c2->cd();
+
+  TLegend* legend = new TLegend( 0.7, 0.55, 0.9, 0.9 );
+  legend->SetFillColor(0);
+  legend->SetTextSize(0.035);
+
+  TH2D* h2_axes = new TH2D("axes", "", 10, 0., 6000., 10, 0., 1.1*yMax );
+  h2_axes->SetXTitle( "ADC Counts" );
+  h2_axes->SetYTitle( "Normalized to Unity" );
+  h2_axes->Draw("");
+
+  legend->AddEntry( h1_cef3, "CeF3", "L" );
+
+  for( unsigned i=0; i<bgohistos.size(); ++i ) {
+
+    bgohistos[i]->SetLineColor( colors[i] );
+    bgohistos[i]->SetLineWidth( 2 );
+    bgohistos[i]->DrawNormalized( "histo same" );
+    legend->AddEntry( bgohistos[i], Form("BGO %d", i), "L" );
+
+  }
+
+
+  h1_cef3->DrawNormalized("histo same");
 
 
   TPaveText* labelTop = DrawTools::getLabelTop(); 

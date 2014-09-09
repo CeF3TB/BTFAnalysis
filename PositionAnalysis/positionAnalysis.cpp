@@ -26,8 +26,8 @@ float sumVector( std::vector<float> v );
 bool checkVector( std::vector<float> v, float theMax=4095. );
 
 float getMeanposHodo( int n, float* pos );
-void getCeF3Position( std::vector<float> cef3, float& xPos, float& yPos );
-TF1* getCef3Function( const std::string& diagName );
+//void getCeF3Position( std::vector<float> cef3, float& xPos, float& yPos );
+//TF1* getCef3Function( const std::string& diagName );
 //float gethodointercalib(TString axis, int n);
 
 
@@ -150,13 +150,13 @@ int main( int argc, char* argv[] ) {
   TH1D* h1_yPos_singleEle = new TH1D("yPos_singleEle", "", nBins, -xMax, xMax);
   TH2D* h2_xyPos_singleEle = new TH2D("xyPos_singleEle", "", nBins, -xMax, xMax, nBins, -xMax, xMax);
 
-  TH1D* h1_xPos_new = new TH1D("xPos_new", "", nBins, -xMax, xMax);
-  TH1D* h1_yPos_new = new TH1D("yPos_new", "", nBins, -xMax, xMax);
-  TH2D* h2_xyPos_new = new TH2D("xyPos_new", "", nBins, -xMax, xMax, nBins, -xMax, xMax);
+  TH1D* h1_xPos_cef3 = new TH1D("xPos_cef3", "", nBins, -xMax, xMax);
+  TH1D* h1_yPos_cef3 = new TH1D("yPos_cef3", "", nBins, -xMax, xMax);
+  TH2D* h2_xyPos_cef3 = new TH2D("xyPos_cef3", "", nBins, -xMax, xMax, nBins, -xMax, xMax);
 
-  TH1D* h1_xPos_new_singleEle = new TH1D("xPos_new_singleEle", "", nBins, -xMax, xMax);
-  TH1D* h1_yPos_new_singleEle = new TH1D("yPos_new_singleEle", "", nBins, -xMax, xMax);
-  TH2D* h2_xyPos_new_singleEle = new TH2D("xyPos_new_singleEle", "", nBins, -xMax, xMax, nBins, -xMax, xMax);
+  TH1D* h1_xPos_cef3_singleEle = new TH1D("xPos_cef3_singleEle", "", nBins, -xMax, xMax);
+  TH1D* h1_yPos_cef3_singleEle = new TH1D("yPos_cef3_singleEle", "", nBins, -xMax, xMax);
+  TH2D* h2_xyPos_cef3_singleEle = new TH2D("xyPos_cef3_singleEle", "", nBins, -xMax, xMax, nBins, -xMax, xMax);
 
 
   TH1D* h1_xPos_bgo = new TH1D("xPos_bgo", "", nBins, -xMax, xMax);
@@ -243,7 +243,8 @@ int main( int argc, char* argv[] ) {
   TFile* outfile = TFile::Open( outfileName.c_str(), "RECREATE" );
 
   TTree* outTree = new TTree("posTree","posTree");
-  float xPos_calo_, yPos_calo_;
+  float xPos_calo_wa_, yPos_calo_wa_;
+  float xPos_calo_walog_, yPos_calo_walog_;
   float xPos_hodo_ = 0.;
   float yPos_hodo_ = 0.;
   float xPos_bgo_ = 0.;
@@ -252,11 +253,12 @@ int main( int argc, char* argv[] ) {
   float xPos_bgo_asymmlog_, yPos_bgo_asymmlog_;
   float xPos_bgo_wa_, yPos_bgo_wa_;
   float xPos_bgo_walog_, yPos_bgo_walog_;
-  float xPos_new_, yPos_new_;
+  float xPos_cef3_, yPos_cef3_;
   float xPos_regr2D_, yPos_regr2D_;
   float r02_, r13_;
 
   outTree->Branch( "run", &runNumber, "run/i" );
+  outTree->Branch( "event", &evtNumber, "event/i" );
   outTree->Branch( "isSingleEle_scintFront", &isSingleEle_scintFront, "isSingleEle_scintFront/O" );
   outTree->Branch( "nHodoClustersX", &nHodoClustersX, "nHodoClustersX/I" );
   outTree->Branch( "nHodoClustersY", &nHodoClustersY, "nHodoClustersY/I" );
@@ -281,10 +283,12 @@ int main( int argc, char* argv[] ) {
   outTree->Branch( "yPos_bgo_walog", &yPos_bgo_walog_, "yPos_bgo_walog_/F" );
   outTree->Branch( "xPos_hodo", &xPos_hodo_, "xPos_hodo_/F" );
   outTree->Branch( "yPos_hodo", &yPos_hodo_, "yPos_hodo_/F" );
-  outTree->Branch( "xPos_calo", &xPos_calo_, "xPos_calo_/F" );
-  outTree->Branch( "yPos_calo", &yPos_calo_, "yPos_calo_/F" );
-  outTree->Branch( "xPos_new", &xPos_new_, "xPos_new_/F" );
-  outTree->Branch( "yPos_new", &yPos_new_, "yPos_new_/F" );
+  outTree->Branch( "xPos_calo_wa", &xPos_calo_wa_, "xPos_calo_wa_/F" );
+  outTree->Branch( "yPos_calo_wa", &yPos_calo_wa_, "yPos_calo_wa_/F" );
+  outTree->Branch( "xPos_calo_walog", &xPos_calo_walog_, "xPos_calo_walog_/F" );
+  outTree->Branch( "yPos_calo_walog", &yPos_calo_walog_, "yPos_calo_walog_/F" );
+  outTree->Branch( "xPos_cef3", &xPos_cef3_, "xPos_cef3_/F" );
+  outTree->Branch( "yPos_cef3", &yPos_cef3_, "yPos_cef3_/F" );
   outTree->Branch( "xPos_regr2D", &xPos_regr2D_, "xPos_regr2D_/F" );
   outTree->Branch( "yPos_regr2D", &yPos_regr2D_, "yPos_regr2D_/F" );
 
@@ -391,8 +395,10 @@ int main( int argc, char* argv[] ) {
     xPos_bgo_walog_ = -999.;
     yPos_bgo_walog_ = -999.;
 
-    xPos_calo_ = -999.;
-    yPos_calo_ = -999.;
+    xPos_calo_wa_ = -999.;
+    yPos_calo_wa_ = -999.;
+    xPos_calo_walog_ = -999.;
+    yPos_calo_walog_ = -999.;
 
 
     tree->GetEntry(iEntry);
@@ -536,13 +542,16 @@ int main( int argc, char* argv[] ) {
         yPosW.push_back(cef3_corr[3]*(-position));
 
 
-        getCeF3Position( v_cef3_corr, xPos_new_, yPos_new_ );
-        //diag02_new_ = xPos_new_;
-        //diag13_new_ = yPos_new_;
+        std::cout << std::endl;
+        if( !isSingleEle_scintFront ) continue;
+        std::cout << "event: " << evtNumber << std::endl;
+        PositionTools::getCeF3Position( v_cef3_corr, xPos_cef3_, yPos_cef3_, evtNumber );
+        //diag02_new_ = xPos_cef3_;
+        //diag13_new_ = yPos_cef3_;
 
         float pi = 3.14159;
         float theta = pi/4.; // 45 degrees 
-        TVector2 vnew( xPos_new_, yPos_new_ );
+        TVector2 vnew( xPos_cef3_, yPos_cef3_ );
         TVector2 dnew = vnew.Rotate(-theta);
         diag02_new_ = dnew.Y();
         diag13_new_ = dnew.X();
@@ -565,21 +574,21 @@ int main( int argc, char* argv[] ) {
 
         h2_xyPos->Fill( xPos, yPos );
 
-        h1_xPos_new->Fill( xPos_new_ );
-        h1_yPos_new->Fill( yPos_new_ );
+        h1_xPos_cef3->Fill( xPos_cef3_ );
+        h1_yPos_cef3->Fill( yPos_cef3_ );
 
-        h2_xyPos_new->Fill( xPos_new_, yPos_new_ );
+        h2_xyPos_cef3->Fill( xPos_cef3_, yPos_cef3_ );
 
+        PositionTools::getCaloPositionWA( v_cef3_corr, v_bgo_corr, xPos_calo_wa_, yPos_calo_wa_, false ); 
+        PositionTools::getCaloPositionWA( v_cef3_corr, v_bgo_corr, xPos_calo_walog_, yPos_calo_walog_, true ); 
 
         // positioning with all 9 calorimeter channels:
-        //float xPos_calo = sumVector( xPosW_bgo )/(eTot_bgo_corr + eTot_corr*0.07); // cef3 is in 0,0
-        //float yPos_calo = sumVector( yPosW_bgo )/(eTot_bgo_corr + eTot_corr*0.08); // so counts only in denominator
-        xPos_calo_ = sumVector( xPosW_bgo )/(eTot_bgo_corr + eTot_corr*0.06); // cef3 is in 0,0
-        yPos_calo_ = sumVector( yPosW_bgo )/(eTot_bgo_corr + eTot_corr*0.10); // so counts only in denominator
-        //float xPos_calo = sumVector( xPosW_bgo )/(eTot_bgo_corr + eTot_corr*0.791577); // cef3 is in 0,0
-        //float yPos_calo = sumVector( yPosW_bgo )/(eTot_bgo_corr + eTot_corr*0.791577); // so counts only in denominator
+        //xPos_calo_ = sumVector( xPosW_bgo )/(eTot_bgo_corr + eTot_corr*0.06); // cef3 is in 0,0
+        //yPos_calo_ = sumVector( yPosW_bgo )/(eTot_bgo_corr + eTot_corr*0.10); // so counts only in denominator
+        //xPos_calo_ = sumVector( xPosW_bgo )/(eTot_bgo_corr + eTot_corr*0.791577); // cef3 is in 0,0
+        //yPos_calo_ = sumVector( yPosW_bgo )/(eTot_bgo_corr + eTot_corr*0.791577); // so counts only in denominator
 
-        TVector2 vcalo( xPos_calo_, yPos_calo_ );
+        TVector2 vcalo( xPos_calo_wa_, yPos_calo_wa_ );
         TVector2 dcalo = vcalo.Rotate(-theta);
         diag02_calo_ = dcalo.Y();
         diag13_calo_ = dcalo.X();
@@ -594,9 +603,9 @@ int main( int argc, char* argv[] ) {
   
         if( bgo_ok && bgo_corr_ok ) {
 
-          h1_xPos_calo->Fill( xPos_calo_ );
-          h1_yPos_calo->Fill( yPos_calo_ );
-          h2_xyPos_calo->Fill( xPos_calo_, yPos_calo_ );
+          h1_xPos_calo->Fill( xPos_calo_wa_ );
+          h1_yPos_calo->Fill( yPos_calo_wa_ );
+          h2_xyPos_calo->Fill( xPos_calo_wa_, yPos_calo_wa_ );
 
           //for( unsigned i=0; i<methodNames.size(); ++i ) {
           //  Float_t xPos_regr = (readerRegrX->EvaluateRegression( methodNames[i] ))[0];
@@ -607,11 +616,11 @@ int main( int argc, char* argv[] ) {
           //}
           //h2_xyPos_regr2D->Fill( xPos_regr2D_, yPos_regr2D_ );
 
-          h1_xPos_calo_vs_hodo->Fill( xPos_calo_-xPos_hodo_ );
-          h1_yPos_calo_vs_hodo->Fill( yPos_calo_-yPos_hodo_ );
+          h1_xPos_calo_vs_hodo->Fill( xPos_calo_wa_-xPos_hodo_ );
+          h1_yPos_calo_vs_hodo->Fill( yPos_calo_wa_-yPos_hodo_ );
 
-          h1_xPos_calo_vs_beam->Fill( xPos_calo_-xBeam );
-          h1_yPos_calo_vs_beam->Fill( yPos_calo_-yBeam );
+          h1_xPos_calo_vs_beam->Fill( xPos_calo_wa_-xBeam );
+          h1_yPos_calo_vs_beam->Fill( yPos_calo_wa_-yBeam );
 
           // CORRELATIONS BETWEEN CALO AND HODO:
 
@@ -626,23 +635,23 @@ int main( int argc, char* argv[] ) {
           h1_yPos_singleEle->Fill( yPos );
           h2_xyPos_singleEle->Fill( xPos, yPos );
 
-          h1_xPos_new_singleEle->Fill( xPos_new_ );
-          h1_yPos_new_singleEle->Fill( yPos_new_ );
-          h2_xyPos_new_singleEle->Fill( xPos_new_, yPos_new_ );
+          h1_xPos_cef3_singleEle->Fill( xPos_cef3_ );
+          h1_yPos_cef3_singleEle->Fill( yPos_cef3_ );
+          h2_xyPos_cef3_singleEle->Fill( xPos_cef3_, yPos_cef3_ );
 
-          h1_xPos_calo_vs_hodo_singleElectron->Fill( xPos_calo_-xPos_hodo_ );
-          h1_yPos_calo_vs_hodo_singleElectron->Fill( yPos_calo_-yPos_hodo_ );
+          h1_xPos_calo_vs_hodo_singleElectron->Fill( xPos_calo_wa_-xPos_hodo_ );
+          h1_yPos_calo_vs_hodo_singleElectron->Fill( yPos_calo_wa_-yPos_hodo_ );
 
-          h1_xPos_calo_vs_beam_singleElectron->Fill( xPos_calo_-xBeam );
-          h1_yPos_calo_vs_beam_singleElectron->Fill( yPos_calo_-yBeam );
+          h1_xPos_calo_vs_beam_singleElectron->Fill( xPos_calo_wa_-xBeam );
+          h1_yPos_calo_vs_beam_singleElectron->Fill( yPos_calo_wa_-yBeam );
 
           if( nHodoClustersX==1 && nHodoClustersY==1 && nFibres_hodoClustX[0]<=2 && nFibres_hodoClustY[0]<=2 ) {
 
-            h1_xPos_calo_vs_hodo_singleElectron_HR->Fill( xPos_calo_-xPos_hodo_ );
-            h1_yPos_calo_vs_hodo_singleElectron_HR->Fill( yPos_calo_-yPos_hodo_ );
+            h1_xPos_calo_vs_hodo_singleElectron_HR->Fill( xPos_calo_wa_-xPos_hodo_ );
+            h1_yPos_calo_vs_hodo_singleElectron_HR->Fill( yPos_calo_wa_-yPos_hodo_ );
   
-            h1_xPos_calo_vs_beam_singleElectron_HR->Fill( xPos_calo_-xBeam );
-            h1_yPos_calo_vs_beam_singleElectron_HR->Fill( yPos_calo_-yBeam );
+            h1_xPos_calo_vs_beam_singleElectron_HR->Fill( xPos_calo_wa_-xBeam );
+            h1_yPos_calo_vs_beam_singleElectron_HR->Fill( yPos_calo_wa_-yBeam );
 
           }
 
@@ -653,9 +662,9 @@ int main( int argc, char* argv[] ) {
   
           if( bgo_ok && bgo_corr_ok ) {
 
-            h1_xPos_singleEle_calo->Fill( xPos_calo_ );
-            h1_yPos_singleEle_calo->Fill( yPos_calo_ );
-            h2_xyPos_singleEle_calo->Fill( xPos_calo_, yPos_calo_ );
+            h1_xPos_singleEle_calo->Fill( xPos_calo_wa_ );
+            h1_yPos_singleEle_calo->Fill( yPos_calo_wa_ );
+            h2_xyPos_singleEle_calo->Fill( xPos_calo_wa_, yPos_calo_wa_ );
 
             //for( unsigned i=0; i<methodNames.size(); ++i ) {
             //  Float_t xPos_regr = (readerRegrX->EvaluateRegression( methodNames[i] ))[0];
@@ -710,13 +719,13 @@ int main( int argc, char* argv[] ) {
   h1_yPos_singleEle->Write();
   h2_xyPos_singleEle->Write();
 
-  h1_xPos_new->Write();
-  h1_yPos_new->Write();
-  h2_xyPos_new->Write();
+  h1_xPos_cef3->Write();
+  h1_yPos_cef3->Write();
+  h2_xyPos_cef3->Write();
 
-  h1_xPos_new_singleEle->Write();
-  h1_yPos_new_singleEle->Write();
-  h2_xyPos_new_singleEle->Write();
+  h1_xPos_cef3_singleEle->Write();
+  h1_yPos_cef3_singleEle->Write();
+  h2_xyPos_cef3_singleEle->Write();
 
   
   
@@ -882,6 +891,7 @@ float getMeanposHodo( int n, float* pos ) {
 
 
 
+/*
 void getCeF3Position( std::vector<float> cef3, float& xPos, float& yPos ) {
 
   xPos=0.;
@@ -958,6 +968,6 @@ TF1* getCef3Function( const std::string& diagName ) {
   return f1;
 
 }
-
+*/
 
 

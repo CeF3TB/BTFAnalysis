@@ -185,7 +185,7 @@ void drawSinglePositionPlot( const std::string& outputdir, TFile* file, const st
   legend->AddEntry( gr_xyCenter_hodo_fit, "Hodo", "P" );
   //legend->AddEntry( gr_xyCenter, "CeF3", "P" );
   legend->AddEntry( gr_xyCenter_bgo, "BGO", "P" );
-  //legend->AddEntry( gr_xyCenter_calo, "Calo", "P" );
+  legend->AddEntry( gr_xyCenter_calo, "Calo", "P" );
   legend->Draw("same");
 
   float bgoFrontSize = 22.;
@@ -263,7 +263,7 @@ void drawSinglePositionPlot( const std::string& outputdir, TFile* file, const st
   h2_xyPos_bgo->Draw("same");
   //h2_xyPos->Draw("same");
   h2_xyPos_hodo->Draw("same");
-  //h2_xyPos_calo->Draw("same");
+  h2_xyPos_calo->Draw("same");
 
 
   TEllipse* beamPos = new TEllipse( beamX, beamY, beamRX, beamRY );
@@ -275,7 +275,7 @@ void drawSinglePositionPlot( const std::string& outputdir, TFile* file, const st
   gr_xyCenter_hodo_fit->Draw("p same");
   gr_xyCenter_bgo->Draw("p same");
   //gr_xyCenter->Draw("p same"); // don't draw for now
-  //gr_xyCenter_calo->Draw("p same");
+  gr_xyCenter_calo->Draw("p same");
   //gr_xyPos_fit->Draw("p same");
 
 
@@ -300,7 +300,7 @@ void drawSinglePositionPlot( const std::string& outputdir, TFile* file, const st
 
   h2_xyPos_bgo->Draw("same");
   h2_xyPos_hodo->Draw("same");
-  //h2_xyPos_calo->Draw("same");
+  h2_xyPos_calo->Draw("same");
   //h2_xyPos->Draw("same");
 
 
@@ -315,7 +315,7 @@ void drawSinglePositionPlot( const std::string& outputdir, TFile* file, const st
   gr_xyCenter_hodo_fit->Draw("p same");
   gr_xyCenter_bgo->Draw("p same");
   //gr_xyCenter->Draw("p same");
-  //gr_xyCenter_calo->Draw("p same");
+  gr_xyCenter_calo->Draw("p same");
   //gr_xyPos_fit->Draw("p same");
 
 
