@@ -12,6 +12,7 @@
 #include "fastDQM_CeF3_BTF.h"
 
 
+#include "TApplication.h"
 
 
 
@@ -27,6 +28,7 @@ void savePedestalsToFile( TFile* file, std::vector<TH1D*> vh_peds );
 
 int main( int argc, char* argv[] ) {
 
+  TApplication* a = new TApplication("a", 0, 0);
 
   ifstream pedList("pedestalFilesList.txt");
 
@@ -37,7 +39,6 @@ int main( int argc, char* argv[] ) {
   std::vector<TH1D*> ped_bgo   = getHistoVector("bgo",   BGO_CHANNELS);
   std::vector<TH1D*> ped_cef3  = getHistoVector("cef3" , CEF3_CHANNELS);
 
-  
 
   while( pedList.good() ) {
 
