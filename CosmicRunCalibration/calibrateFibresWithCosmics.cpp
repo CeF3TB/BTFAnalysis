@@ -95,13 +95,7 @@ Double_t PMTFunction_unconstrained(Double_t *x, Double_t *par)
      //double Qn = offset + (double)(i)*Q1;
      double sigma_n = sqrt( (double)(i)*sigma*sigma + sigmaoffset*sigmaoffset);
 
-     //double poisson = TMath::Poisson( i, mu );
-     //double gauss   = TMath::Gaus( xx, Qn, sigma_n );
 
-     //double xxp = xx     - Qn - alpha*sigma_n*sigma_n;
-     //double Q0p = offset - Qn - alpha*sigma_n*sigma_n;
-     //double bg      = 0.5*alpha * TMath::Exp(-alpha*xxp)* (
-     //                     TMath::Erf( abs(Q0p)/(sigma_n*sqrt(2) ) ) +  xxp/abs(xxp) * TMath::Erf( abs(xxp)/(sigma_n*sqrt(2)) ) );
      //value = value + N*( poisson * ( (1.-w)*gauss + w*bg ) );
      value = value + N* mu * TMath::Gaus( xx, (double)i*Q1 + offset, sigma_n) ;
      //value = value + N*(TMath::Poisson( i, mu ) * TMath::Gaus( xx, (double)i*Q1 + offset, sqrt((double)i)*sigma ));
@@ -621,7 +615,7 @@ std::vector< std::pair<float, float> > getPedestals( const std::string& type, co
   }
 
     
-  DrawTools::setStyle();
+  //DrawTools::setStyle();
   TFile* file = TFile::Open(fileName.c_str());
 
   std::vector< std::pair<float, float> > peds;
@@ -1119,27 +1113,40 @@ int main( int argc, char* argv[] ) {
   ccorr->SaveAs("corrEnergyAllChannelspedSubtracted.png");
   ccorr->SaveAs("corrEnergyAllChannelspedSubtracted.eps");
 
+  h1_cef3_pedSubtracted_corr_sum->Rebin(2);
+  FitResults fr_corr_sum = fitSingleHisto_sum( h1_cef3_pedSubtracted_corr_sum, 0., 0.,13.,68.,true );
+
   //plot for the paper. all corr channels sum and fit
   ccorr->Clear();
   ccorr->SetLogy(0);
+  ccorr->cd();
 
   h1_cef3_pedSubtracted_corr_sum->SetLineWidth(2);
-//  h1_cef3_pedSubtracted_corr_sum->Add(h1_cef3_pedSubtracted_corr_0);
-//  h1_cef3_pedSubtracted_corr_sum->Add(h1_cef3_pedSubtracted_corr_1);
-//  h1_cef3_pedSubtracted_corr_sum->Add(h1_cef3_pedSubtracted_corr_2);
-//  h1_cef3_pedSubtracted_corr_sum->Add(h1_cef3_pedSubtracted_corr_3);
-  h1_cef3_pedSubtracted_corr_sum->Rebin(2);
-
-  FitResults fr_corr_sum = fitSingleHisto_sum( h1_cef3_pedSubtracted_corr_sum, 0., 0.,13.,68.,true );
   
   h1_cef3_pedSubtracted_corr_sum->GetXaxis()->SetRangeUser(0.,150.);
   h1_cef3_pedSubtracted_corr_sum->GetYaxis()->SetRangeUser(50.,h1_cef3_pedSubtracted_corr_sum->GetMaximum()+h1_cef3_pedSubtracted_corr_sum->GetMaximum()*0.10);
+  h1_cef3_pedSubtracted_corr_sum->SetYTitle( "Events / 2" );
   h1_cef3_pedSubtracted_corr_sum->SetXTitle( "ADC Counts" );
 
  
   h1_cef3_pedSubtracted_corr_sum->Draw();
   //  ccorr->SetLogy(1);
+  TPaveText* labelTop = DrawTools::getLabelTop("Cosmic Data");
+  labelTop->Draw("same");
+  gPad->RedrawAxis(); 
+  ccorr->SaveAs("sum_fitted.png");
+  ccorr->SaveAs("sum_fitted.eps");
+  ccorr->SaveAs("sum_fitted.C");
+  //ccorr->SaveAs("sum_fitted_log.png");
+
+  ccorr->Clear();
+  h1_cef3_pedSubtracted_corr_sum->Draw();
+  labelTop->Draw("same");
+  ccorr->SetLogy(1);
   ccorr->SaveAs("sum_fitted_log.png");
+  ccorr->SaveAs("sum_fitted_log.eps");
+  ccorr->SaveAs("sum_fitted_log.C");
+
 
   //unconstrained fit
   FitResults fr_corr_unconstrained_sum = fitSingleHisto_sum( h1_cef3_pedSubtracted_corr_sum, 0., 0.,14.,69.,false );
@@ -1152,6 +1159,27 @@ int main( int argc, char* argv[] ) {
   h1_cef3_pedSubtracted_corr_sum->Draw();
   ccorr->SetLogy(1);
   ccorr->SaveAs("sum_fitted_log_unc.png");
+
+  ccorr->Clear();
+  ccorr->cd();
+  h1_cef3_pedSubtracted_corr_sum_dummy->Add(h1_cef3_pedSubtracted_corr_0);
+  h1_cef3_pedSubtracted_corr_sum_dummy->Add(h1_cef3_pedSubtracted_corr_1);
+  h1_cef3_pedSubtracted_corr_sum_dummy->Add(h1_cef3_pedSubtracted_corr_2);
+  h1_cef3_pedSubtracted_corr_sum_dummy->Add(h1_cef3_pedSubtracted_corr_3);
+
+  h1_cef3_pedSubtracted_corr_sum_dummy->Rebin(2);  
+  FitResults fr_corr_sum_dummy = fitSingleHisto_sum( h1_cef3_pedSubtracted_corr_sum_dummy, 0., 0.,13.,68.,true );
+
+  h1_cef3_pedSubtracted_corr_sum_dummy->GetXaxis()->SetRangeUser(0.,150.);
+  h1_cef3_pedSubtracted_corr_sum_dummy->GetYaxis()->SetRangeUser(50.,h1_cef3_pedSubtracted_corr_sum->GetMaximum()+h1_cef3_pedSubtracted_corr_sum->GetMaximum()*0.10);
+  h1_cef3_pedSubtracted_corr_sum_dummy->SetXTitle( "ADC Counts" );
+  ccorr->SetLogy(0);
+
+  h1_cef3_pedSubtracted_corr_sum_dummy->Draw();
+  ccorr->SaveAs("sum_fitted_log_dummy.png");
+
+  std::cout<<"######################## mean random:"<<h1_cef3_pedSubtracted_corr_sum->GetMean()<<"+-"<<h1_cef3_pedSubtracted_corr_sum->GetMeanError()<<std::endl;
+  std::cout<<"######################## mean not random:"<<h1_cef3_pedSubtracted_corr_sum_dummy->GetMean()<<"+-"<<h1_cef3_pedSubtracted_corr_sum_dummy->GetMeanError()<<std::endl;
 
 
   cuncorr_pedSubtracted_2->Clear();
