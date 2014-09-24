@@ -13,7 +13,7 @@ EXTRALIBS := -L$(ROOTSYS)/lib  -lHtml -lMathCore -lGenVector -lMinuit -lTMVA
 
 
 
-all: positionAnalysis drawPositionAnalysis hodoscopeAnalysis calibrateCeF3 drawHodoClustersVsEnergy drawShitVsDiagonal calibrateBGO drawEnergyScan calibrateCaloPositioning drawCaloPositioning calibrateCeF3Positioning makePedestalFile makeAnalysisTree drawPedestalsVsRun drawResolutionStudies calibrateBGOPositioning checkBGOPositioning calibrateCef3Positioning drawCef3Positioning drawAngularStudies singleElectronSelection drawCalibComparison drawCeF3Intercalibration
+all: positionAnalysis drawPositionAnalysis hodoscopeAnalysis calibrateCeF3 drawHodoClustersVsEnergy drawShitVsDiagonal calibrateBGO drawEnergyScan calibrateCaloPositioning drawCaloPositioning calibrateCeF3Positioning makePedestalFile makeAnalysisTree drawPedestalsVsRun drawResolutionStudies calibrateBGOPositioning checkBGOPositioning calibrateCef3Positioning drawCef3Positioning drawAngularStudies singleElectronSelection drawCalibComparison drawCeF3Intercalibration make2DPlots
 
 
 
@@ -28,6 +28,10 @@ makeAnalysisTree: makeAnalysisTree.cpp RunHelper.o HodoCluster.o EnergyCalibrati
 
 positionAnalysis: HodoCluster.o RunHelper.o PositionTools.o positionAnalysis.cpp hodo_efficiency.dat
 	$(CC) -Wall $(INCLUDES) -o positionAnalysis positionAnalysis.cpp HodoCluster.o RunHelper.o PositionTools.o $(ROOTFLAG) $(EXTRALIBS)
+
+make2DPlots: HodoCluster.o RunHelper.o PositionTools.o DrawTools.o make2DPlots.cpp hodo_efficiency.dat
+	$(CC) -Wall $(INCLUDES) -o make2DPlots make2DPlots.cpp HodoCluster.o RunHelper.o DrawTools.o PositionTools.o $(ROOTFLAG) $(EXTRALIBS)
+
 
 singleElectronSelection: HodoCluster.o RunHelper.o PositionTools.o singleElectronSelection.cpp hodo_efficiency.dat
 	$(CC) -Wall $(INCLUDES) -o singleElectronSelection singleElectronSelection.cpp HodoCluster.o RunHelper.o PositionTools.o $(ROOTFLAG) $(EXTRALIBS)
@@ -116,6 +120,7 @@ PositionTools.o: src/PositionTools.cc
 clean:
 	rm *.o
 	rm positionAnalysis
+	rm make2DPlots	
 	rm singleElectronSelection
 	rm drawCaloPositioning
 	rm drawPositionAnalysis 

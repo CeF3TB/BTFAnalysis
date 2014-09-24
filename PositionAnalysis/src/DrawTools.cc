@@ -123,8 +123,20 @@ TStyle* DrawTools::setStyle() {
   style->SetNdivisions(510, "XYZ");
   style->SetPadTickX(1); // To get tick marks on the opposite side of the frame
   style->SetPadTickY(1);
-
   style->cd();
+
+  const Int_t NRGBs = 2;
+  const Int_t NCont = 300;
+
+  Double_t stops[NRGBs] = { 0.00, 1.00};
+  Double_t red[NRGBs]   = { 1.00, 0.1};
+  Double_t green[NRGBs]   = { 0.00, 0.00};
+  Double_t blue[NRGBs]   = { 0.00, 0.00};
+
+  TColor::CreateGradientColorTable(NRGBs, stops, red, green, blue, NCont);
+  style->SetNumberContours(NCont);
+
+
 
   return style;
 
