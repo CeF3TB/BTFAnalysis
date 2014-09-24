@@ -75,6 +75,41 @@ Double_t PMTFunction(Double_t *x, Double_t *par)
 
 }
 
+Double_t PMTFunction_unconstrained(Double_t *x, Double_t *par)
+{
+
+   float N = par[0];
+   float mu = par[1];
+   float Q1 = par[2];
+   float sigma = par[3];
+   float offset = par[4];
+   float sigmaoffset = par[5];
+   float alpha = par[6];
+   float w = par[7];
+
+   float xx = x[0];
+   double value = 0.;
+
+   for( unsigned i=1; i<3; ++i ) {
+
+     //double Qn = offset + (double)(i)*Q1;
+     double sigma_n = sqrt( (double)(i)*sigma*sigma + sigmaoffset*sigmaoffset);
+
+     //double poisson = TMath::Poisson( i, mu );
+     //double gauss   = TMath::Gaus( xx, Qn, sigma_n );
+
+     //double xxp = xx     - Qn - alpha*sigma_n*sigma_n;
+     //double Q0p = offset - Qn - alpha*sigma_n*sigma_n;
+     //double bg      = 0.5*alpha * TMath::Exp(-alpha*xxp)* (
+     //                     TMath::Erf( abs(Q0p)/(sigma_n*sqrt(2) ) ) +  xxp/abs(xxp) * TMath::Erf( abs(xxp)/(sigma_n*sqrt(2)) ) );
+     //value = value + N*( poisson * ( (1.-w)*gauss + w*bg ) );
+     value = value + N* mu * TMath::Gaus( xx, (double)i*Q1 + offset, sigma_n) ;
+     //value = value + N*(TMath::Poisson( i, mu ) * TMath::Gaus( xx, (double)i*Q1 + offset, sqrt((double)i)*sigma ));
+   }
+
+   return value;
+
+}
 
 
 
@@ -253,7 +288,7 @@ FitResults fitSingleHisto( TH1D* histo, double pedMin, double pedMax, double xMi
 
 }
 
-FitResults fitSingleHisto_sum( TH1D* histo, double pedMin, double pedMax, double xMin, double xMax ) {
+FitResults fitSingleHisto_sum( TH1D* histo, double pedMin, double pedMax, double xMin, double xMax, bool isConstrained ) {
 
   float integral = histo->Integral();
   TF1* f1_ped = new TF1( "ped", "gaus", pedMin, pedMax );
@@ -283,29 +318,40 @@ FitResults fitSingleHisto_sum( TH1D* histo, double pedMin, double pedMax, double
   }
   }
 
-  TF1* f1 = new TF1( "func", PMTFunction, xMin, xMax, 8 );
+  TF1* f1;
+  if(isConstrained){
+    f1 = new TF1( "func", PMTFunction, xMin, xMax, 8 );
+  }else{
+    f1 = new TF1( "func_unconstrained", PMTFunction_unconstrained, xMin, xMax, 8 );
+  }
   f1->SetParameter( 0, integral ); //normalization
-  f1->SetParameter( 1, 1.25 ); //poiss mu
-  f1->SetParameter( 2, 27. ); //gauss step
-  f1->SetParameter( 3, 8. ); //gauss sigma
+  f1->SetParameter( 1, 1 ); //poiss mu
+  f1->SetParameter( 2, 25. ); //gauss step
+  f1->SetParameter( 3, 10. ); //gauss sigma
   f1->SetParameter( 4, 100 ); //offset
   f1->SetParameter( 5, 3. ); //sigmaoffset
   f1->SetParameter( 6, 0.03 ); //alpha
   f1->SetParameter( 7, 0.4 ); //w
-
+    
   f1->FixParameter( 5, 0. ); //sigmaoffset
   f1->FixParameter( 6, 0. ); //alpha
   f1->FixParameter( 7, 0. ); //w
-
+    
   f1->SetParLimits( 1, 0.5, 2.5 ); //poiss mu
   f1->SetParLimits( 2, 10., 40. ); //gauss step
   f1->SetParLimits( 3, 3., 12. ); //gauss sigma
   //f1->SetParLimits( 4, 90., 110.); //offset
   //f1->SetParLimits( 5, 0., 8. ); //gauss sigma
   f1->SetLineColor(kRed+2);
-
+    
   if(pedMin<10){
     f1->FixParameter( 4, 0 );
+  }
+
+  if(!isConstrained){
+    std::cout<<"------unconstrained fit"<<std::endl;
+    f1->FixParameter(1,1);
+    f1->SetLineColor(kBlue);
   }
 
   histo->Fit( f1, "R+" );
@@ -348,6 +394,7 @@ FitResults fitSingleHisto_sum( TH1D* histo, double pedMin, double pedMax, double
   fr.Q1_err = f1->GetParError(2);
   fr.sigma = f1->GetParameter(3);
   fr.sigma_err = f1->GetParError(3);
+  f1->Clear();
 
   delete c1;
   delete f1;
@@ -670,6 +717,7 @@ int main( int argc, char* argv[] ) {
   TH1D* h1_cef3_pedSubtracted_corr_3   = new TH1D("cef3_pedSubtracted_corr_3",   "", 400, 0., 400.*1.08781); 
 
   TH1D* h1_cef3_pedSubtracted_corr_sum   = new TH1D("cef3_pedSubtracted_sum",   "", 400, 0., 400.);
+  TH1D* h1_cef3_pedSubtracted_corr_sum_dummy   = new TH1D("cef3_pedSubtracted_sum",   "", 400, 0., 400.);
 
 //  TH1D* h1_cef3_pedSubtracted_corr_0   = new TH1D("cef3_pedSubtracted_corr_0",   "", 400, 0., 400.);
 //  TH1D* h1_cef3_pedSubtracted_corr_1   = new TH1D("cef3_pedSubtracted_corr_1",   "", 400, 0., 400.);
@@ -962,7 +1010,7 @@ int main( int argc, char* argv[] ) {
     std::cout<<"correctionFactors pedSub muMean "<<correctionFactors_pedSubtracted_muMean[i]<<std::endl;
   }
   TRandom a;
-  a.SetSeed(0);
+  a.SetSeed(100);
 
   for( unsigned iEntry=0; iEntry<nentries; ++iEntry ) {
     
@@ -1082,8 +1130,19 @@ int main( int argc, char* argv[] ) {
 //  h1_cef3_pedSubtracted_corr_sum->Add(h1_cef3_pedSubtracted_corr_3);
   h1_cef3_pedSubtracted_corr_sum->Rebin(2);
 
+  FitResults fr_corr_sum = fitSingleHisto_sum( h1_cef3_pedSubtracted_corr_sum, 0., 0.,13.,68.,true );
+  
+  h1_cef3_pedSubtracted_corr_sum->GetXaxis()->SetRangeUser(0.,150.);
+  h1_cef3_pedSubtracted_corr_sum->GetYaxis()->SetRangeUser(50.,h1_cef3_pedSubtracted_corr_sum->GetMaximum()+h1_cef3_pedSubtracted_corr_sum->GetMaximum()*0.10);
+  h1_cef3_pedSubtracted_corr_sum->SetXTitle( "ADC Counts" );
 
-  FitResults fr_corr_sum = fitSingleHisto_sum( h1_cef3_pedSubtracted_corr_sum, 0., 0.,13.,70. );
+ 
+  h1_cef3_pedSubtracted_corr_sum->Draw();
+  //  ccorr->SetLogy(1);
+  ccorr->SaveAs("sum_fitted_log.png");
+
+  //unconstrained fit
+  FitResults fr_corr_unconstrained_sum = fitSingleHisto_sum( h1_cef3_pedSubtracted_corr_sum, 0., 0.,14.,69.,false );
   
   h1_cef3_pedSubtracted_corr_sum->GetXaxis()->SetRangeUser(0.,150.);
   h1_cef3_pedSubtracted_corr_sum->GetYaxis()->SetRangeUser(50.,h1_cef3_pedSubtracted_corr_sum->GetMaximum()+h1_cef3_pedSubtracted_corr_sum->GetMaximum()*0.10);
@@ -1092,8 +1151,7 @@ int main( int argc, char* argv[] ) {
  
   h1_cef3_pedSubtracted_corr_sum->Draw();
   ccorr->SetLogy(1);
-  ccorr->SaveAs("sum_fitted_log.png");
-
+  ccorr->SaveAs("sum_fitted_log_unc.png");
 
 
   cuncorr_pedSubtracted_2->Clear();
