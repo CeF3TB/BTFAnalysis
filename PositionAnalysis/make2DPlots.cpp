@@ -18,8 +18,8 @@
 #include "interface/RunHelper.h"
 #include "interface/PositionTools.h"
 #include "interface/DrawTools.h"
-
-
+#include "TGAxis.h"
+#include "TPaletteAxis.h"
 
 int main( int argc, char* argv[] ) {
 
@@ -163,21 +163,28 @@ int main( int argc, char* argv[] ) {
   TStyle* style = DrawTools::setStyle();
   //  tree->Print();
 
+  TH1F* cef3SpectrumTotal=new TH1F("cef3SpectrumTotal","cef3SpectrumTotal",600,0,12000);
+  TH1F* cef3SpectrumSingleEle=new TH1F("cef3SpectrumSingleEle","cef3SpectrumSingleEle",600,0,12000);
+  TH1F* cef3SpectrumSingleEleHodo=new TH1F("cef3SpectrumSingleEleHodo","cef3SpectrumSingleEleHodo",600,0,12000);
+
   TH2F* cef3VsScintFront= new TH2F("cef3VsScintFront","cef3VsScintFront",40,0.,4000.,40,0.,12000.);
   TH2F* cef3TopVsBottom= new TH2F("cefTopVsBottom","cefTopVsBottom",40,0.,8000.,40,0.,8000.);
   for( unsigned iEntry=0; iEntry<nentries; ++iEntry ) {
     tree->GetEntry(iEntry);
     if( iEntry % 10000 == 0 ) std::cout << "Entry: " << iEntry << " / " << nentries << std::endl;
-
-
+    if(cef3_corr_ok){
+      cef3SpectrumTotal->Fill(cef3_corr[0]+cef3_corr[1]+cef3_corr[2]+cef3_corr[3]);
+      if(isSingleEle_scintFront)      cef3SpectrumSingleEle->Fill(cef3_corr[0]+cef3_corr[1]+cef3_corr[2]+cef3_corr[3]);
+      if(isSingleEle_scintFront*(nHodoClustersX==1 && nHodoClustersY==1))      cef3SpectrumSingleEleHodo->Fill(cef3_corr[0]+cef3_corr[1]+cef3_corr[2]+cef3_corr[3]);
+    }
     if(cuts=="hodo"){
       if(!(nHodoClustersX>=1 && nHodoClustersY>=1))continue;
     }else if (cuts=="signalFibers"){
-      if(!(cef3_corr[0]>0 && cef3_corr[1]>0 && cef3_corr[2]>0 && cef3_corr[3]>0))continue;
+      if(!(cef3_corr[0]>10 || cef3_corr[1]>10 || cef3_corr[2]>10 || cef3_corr[3]>0))continue;
     }else if (cuts=="bgo"){
       if(!((bgo_corr[0]+bgo_corr[1]+bgo_corr[2]+bgo_corr[3]+bgo_corr[4]+bgo_corr[5]+bgo_corr[6]+bgo_corr[7])<1000))continue;
     }
-
+    if(cuts!=""){if(scintFront<150.) continue;}
     cef3VsScintFront->Fill(scintFront,cef3[0]+cef3[1]+cef3[2]+cef3[3]);
     cef3TopVsBottom->Fill(cef3_corr[2]+cef3_corr[3],cef3_corr[0]+cef3_corr[1]);
   }
@@ -189,11 +196,32 @@ int main( int argc, char* argv[] ) {
 
   TCanvas* c1= new TCanvas("c1"," ", 600,600);
   c1->cd();
-  cef3VsScintFront->SetYTitle("#Sigma CeF_{3} Fibers");
-  cef3VsScintFront->SetTitleOffset(1.7,"Y");
-  cef3VsScintFront->SetXTitle("scintFront");
+
+
+
+  cef3VsScintFront->SetYTitle("CeF_{3} [ADC Counts]");
+  //  cef3VsScintFront->SetTitleOffset(1.7,"Y");
+  
+  ((TGaxis*)cef3VsScintFront->GetXaxis())->SetMaxDigits(3);
+  //  ((TGaxis*)cef3VsScintFront->GetYaxis())->SetMaxDigits(6);  
+
+//((TGaxis*)cef3VsScintFront->GetXaxis())-> SetExponentOffset(-0.05, 0.01, "x");
+  //  cef3VsScintFront->SetAxisRange(10,cef3VsScintFront->GetMaximum(),"Z");
+  cef3VsScintFront->SetXTitle("Front Scintillator [ADC Counts]");
   cef3VsScintFront->Draw("colz");  
-  TPaveText* labelTop = DrawTools::getLabelTop();
+
+  ((TGaxis*)cef3VsScintFront->GetYaxis())->Draw("same");
+  gPad->Update();
+  TPaletteAxis *palette = (TPaletteAxis*)cef3VsScintFront->GetListOfFunctions()->FindObject("palette");
+  palette->SetX1NDC(0.88);
+  palette->SetX2NDC(0.92);
+  palette->SetY1NDC(0.2);
+  palette->SetY2NDC(0.95);
+  gPad->Modified();
+  gPad->Update();
+
+
+  TPaveText* labelTop = DrawTools::getLabelTop_2D();
   labelTop->Draw("same");
   c1->SetLogz();
   
@@ -202,14 +230,48 @@ int main( int argc, char* argv[] ) {
 
   c1->Clear();
   c1->cd();
-  cef3TopVsBottom->SetYTitle("CeF_{3} Fibers Top");
-  cef3TopVsBottom->SetTitleOffset(1.7,"Y");
-  cef3TopVsBottom->SetXTitle("CeF_{3} Fibers Bottom");
+  cef3TopVsBottom->SetYTitle("CeF_{3} Top Fibres [ADC Counts]");
+  //  cef3TopVsBottom->SetTitleOffset(1.7,"Y");
+  cef3TopVsBottom->SetXTitle("CeF_{3} Bottom Fibres [ADC Counts]");
   cef3TopVsBottom->Draw("colz");  
   labelTop->Draw("same");
+  gPad->Update();
+  TPaletteAxis *palette2 = (TPaletteAxis*)cef3TopVsBottom->GetListOfFunctions()->FindObject("palette");
+  palette2->SetX1NDC(0.88);
+  palette2->SetX2NDC(0.92);
+  palette2->SetY1NDC(0.2);
+  palette2->SetY2NDC(0.95);
+  gPad->Modified();
+  gPad->Update();
+
+
   c1->SetLogz();
   
   c1->SaveAs("cef3TopVsBottom_"+cuts_tstr+".png");
   c1->SaveAs("cef3TopVsBottom_"+cuts_tstr+".eps");
+
+  c1->Clear();
+  c1->cd();
+  cef3SpectrumTotal->Draw();
+  cef3SpectrumTotal->SetXTitle("CeF_{3} [ADC Counts]");
+  cef3SpectrumTotal->SetYTitle("Events / 20");
+  c1->SaveAs("cef3SpectrumTotal.png");
+  c1->SaveAs("cef3SpectrumTotal.eps");
+
+  c1->Clear();
+  c1->cd();
+  cef3SpectrumSingleEle->Draw();
+  cef3SpectrumSingleEle->SetXTitle("CeF_{3} [ADC Counts]");
+  cef3SpectrumSingleEle->SetYTitle("Events / 20");
+  c1->SaveAs("cef3SpectrumSingleEle.png");
+  c1->SaveAs("cef3SpectrumSingleEle.eps");
+
+  c1->Clear();
+  c1->cd();
+  cef3SpectrumSingleEleHodo->Draw();
+  cef3SpectrumSingleEleHodo->SetXTitle("CeF_{3} [ADC Counts]");
+  cef3SpectrumSingleEleHodo->SetYTitle("Events / 20");
+  c1->SaveAs("cef3SpectrumSingleEleHodo.png");
+  c1->SaveAs("cef3SpectrumSingleEleHodo.eps");
 
 }

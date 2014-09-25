@@ -22,6 +22,26 @@ TPaveText* DrawTools::getLabelTop( const std::string& text ) {
 
 }
 
+TPaveText* DrawTools::getLabelTop_2D( int beamEnergy ) {
+
+  return getLabelTop_2D(Form("%d MeV Electron Beam", beamEnergy));
+
+}
+
+
+TPaveText* DrawTools::getLabelTop_2D( const std::string& text ) {
+
+  TPaveText* label_top = new TPaveText(0.4,0.953,0.890,0.975, "brNDC");
+  label_top->SetFillColor(kWhite);
+  label_top->SetTextSize(0.038);
+  label_top->SetTextAlign(31); // align right
+  label_top->SetTextFont(62);
+  label_top->AddText(text.c_str());
+
+  return label_top;
+
+}
+
 
 TPaveText* DrawTools::getLabelRun( const std::string& runName, bool top ) {
 
@@ -125,13 +145,34 @@ TStyle* DrawTools::setStyle() {
   style->SetPadTickY(1);
   style->cd();
 
-  const Int_t NRGBs = 2;
-  const Int_t NCont = 300;
+//  const Int_t NRGBs = 2;
+//  const Int_t NCont = 300;
+//
+//  Double_t stops[NRGBs] = { 0.00, 1.00};
+//  Double_t red[NRGBs]   = { 1.00, 0.1};
+//  Double_t green[NRGBs]   = { 0.00, 0.00};
+//  Double_t blue[NRGBs]   = { 0.00, 0.00};
 
-  Double_t stops[NRGBs] = { 0.00, 1.00};
-  Double_t red[NRGBs]   = { 1.00, 0.1};
-  Double_t green[NRGBs]   = { 0.00, 0.00};
-  Double_t blue[NRGBs]   = { 0.00, 0.00};
+  const Int_t NRGBs = 5;
+  const Int_t NCont = 20;
+
+  Float_t r[5];
+  Float_t g[5];
+  Float_t b[5];
+  TColor* c[5];
+
+  int Colors[5]={kBlack,kBlue+2,kBlue-3,kBlue-4,kWhite};
+
+  for(int i=0;i<5;++i){
+    c[i]=gROOT->GetColor(Colors[i]);
+    c[i]->GetRGB(r[i],g[i],b[i]);
+  }
+
+
+  Double_t stops[NRGBs] = { 0.00, 0.40, 0.50, 0.80, 1.00};
+  Double_t red[NRGBs]   = {r[4],r[3],r[2],r[1],r[0] };
+  Double_t green[NRGBs]   = {g[4],g[3],g[2],g[1],g[0] };
+  Double_t blue[NRGBs]   = {b[4],b[3],b[2],b[1],b[0] };
 
   TColor::CreateGradientColorTable(NRGBs, stops, red, green, blue, NCont);
   style->SetNumberContours(NCont);
