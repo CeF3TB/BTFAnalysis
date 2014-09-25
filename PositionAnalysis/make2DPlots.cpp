@@ -19,6 +19,7 @@
 #include "interface/PositionTools.h"
 #include "interface/DrawTools.h"
 #include "TGAxis.h"
+#include "TLegend.h"
 #include "TPaletteAxis.h"
 
 int main( int argc, char* argv[] ) {
@@ -163,9 +164,9 @@ int main( int argc, char* argv[] ) {
   TStyle* style = DrawTools::setStyle();
   //  tree->Print();
 
-  TH1F* cef3SpectrumTotal=new TH1F("cef3SpectrumTotal","cef3SpectrumTotal",600,0,12000);
-  TH1F* cef3SpectrumSingleEle=new TH1F("cef3SpectrumSingleEle","cef3SpectrumSingleEle",600,0,12000);
-  TH1F* cef3SpectrumSingleEleHodo=new TH1F("cef3SpectrumSingleEleHodo","cef3SpectrumSingleEleHodo",600,0,12000);
+  TH1F* cef3SpectrumTotal=new TH1F("cef3SpectrumTotal","cef3SpectrumTotal",600,0,11999);
+  TH1F* cef3SpectrumSingleEle=new TH1F("cef3SpectrumSingleEle","cef3SpectrumSingleEle",600,0,11999);
+  TH1F* cef3SpectrumSingleEleHodo=new TH1F("cef3SpectrumSingleEleHodo","cef3SpectrumSingleEleHodo",600,0,11999);
 
   TH2F* cef3VsScintFront= new TH2F("cef3VsScintFront","cef3VsScintFront",40,0.,4000.,40,0.,12000.);
   TH2F* cef3TopVsBottom= new TH2F("cefTopVsBottom","cefTopVsBottom",40,0.,8000.,40,0.,8000.);
@@ -253,25 +254,66 @@ int main( int argc, char* argv[] ) {
   c1->Clear();
   c1->cd();
   cef3SpectrumTotal->Draw();
-  cef3SpectrumTotal->SetXTitle("CeF_{3} [ADC Counts]");
-  cef3SpectrumTotal->SetYTitle("Events / 20");
+  cef3SpectrumTotal->SetXTitle("ADC Counts");
+  cef3SpectrumTotal->SetYTitle("Events / 20 ADC Counts");
+  TPaveText* labelTop2 = DrawTools::getLabelTop_2D();
+  labelTop2->Draw("same");
+  TLegend* legend = new TLegend(0.55, 0.75, 0.90, 1,"W-CeF3 single tower");
+  legend->SetFillColor(kWhite);
+  legend->SetLineColor(kWhite);
+  legend->SetFillStyle(0);
+  legend->Draw("same");
   c1->SaveAs("cef3SpectrumTotal.png");
   c1->SaveAs("cef3SpectrumTotal.eps");
+  c1->SetLogy();
+  c1->SaveAs("cef3SpectrumTotal_log.png");
+  c1->SaveAs("cef3SpectrumTotal_log.eps");
+  c1->SetLogy(0);
+
+
 
   c1->Clear();
   c1->cd();
   cef3SpectrumSingleEle->Draw();
-  cef3SpectrumSingleEle->SetXTitle("CeF_{3} [ADC Counts]");
-  cef3SpectrumSingleEle->SetYTitle("Events / 20");
+  cef3SpectrumSingleEle->SetXTitle("ADC Counts");
+  cef3SpectrumSingleEle->SetYTitle("Events / 20 ADC Counts");
+  legend->Draw("same");
+  labelTop2->Draw("same");
   c1->SaveAs("cef3SpectrumSingleEle.png");
   c1->SaveAs("cef3SpectrumSingleEle.eps");
+  c1->SetLogy();
+  c1->SaveAs("cef3SpectrumSingleEle_log.png");
+  c1->SaveAs("cef3SpectrumSingleEle_log.eps");
+
 
   c1->Clear();
+  c1->SetLogy(0);
   c1->cd();
   cef3SpectrumSingleEleHodo->Draw();
-  cef3SpectrumSingleEleHodo->SetXTitle("CeF_{3} [ADC Counts]");
-  cef3SpectrumSingleEleHodo->SetYTitle("Events / 20");
+  legend->Draw("same");
+  cef3SpectrumSingleEleHodo->SetXTitle("ADC Counts");
+  cef3SpectrumSingleEleHodo->SetYTitle("Events / 20 ADC Counts");
+  labelTop2->Draw("same");
   c1->SaveAs("cef3SpectrumSingleEleHodo.png");
   c1->SaveAs("cef3SpectrumSingleEleHodo.eps");
+  c1->SetLogy();
+  c1->SaveAs("cef3SpectrumSingleEleHodo_log.png");
+  c1->SaveAs("cef3SpectrumSingleEleHodo_log.eps");
+  c1->SetLogy(0);
+
+  c1->Clear();
+  cef3SpectrumTotal->Draw();
+  cef3SpectrumSingleEle->SetLineColor(kRed);
+  cef3SpectrumSingleEle->Draw("same");
+  cef3SpectrumSingleEleHodo->SetLineColor(kBlue);
+  legend->Draw("same");
+  cef3SpectrumSingleEleHodo->Draw("same");
+  c1->SaveAs("cef3SpectrumSuperimposed.png");
+  c1->SaveAs("cef3SpectrumSuperimposed.eps");
+  c1->SetLogy();
+  c1->SaveAs("cef3SpectrumSuperimposed_log.png");
+  c1->SaveAs("cef3SpectrumSuperimposed_log.eps");
+  c1->SetLogy(0);
+
 
 }
