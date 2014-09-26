@@ -230,31 +230,74 @@ FitResults fitSingleHisto( TH1D* histo, double pedMin, double pedMax, double xMi
     f1->FixParameter( 4, 0 );
   }
 
-  histo->Fit( f1, "R+" );
+
+  histo->Fit( f1, "RN+" );
+  TString histoName(histo->GetName());
+  if(histoName=="cef3_pedSubtracted_corr_rebin_2")  f1->SetRange(xMin, xMax+5); //plot for the paper
+  f1->SetLineColor(kRed);
+
 
   TCanvas* c1 = new TCanvas("c1", "c1", 600, 600);
   c1->cd();
 
-  c1->SetLogy();
+  //  c1->SetLogy();
 
   TH2D* h2_axes;
   if(!(pedMin<10)){
-    h2_axes= new TH2D("axes", "", 10, 100., 350., 10, 9., 7.*histo->GetMaximum() );
+    h2_axes= new TH2D("axes", "", 10, 100., 350., 10, 9.,1.2*histo->GetMaximum() );
   }else{
-    h2_axes= new TH2D("axes", "", 10, 0., 200., 10, 9., 7.*histo->GetMaximum() );
+    h2_axes= new TH2D("axes", "", 10, 0., 150., 10, 9., 1.2*histo->GetMaximum() );
   }
   h2_axes->SetXTitle( "ADC Counts" );
+  h2_axes->SetYTitle( "Events / 2" );
   h2_axes->Draw();
 
+  histo->SetLineWidth(2);
+
+  histo->SetXTitle( "ADC Counts" );
+
+  TPaveText* labelTop = DrawTools::getLabelTop("Cosmic Data");
+  labelTop->Draw("same");
+  gPad->RedrawAxis(); 
+
+
+
+  float N, mu, Q1, sigma;
+  N=f1->GetParameter(0);
+  mu=f1->GetParameter(1);
+  Q1=f1->GetParameter(2);
+  sigma=f1->GetParameter(3);
+
+  TPaveText* label_fit = new TPaveText(0.88,0.75,0.68,0.92, "brNDC");
+  label_fit->SetFillColor(kWhite);
+  label_fit->SetTextSize(0.038);
+  //  label_fit->SetTextAlign(31); // align right
+  label_fit->SetTextFont(62);
+  std::string N_str=Form("N=%4.0f", N);
+  label_fit->AddText(N_str.c_str());
+  std::string mu_str=Form("#mu=%.2f", mu);
+  label_fit->AddText(mu_str.c_str());
+  std::string Q_1_str=Form("Q_{1}=%.2f", Q1);
+  label_fit->AddText(Q_1_str.c_str());
+  std::string sigma_str=Form("#sigma=%.2f", sigma);
+  label_fit->AddText(sigma_str.c_str());
+
+
+  label_fit->Draw("same");
+
   histo->Draw("same");
-
-
-  TString histoName(histo->GetName());
-
-
+  f1->Draw("same");
 
   c1->SaveAs( histoName + ".eps" );
   c1->SaveAs( histoName + ".png" );
+  c1->SaveAs( histoName + ".C" );
+
+  c1->SetLogy();
+
+  c1->SaveAs( histoName + "_log.eps" );
+  c1->SaveAs( histoName + "_log.png" );
+  c1->SaveAs( histoName + "_log.C" );
+
 
   FitResults fr;
   fr.ped_mu = f1_ped->GetParameter(1);
@@ -368,7 +411,6 @@ FitResults fitSingleHisto_sum( TH1D* histo, double pedMin, double pedMax, double
 
 
   TString histoName(histo->GetName());
-
 
 
   c1->SaveAs( histoName + ".eps" );
@@ -713,10 +755,10 @@ int main( int argc, char* argv[] ) {
   TH1D* h1_cef3_pedSubtracted_corr_sum   = new TH1D("cef3_pedSubtracted_sum",   "", 400, 0., 400.);
   TH1D* h1_cef3_pedSubtracted_corr_sum_dummy   = new TH1D("cef3_pedSubtracted_sum",   "", 400, 0., 400.);
 
-//  TH1D* h1_cef3_pedSubtracted_corr_0   = new TH1D("cef3_pedSubtracted_corr_0",   "", 400, 0., 400.);
-//  TH1D* h1_cef3_pedSubtracted_corr_1   = new TH1D("cef3_pedSubtracted_corr_1",   "", 400, 0., 400.);
-//  TH1D* h1_cef3_pedSubtracted_corr_2   = new TH1D("cef3_pedSubtracted_corr_2",   "", 400, 0., 400.);
-//  TH1D* h1_cef3_pedSubtracted_corr_3   = new TH1D("cef3_pedSubtracted_corr_3",   "", 400, 0., 400.); 
+  TH1D* h1_cef3_pedSubtracted_corr_rebin_0   = new TH1D("cef3_pedSubtracted_corr_rebin_0",   "", 200, 0., 400.*1.11228);
+  TH1D* h1_cef3_pedSubtracted_corr_rebin_1   = new TH1D("cef3_pedSubtracted_corr_rebin_1",   "", 200, 0., 400.*0.855333);
+  TH1D* h1_cef3_pedSubtracted_corr_rebin_2   = new TH1D("cef3_pedSubtracted_corr_rebin_2",   "", 200, 0., 400.*0.97973);
+  TH1D* h1_cef3_pedSubtracted_corr_rebin_3   = new TH1D("cef3_pedSubtracted_corr_rebin_3",   "", 200, 0., 400.*1.08781);
 
 
 
@@ -1026,6 +1068,7 @@ int main( int argc, char* argv[] ) {
 	  h1_cef3_corr_0->Fill(adcData[i]*correctionFactors[0]);
 	  if(adcData[i]>(pedestals[0].first + nSigma*pedestals[0].second)){
 	    h1_cef3_pedSubtracted_corr_0->Fill((adcData[i]-pedestals[0].first)*correctionFactors_pedSubtracted[0]);
+	    h1_cef3_pedSubtracted_corr_rebin_0->Fill((adcData[i]-pedestals[0].first)*correctionFactors_pedSubtracted[0]);
 	    h1_cef3_pedSubtracted_corr_muQ_0->Fill((adcData[i]-pedestals[0].first)*correctionFactors_pedSubtracted_muQ[0]);
 	    h1_cef3_pedSubtracted_corr_muMean_0->Fill((adcData[i]-pedestals[0].first)*correctionFactors_pedSubtracted_muMean[0]);
 	    h1_cef3_pedSubtracted_corr_sum->Fill(a.Uniform(adcData[i]-pedestals[0].first-0.5,adcData[i]-pedestals[0].first+0.5)*correctionFactors_pedSubtracted[0]);
@@ -1036,6 +1079,7 @@ int main( int argc, char* argv[] ) {
 	  h1_cef3_corr_1->Fill(adcData[i]*correctionFactors[1]);
 	  if(adcData[i]>(pedestals[1].first + nSigma*pedestals[1].second)) {
 	    h1_cef3_pedSubtracted_corr_1->Fill((adcData[i]-pedestals[1].first)*correctionFactors_pedSubtracted[1]);
+	    h1_cef3_pedSubtracted_corr_rebin_1->Fill((adcData[i]-pedestals[1].first)*correctionFactors_pedSubtracted[1]);
 	    h1_cef3_pedSubtracted_corr_muQ_1->Fill((adcData[i]-pedestals[1].first)*correctionFactors_pedSubtracted_muQ[1]);
 	    h1_cef3_pedSubtracted_corr_muMean_1->Fill((adcData[i]-pedestals[1].first)*correctionFactors_pedSubtracted_muMean[1]);
 	    h1_cef3_pedSubtracted_corr_sum->Fill(a.Uniform(adcData[i]-pedestals[1].first-0.5,adcData[i]-pedestals[1].first+0.5)*correctionFactors_pedSubtracted[1]);
@@ -1046,6 +1090,7 @@ int main( int argc, char* argv[] ) {
 	  h1_cef3_corr_2->Fill(adcData[i]*correctionFactors[2]);
 	  if(adcData[i]>(pedestals[2].first + nSigma*pedestals[2].second)) {
 	    h1_cef3_pedSubtracted_corr_2->Fill((adcData[i]-pedestals[2].first)*correctionFactors_pedSubtracted[2]);
+	    h1_cef3_pedSubtracted_corr_rebin_2->Fill((adcData[i]-pedestals[2].first)*correctionFactors_pedSubtracted[2]);
 	    h1_cef3_pedSubtracted_corr_muQ_2->Fill((adcData[i]-pedestals[2].first)*correctionFactors_pedSubtracted_muQ[2]);
 	    h1_cef3_pedSubtracted_corr_muMean_2->Fill((adcData[i]-pedestals[2].first)*correctionFactors_pedSubtracted_muMean[2]);
 	    h1_cef3_pedSubtracted_corr_sum->Fill(a.Uniform(adcData[i]-pedestals[2].first-0.5,adcData[i]-pedestals[2].first+0.5)*correctionFactors_pedSubtracted[2]);
@@ -1056,6 +1101,7 @@ int main( int argc, char* argv[] ) {
 	  h1_cef3_corr_3->Fill(adcData[i]*correctionFactors[3]);
 	  if(adcData[i]>(pedestals[3].first + nSigma*pedestals[3].second)){
 	    h1_cef3_pedSubtracted_corr_3->Fill((adcData[i]-pedestals[3].first)*correctionFactors_pedSubtracted[3]);
+	    h1_cef3_pedSubtracted_corr_rebin_3->Fill((adcData[i]-pedestals[3].first)*correctionFactors_pedSubtracted[3]);
 	    h1_cef3_pedSubtracted_corr_muQ_3->Fill((adcData[i]-pedestals[3].first)*correctionFactors_pedSubtracted_muQ[3]);
 	    h1_cef3_pedSubtracted_corr_muMean_3->Fill((adcData[i]-pedestals[3].first)*correctionFactors_pedSubtracted_muMean[3]);
 	    h1_cef3_pedSubtracted_corr_sum->Fill(a.Uniform(adcData[i]-pedestals[3].first-0.5,adcData[i]-pedestals[3].first+0.5)*correctionFactors_pedSubtracted[3]);
@@ -1315,6 +1361,14 @@ int main( int argc, char* argv[] ) {
   FitResults fr_pedSubtracted_corr_1 = fitSingleHisto( h1_cef3_pedSubtracted_corr_1, 0., 0., lowerFitBoundary[1]-3-pedestals[1].first, 182.-pedestals[1].first );
   FitResults fr_pedSubtracted_corr_2 = fitSingleHisto( h1_cef3_pedSubtracted_corr_2, 0., 0., lowerFitBoundary[2]+1-pedestals[2].first, 188.-pedestals[2].first );
   FitResults fr_pedSubtracted_corr_3 = fitSingleHisto( h1_cef3_pedSubtracted_corr_3, 0., 0., lowerFitBoundary[3]+1-pedestals[3].first, 198.-pedestals[3].first );
+
+
+
+  FitResults fr_pedSubtracted_corr_rebin_0 = fitSingleHisto( h1_cef3_pedSubtracted_corr_rebin_0, 0., 0., lowerFitBoundary[0]+2-pedestals[0].first, 189.-pedestals[0].first );
+  FitResults fr_pedSubtracted_corr_rebin_1 = fitSingleHisto( h1_cef3_pedSubtracted_corr_rebin_1, 0., 0., lowerFitBoundary[1]-3-pedestals[1].first, 177.-pedestals[1].first );
+  FitResults fr_pedSubtracted_corr_rebin_2 = fitSingleHisto( h1_cef3_pedSubtracted_corr_rebin_2, 0., 0., lowerFitBoundary[2]+1-pedestals[2].first, 181.-pedestals[2].first );
+  FitResults fr_pedSubtracted_corr_rebin_3 = fitSingleHisto( h1_cef3_pedSubtracted_corr_rebin_3, 0., 0., lowerFitBoundary[3]+1-pedestals[3].first, 196.-pedestals[3].first );
+
 
 
 

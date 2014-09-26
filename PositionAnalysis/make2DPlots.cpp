@@ -307,6 +307,7 @@ int main( int argc, char* argv[] ) {
   cef3SpectrumSingleEle->Draw("same");
   cef3SpectrumSingleEleHodo->SetLineColor(kBlue);
   legend->Draw("same");
+  labelTop2->Draw("same");
   cef3SpectrumSingleEleHodo->Draw("same");
   c1->SaveAs("cef3SpectrumSuperimposed.png");
   c1->SaveAs("cef3SpectrumSuperimposed.eps");
