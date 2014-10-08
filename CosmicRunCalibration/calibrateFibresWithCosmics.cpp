@@ -15,6 +15,7 @@
 #include "../PositionAnalysis/fastDQM_CeF3_BTF.h"
 #include "../PositionAnalysis/interface/DrawTools.h"
 #include "TTree.h"
+#include "TRandom.h"
 
 struct FitResults {
 
@@ -74,6 +75,35 @@ Double_t PMTFunction(Double_t *x, Double_t *par)
 
 }
 
+Double_t PMTFunction_unconstrained(Double_t *x, Double_t *par)
+{
+
+   float N = par[0];
+   float mu = par[1];
+   float Q1 = par[2];
+   float sigma = par[3];
+   float offset = par[4];
+   float sigmaoffset = par[5];
+   float alpha = par[6];
+   float w = par[7];
+
+   float xx = x[0];
+   double value = 0.;
+
+   for( unsigned i=1; i<3; ++i ) {
+
+     //double Qn = offset + (double)(i)*Q1;
+     double sigma_n = sqrt( (double)(i)*sigma*sigma + sigmaoffset*sigmaoffset);
+
+
+     //value = value + N*( poisson * ( (1.-w)*gauss + w*bg ) );
+     value = value + N* mu * TMath::Gaus( xx, (double)i*Q1 + offset, sigma_n) ;
+     //value = value + N*(TMath::Poisson( i, mu ) * TMath::Gaus( xx, (double)i*Q1 + offset, sqrt((double)i)*sigma ));
+   }
+
+   return value;
+
+}
 
 
 
@@ -200,31 +230,74 @@ FitResults fitSingleHisto( TH1D* histo, double pedMin, double pedMax, double xMi
     f1->FixParameter( 4, 0 );
   }
 
-  histo->Fit( f1, "R+" );
+
+  histo->Fit( f1, "RN+" );
+  TString histoName(histo->GetName());
+  if(histoName=="cef3_pedSubtracted_corr_rebin_2")  f1->SetRange(xMin, xMax+5); //plot for the paper
+  f1->SetLineColor(kRed);
+
 
   TCanvas* c1 = new TCanvas("c1", "c1", 600, 600);
   c1->cd();
 
-  c1->SetLogy();
+  //  c1->SetLogy();
 
   TH2D* h2_axes;
   if(!(pedMin<10)){
-    h2_axes= new TH2D("axes", "", 10, 100., 350., 10, 9., 7.*histo->GetMaximum() );
+    h2_axes= new TH2D("axes", "", 10, 100., 350., 10, 9.,1.2*histo->GetMaximum() );
   }else{
-    h2_axes= new TH2D("axes", "", 10, 0., 200., 10, 9., 7.*histo->GetMaximum() );
+    h2_axes= new TH2D("axes", "", 10, 0., 150., 10, 9., 1.2*histo->GetMaximum() );
   }
   h2_axes->SetXTitle( "ADC Counts" );
+  h2_axes->SetYTitle( "Events / 2" );
   h2_axes->Draw();
 
+  histo->SetLineWidth(2);
+
+  histo->SetXTitle( "ADC Counts" );
+
+  TPaveText* labelTop = DrawTools::getLabelTop("Cosmic Data");
+  labelTop->Draw("same");
+  gPad->RedrawAxis(); 
+
+
+
+  float N, mu, Q1, sigma;
+  N=f1->GetParameter(0);
+  mu=f1->GetParameter(1);
+  Q1=f1->GetParameter(2);
+  sigma=f1->GetParameter(3);
+
+  TPaveText* label_fit = new TPaveText(0.88,0.75,0.68,0.92, "brNDC");
+  label_fit->SetFillColor(kWhite);
+  label_fit->SetTextSize(0.038);
+  //  label_fit->SetTextAlign(31); // align right
+  label_fit->SetTextFont(62);
+  std::string N_str=Form("N=%4.0f", N);
+  label_fit->AddText(N_str.c_str());
+  std::string mu_str=Form("#mu=%.2f", mu);
+  label_fit->AddText(mu_str.c_str());
+  std::string Q_1_str=Form("Q_{1}=%.2f", Q1);
+  label_fit->AddText(Q_1_str.c_str());
+  std::string sigma_str=Form("#sigma=%.2f", sigma);
+  label_fit->AddText(sigma_str.c_str());
+
+
+  label_fit->Draw("same");
+
   histo->Draw("same");
-
-
-  TString histoName(histo->GetName());
-
-
+  f1->Draw("same");
 
   c1->SaveAs( histoName + ".eps" );
   c1->SaveAs( histoName + ".png" );
+  c1->SaveAs( histoName + ".C" );
+
+  c1->SetLogy();
+
+  c1->SaveAs( histoName + "_log.eps" );
+  c1->SaveAs( histoName + "_log.png" );
+  c1->SaveAs( histoName + "_log.C" );
+
 
   FitResults fr;
   fr.ped_mu = f1_ped->GetParameter(1);
@@ -252,91 +325,125 @@ FitResults fitSingleHisto( TH1D* histo, double pedMin, double pedMax, double xMi
 
 }
 
+FitResults fitSingleHisto_sum( TH1D* histo, double pedMin, double pedMax, double xMin, double xMax, bool isConstrained ) {
 
-void setStyle(){
-  // set the TStyle
-  TStyle* style_ = new TStyle("DrawBaseStyle", "");
-  style_->SetCanvasColor(0);
-  style_->SetPadColor(0);
-  style_->SetFrameFillColor(0);
-  style_->SetStatColor(0);
-  style_->SetOptStat(0);
-  style_->SetTitleFillColor(0);
-  style_->SetCanvasBorderMode(0);
-  style_->SetPadBorderMode(0);
-  style_->SetFrameBorderMode(0);
-  style_->SetPadBottomMargin(0.12);
-  style_->SetPadLeftMargin(0.12);
-  style_->cd();
+  float integral = histo->Integral();
+  TF1* f1_ped = new TF1( "ped", "gaus", pedMin, pedMax );
+  f1_ped->SetParameter(0, integral);
+  f1_ped->SetParameter(1, 110.);
+  f1_ped->SetParameter(2, 10.);
 
-  // For the canvas:
-  style_->SetCanvasBorderMode(0);
-  style_->SetCanvasColor(kWhite);
-  style_->SetCanvasDefH(600); //Height of canvas
-  style_->SetCanvasDefW(600); //Width of canvas
-  style_->SetCanvasDefX(0); //POsition on screen
-  style_->SetCanvasDefY(0);
+  f1_ped->SetLineColor(kRed+2);
+  if(pedMin>10){
+  histo->Fit( f1_ped, "RQN" );
 
-  // For the Pad:
-  style_->SetPadBorderMode(0);
-  style_->SetPadColor(kWhite);
-  style_->SetPadGridX(false);
-  style_->SetPadGridY(false);
-  style_->SetGridColor(0);
-  style_->SetGridStyle(3);
-  style_->SetGridWidth(1);
+  int nSteps = 2;
+  for( unsigned iStep=0; iStep<nSteps; iStep++ ) {
 
-  // For the frame:
-  style_->SetFrameBorderMode(0);
-  style_->SetFrameBorderSize(1);
-  style_->SetFrameFillColor(0);
-  style_->SetFrameFillStyle(0);
-  style_->SetFrameLineColor(1);
-  style_->SetFrameLineStyle(1);
-  style_->SetFrameLineWidth(1);
+    float ped_mean = f1_ped->GetParameter(1);
+    float ped_sigma = f1_ped->GetParameter(2);
+
+    float nSigma = 2.;
+    float newMin = ped_mean-nSigma*ped_sigma;
+    float newMax = ped_mean+nSigma*ped_sigma;
+
+    f1_ped->SetRange( newMin, newMax );
+ 
+    std::string option = (iStep<(nSteps-1)) ? "RQN" : "RQ+";
+    histo->Fit( f1_ped, option.c_str() );
+
+  }
+  }
+
+  TF1* f1;
+  if(isConstrained){
+    f1 = new TF1( "func", PMTFunction, xMin, xMax, 8 );
+  }else{
+    f1 = new TF1( "func_unconstrained", PMTFunction_unconstrained, xMin, xMax, 8 );
+  }
+  f1->SetParameter( 0, integral ); //normalization
+  f1->SetParameter( 1, 1 ); //poiss mu
+  f1->SetParameter( 2, 25. ); //gauss step
+  f1->SetParameter( 3, 10. ); //gauss sigma
+  f1->SetParameter( 4, 100 ); //offset
+  f1->SetParameter( 5, 3. ); //sigmaoffset
+  f1->SetParameter( 6, 0.03 ); //alpha
+  f1->SetParameter( 7, 0.4 ); //w
+    
+  f1->FixParameter( 5, 0. ); //sigmaoffset
+  f1->FixParameter( 6, 0. ); //alpha
+  f1->FixParameter( 7, 0. ); //w
+    
+  f1->SetParLimits( 1, 0.5, 2.5 ); //poiss mu
+  f1->SetParLimits( 2, 10., 40. ); //gauss step
+  f1->SetParLimits( 3, 3., 12. ); //gauss sigma
+  //f1->SetParLimits( 4, 90., 110.); //offset
+  //f1->SetParLimits( 5, 0., 8. ); //gauss sigma
+  f1->SetLineColor(kRed+2);
+    
+  if(pedMin<10){
+    f1->FixParameter( 4, 0 );
+  }
+
+  if(!isConstrained){
+    std::cout<<"------unconstrained fit"<<std::endl;
+    f1->FixParameter(1,1);
+    f1->SetLineColor(kBlue);
+  }
+
+  histo->Fit( f1, "R+" );
+
+  TCanvas* c1 = new TCanvas("c1", "c1", 600, 600);
+  c1->cd();
+
+  c1->SetLogy();
+
+  TH2D* h2_axes;
+  if(!(pedMin<10)){
+    h2_axes= new TH2D("axes", "", 10, 100., 350., 10, 9., 7.*histo->GetMaximum() );
+  }else{
+    h2_axes= new TH2D("axes", "", 10, 0., 200., 10, 9., 7.*histo->GetMaximum() );
+  }
+  h2_axes->SetXTitle( "ADC Counts" );
+  h2_axes->Draw();
+
+  histo->Draw("same");
 
 
-  // Margins:
-  style_->SetPadTopMargin(0.05);
-  style_->SetPadBottomMargin(0.15);//0.13);
-  style_->SetPadLeftMargin(0.15);//0.16);
-  style_->SetPadRightMargin(0.05);//0.02);
+  TString histoName(histo->GetName());
 
-  // For the Global title:
 
-  style_->SetOptTitle(0);
-  style_->SetTitleFont(42);
-  style_->SetTitleColor(1);
-  style_->SetTitleTextColor(1);
-  style_->SetTitleFillColor(10);
-  style_->SetTitleFontSize(0.05);
+  c1->SaveAs( histoName + ".eps" );
+  c1->SaveAs( histoName + ".png" );
 
-  // For the axis titles:
+  FitResults fr;
+  fr.ped_mu = f1_ped->GetParameter(1);
+  fr.ped_mu_err = f1_ped->GetParError(1);
+  fr.ped_sigma = f1_ped->GetParameter(2);
+  fr.ped_sigma_err = f1_ped->GetParError(2);
 
-  style_->SetTitleColor(1, "XYZ");
-  style_->SetTitleFont(42, "XYZ");
-  style_->SetTitleSize(0.05, "XYZ");
-  style_->SetTitleXOffset(1.15);//0.9);
-  style_->SetTitleYOffset(1.4); // => 1.15 if exponents
+  fr.mu = f1->GetParameter(1);
+  fr.mu_err = f1->GetParError(1);
+  fr.offset = f1->GetParameter(4);
+  fr.offset_err = f1->GetParError(4);
+  fr.Q1 = f1->GetParameter(2);
+  fr.Q1_err = f1->GetParError(2);
+  fr.sigma = f1->GetParameter(3);
+  fr.sigma_err = f1->GetParError(3);
+  f1->Clear();
 
-  // For the axis labels:
+  delete c1;
+  delete f1;
+  delete f1_ped;
+  delete h2_axes;
 
-  style_->SetLabelColor(1, "XYZ");
-  style_->SetLabelFont(42, "XYZ");
-  style_->SetLabelOffset(0.007, "XYZ");
-  style_->SetLabelSize(0.045, "XYZ");
+  return fr;
 
-  // For the axis:
 
-  style_->SetAxisColor(1, "XYZ");
-  style_->SetStripDecimals(kTRUE);
-  style_->SetTickLength(0.03, "XYZ");
-  style_->SetNdivisions(510, "XYZ");
-  style_->SetPadTickX(1); // To get tick marks on the opposite side of the frame
-  style_->SetPadTickY(1);
 
-  style_->cd();
 }
+
+
 
 
 
@@ -550,7 +657,7 @@ std::vector< std::pair<float, float> > getPedestals( const std::string& type, co
   }
 
     
-  DrawTools::setStyle();
+  //DrawTools::setStyle();
   TFile* file = TFile::Open(fileName.c_str());
 
   std::vector< std::pair<float, float> > peds;
@@ -579,7 +686,7 @@ std::vector< std::pair<float, float> > getPedestals( const std::string& type, co
 
 int main( int argc, char* argv[] ) {
 
-  setStyle();
+  DrawTools::setStyle();
 
   std::string runName = "precalib_BGO_pedestal_noSource";
   if( argc>1 ) {
@@ -643,7 +750,17 @@ int main( int argc, char* argv[] ) {
   TH1D* h1_cef3_pedSubtracted_corr_0   = new TH1D("cef3_pedSubtracted_corr_0",   "", 400, 0., 400.*1.11228);
   TH1D* h1_cef3_pedSubtracted_corr_1   = new TH1D("cef3_pedSubtracted_corr_1",   "", 400, 0., 400.*0.855333);
   TH1D* h1_cef3_pedSubtracted_corr_2   = new TH1D("cef3_pedSubtracted_corr_2",   "", 400, 0., 400.*0.97973);
-  TH1D* h1_cef3_pedSubtracted_corr_3   = new TH1D("cef3_pedSubtracted_corr_3",   "", 400, 0., 400.*1.08781);
+  TH1D* h1_cef3_pedSubtracted_corr_3   = new TH1D("cef3_pedSubtracted_corr_3",   "", 400, 0., 400.*1.08781); 
+
+  TH1D* h1_cef3_pedSubtracted_corr_sum   = new TH1D("cef3_pedSubtracted_sum",   "", 400, 0., 400.);
+  TH1D* h1_cef3_pedSubtracted_corr_sum_dummy   = new TH1D("cef3_pedSubtracted_sum",   "", 400, 0., 400.);
+
+  TH1D* h1_cef3_pedSubtracted_corr_rebin_0   = new TH1D("cef3_pedSubtracted_corr_rebin_0",   "", 200, 0., 400.*1.11228);
+  TH1D* h1_cef3_pedSubtracted_corr_rebin_1   = new TH1D("cef3_pedSubtracted_corr_rebin_1",   "", 200, 0., 400.*0.855333);
+  TH1D* h1_cef3_pedSubtracted_corr_rebin_2   = new TH1D("cef3_pedSubtracted_corr_rebin_2",   "", 200, 0., 400.*0.97973);
+  TH1D* h1_cef3_pedSubtracted_corr_rebin_3   = new TH1D("cef3_pedSubtracted_corr_rebin_3",   "", 200, 0., 400.*1.08781);
+
+
 
   TH1D* h1_cef3_pedSubtracted_corr_muQ_0   = new TH1D("cef3_pedSubtracted_corr_muQ_0",   "", 400, 0., 400.*1.19514);
   TH1D* h1_cef3_pedSubtracted_corr_muQ_1   = new TH1D("cef3_pedSubtracted_corr_muQ_1",   "", 400, 0., 400.*0.860177);
@@ -928,6 +1045,8 @@ int main( int argc, char* argv[] ) {
     std::cout<<"correctionFactors pedSub muQ "<<correctionFactors_pedSubtracted_muQ[i]<<std::endl;
     std::cout<<"correctionFactors pedSub muMean "<<correctionFactors_pedSubtracted_muMean[i]<<std::endl;
   }
+  TRandom a;
+  a.SetSeed(100);
 
   for( unsigned iEntry=0; iEntry<nentries; ++iEntry ) {
     
@@ -942,15 +1061,17 @@ int main( int argc, char* argv[] ) {
       
       
       float cef3_corr=0;
-      
+
       
       if( board==CEF3_ADC_BOARD ) {
 	if( channel==(CEF3_ADC_START_CHANNEL  ) ){
 	  h1_cef3_corr_0->Fill(adcData[i]*correctionFactors[0]);
 	  if(adcData[i]>(pedestals[0].first + nSigma*pedestals[0].second)){
 	    h1_cef3_pedSubtracted_corr_0->Fill((adcData[i]-pedestals[0].first)*correctionFactors_pedSubtracted[0]);
+	    h1_cef3_pedSubtracted_corr_rebin_0->Fill((adcData[i]-pedestals[0].first)*correctionFactors_pedSubtracted[0]);
 	    h1_cef3_pedSubtracted_corr_muQ_0->Fill((adcData[i]-pedestals[0].first)*correctionFactors_pedSubtracted_muQ[0]);
 	    h1_cef3_pedSubtracted_corr_muMean_0->Fill((adcData[i]-pedestals[0].first)*correctionFactors_pedSubtracted_muMean[0]);
+	    h1_cef3_pedSubtracted_corr_sum->Fill(a.Uniform(adcData[i]-pedestals[0].first-0.5,adcData[i]-pedestals[0].first+0.5)*correctionFactors_pedSubtracted[0]);
 	  }
 	  cef3_corr+=adcData[i]*correctionFactors[0];
 	}
@@ -958,8 +1079,10 @@ int main( int argc, char* argv[] ) {
 	  h1_cef3_corr_1->Fill(adcData[i]*correctionFactors[1]);
 	  if(adcData[i]>(pedestals[1].first + nSigma*pedestals[1].second)) {
 	    h1_cef3_pedSubtracted_corr_1->Fill((adcData[i]-pedestals[1].first)*correctionFactors_pedSubtracted[1]);
+	    h1_cef3_pedSubtracted_corr_rebin_1->Fill((adcData[i]-pedestals[1].first)*correctionFactors_pedSubtracted[1]);
 	    h1_cef3_pedSubtracted_corr_muQ_1->Fill((adcData[i]-pedestals[1].first)*correctionFactors_pedSubtracted_muQ[1]);
 	    h1_cef3_pedSubtracted_corr_muMean_1->Fill((adcData[i]-pedestals[1].first)*correctionFactors_pedSubtracted_muMean[1]);
+	    h1_cef3_pedSubtracted_corr_sum->Fill(a.Uniform(adcData[i]-pedestals[1].first-0.5,adcData[i]-pedestals[1].first+0.5)*correctionFactors_pedSubtracted[1]);
 	  }
 	  cef3_corr+=adcData[i]*correctionFactors[1];
 	}
@@ -967,8 +1090,10 @@ int main( int argc, char* argv[] ) {
 	  h1_cef3_corr_2->Fill(adcData[i]*correctionFactors[2]);
 	  if(adcData[i]>(pedestals[2].first + nSigma*pedestals[2].second)) {
 	    h1_cef3_pedSubtracted_corr_2->Fill((adcData[i]-pedestals[2].first)*correctionFactors_pedSubtracted[2]);
+	    h1_cef3_pedSubtracted_corr_rebin_2->Fill((adcData[i]-pedestals[2].first)*correctionFactors_pedSubtracted[2]);
 	    h1_cef3_pedSubtracted_corr_muQ_2->Fill((adcData[i]-pedestals[2].first)*correctionFactors_pedSubtracted_muQ[2]);
 	    h1_cef3_pedSubtracted_corr_muMean_2->Fill((adcData[i]-pedestals[2].first)*correctionFactors_pedSubtracted_muMean[2]);
+	    h1_cef3_pedSubtracted_corr_sum->Fill(a.Uniform(adcData[i]-pedestals[2].first-0.5,adcData[i]-pedestals[2].first+0.5)*correctionFactors_pedSubtracted[2]);
 	  }
 	  cef3_corr+=adcData[i]*correctionFactors[2];
 	}
@@ -976,8 +1101,10 @@ int main( int argc, char* argv[] ) {
 	  h1_cef3_corr_3->Fill(adcData[i]*correctionFactors[3]);
 	  if(adcData[i]>(pedestals[3].first + nSigma*pedestals[3].second)){
 	    h1_cef3_pedSubtracted_corr_3->Fill((adcData[i]-pedestals[3].first)*correctionFactors_pedSubtracted[3]);
+	    h1_cef3_pedSubtracted_corr_rebin_3->Fill((adcData[i]-pedestals[3].first)*correctionFactors_pedSubtracted[3]);
 	    h1_cef3_pedSubtracted_corr_muQ_3->Fill((adcData[i]-pedestals[3].first)*correctionFactors_pedSubtracted_muQ[3]);
 	    h1_cef3_pedSubtracted_corr_muMean_3->Fill((adcData[i]-pedestals[3].first)*correctionFactors_pedSubtracted_muMean[3]);
+	    h1_cef3_pedSubtracted_corr_sum->Fill(a.Uniform(adcData[i]-pedestals[3].first-0.5,adcData[i]-pedestals[3].first+0.5)*correctionFactors_pedSubtracted[3]);
 	  }
 	  cef3_corr+=adcData[i]*correctionFactors[3];
 	}
@@ -1032,24 +1159,73 @@ int main( int argc, char* argv[] ) {
   ccorr->SaveAs("corrEnergyAllChannelspedSubtracted.png");
   ccorr->SaveAs("corrEnergyAllChannelspedSubtracted.eps");
 
+  h1_cef3_pedSubtracted_corr_sum->Rebin(2);
+  FitResults fr_corr_sum = fitSingleHisto_sum( h1_cef3_pedSubtracted_corr_sum, 0., 0.,13.,68.,true );
+
   //plot for the paper. all corr channels sum and fit
   ccorr->Clear();
-  TH1D* h1_cef3_pedSubtracted_sum   = new TH1D("cef3_pedSubtracted_sum",   "", 400, 0., 400.);
-  h1_cef3_pedSubtracted_sum->SetLineWidth(2);
-  h1_cef3_pedSubtracted_sum->Add(h1_cef3_pedSubtracted_corr_0);
-  h1_cef3_pedSubtracted_sum->Add(h1_cef3_pedSubtracted_corr_1);
-  h1_cef3_pedSubtracted_sum->Add(h1_cef3_pedSubtracted_corr_2);
-  h1_cef3_pedSubtracted_sum->Add(h1_cef3_pedSubtracted_corr_3);
-  //  h1_cef3_pedSubtracted_sum->Rebin(2);
+  ccorr->SetLogy(0);
+  ccorr->cd();
 
-  histo_axes->GetXaxis()->SetRangeUser(0.,150.);
-  histo_axes->GetYaxis()->SetRangeUser(50.,h1_cef3_pedSubtracted_sum->GetMaximum()+h1_cef3_pedSubtracted_sum->GetMaximum()*0.10);
-  histo_axes->SetXTitle( "ADC Counts" );
+  h1_cef3_pedSubtracted_corr_sum->SetLineWidth(2);
+  
+  h1_cef3_pedSubtracted_corr_sum->GetXaxis()->SetRangeUser(0.,150.);
+  h1_cef3_pedSubtracted_corr_sum->GetYaxis()->SetRangeUser(50.,h1_cef3_pedSubtracted_corr_sum->GetMaximum()+h1_cef3_pedSubtracted_corr_sum->GetMaximum()*0.10);
+  h1_cef3_pedSubtracted_corr_sum->SetYTitle( "Events / 2" );
+  h1_cef3_pedSubtracted_corr_sum->SetXTitle( "ADC Counts" );
 
-  histo_axes->Draw();
-  h1_cef3_pedSubtracted_sum->Draw("same");
-  ccorr->SaveAs("dummy.png");
+ 
+  h1_cef3_pedSubtracted_corr_sum->Draw();
+  //  ccorr->SetLogy(1);
+  TPaveText* labelTop = DrawTools::getLabelTop("Cosmic Data");
+  labelTop->Draw("same");
+  gPad->RedrawAxis(); 
+  ccorr->SaveAs("sum_fitted.png");
+  ccorr->SaveAs("sum_fitted.eps");
+  ccorr->SaveAs("sum_fitted.C");
+  //ccorr->SaveAs("sum_fitted_log.png");
 
+  ccorr->Clear();
+  h1_cef3_pedSubtracted_corr_sum->Draw();
+  labelTop->Draw("same");
+  ccorr->SetLogy(1);
+  ccorr->SaveAs("sum_fitted_log.png");
+  ccorr->SaveAs("sum_fitted_log.eps");
+  ccorr->SaveAs("sum_fitted_log.C");
+
+
+  //unconstrained fit
+  FitResults fr_corr_unconstrained_sum = fitSingleHisto_sum( h1_cef3_pedSubtracted_corr_sum, 0., 0.,14.,69.,false );
+  
+  h1_cef3_pedSubtracted_corr_sum->GetXaxis()->SetRangeUser(0.,150.);
+  h1_cef3_pedSubtracted_corr_sum->GetYaxis()->SetRangeUser(50.,h1_cef3_pedSubtracted_corr_sum->GetMaximum()+h1_cef3_pedSubtracted_corr_sum->GetMaximum()*0.10);
+  h1_cef3_pedSubtracted_corr_sum->SetXTitle( "ADC Counts" );
+
+ 
+  h1_cef3_pedSubtracted_corr_sum->Draw();
+  ccorr->SetLogy(1);
+  ccorr->SaveAs("sum_fitted_log_unc.png");
+
+  ccorr->Clear();
+  ccorr->cd();
+  h1_cef3_pedSubtracted_corr_sum_dummy->Add(h1_cef3_pedSubtracted_corr_0);
+  h1_cef3_pedSubtracted_corr_sum_dummy->Add(h1_cef3_pedSubtracted_corr_1);
+  h1_cef3_pedSubtracted_corr_sum_dummy->Add(h1_cef3_pedSubtracted_corr_2);
+  h1_cef3_pedSubtracted_corr_sum_dummy->Add(h1_cef3_pedSubtracted_corr_3);
+
+  h1_cef3_pedSubtracted_corr_sum_dummy->Rebin(2);  
+  FitResults fr_corr_sum_dummy = fitSingleHisto_sum( h1_cef3_pedSubtracted_corr_sum_dummy, 0., 0.,13.,68.,true );
+
+  h1_cef3_pedSubtracted_corr_sum_dummy->GetXaxis()->SetRangeUser(0.,150.);
+  h1_cef3_pedSubtracted_corr_sum_dummy->GetYaxis()->SetRangeUser(50.,h1_cef3_pedSubtracted_corr_sum->GetMaximum()+h1_cef3_pedSubtracted_corr_sum->GetMaximum()*0.10);
+  h1_cef3_pedSubtracted_corr_sum_dummy->SetXTitle( "ADC Counts" );
+  ccorr->SetLogy(0);
+
+  h1_cef3_pedSubtracted_corr_sum_dummy->Draw();
+  ccorr->SaveAs("sum_fitted_log_dummy.png");
+
+  std::cout<<"######################## mean random:"<<h1_cef3_pedSubtracted_corr_sum->GetMean()<<"+-"<<h1_cef3_pedSubtracted_corr_sum->GetMeanError()<<std::endl;
+  std::cout<<"######################## mean not random:"<<h1_cef3_pedSubtracted_corr_sum_dummy->GetMean()<<"+-"<<h1_cef3_pedSubtracted_corr_sum_dummy->GetMeanError()<<std::endl;
 
 
   cuncorr_pedSubtracted_2->Clear();
@@ -1185,6 +1361,14 @@ int main( int argc, char* argv[] ) {
   FitResults fr_pedSubtracted_corr_1 = fitSingleHisto( h1_cef3_pedSubtracted_corr_1, 0., 0., lowerFitBoundary[1]-3-pedestals[1].first, 182.-pedestals[1].first );
   FitResults fr_pedSubtracted_corr_2 = fitSingleHisto( h1_cef3_pedSubtracted_corr_2, 0., 0., lowerFitBoundary[2]+1-pedestals[2].first, 188.-pedestals[2].first );
   FitResults fr_pedSubtracted_corr_3 = fitSingleHisto( h1_cef3_pedSubtracted_corr_3, 0., 0., lowerFitBoundary[3]+1-pedestals[3].first, 198.-pedestals[3].first );
+
+
+
+  FitResults fr_pedSubtracted_corr_rebin_0 = fitSingleHisto( h1_cef3_pedSubtracted_corr_rebin_0, 0., 0., lowerFitBoundary[0]+2-pedestals[0].first, 189.-pedestals[0].first );
+  FitResults fr_pedSubtracted_corr_rebin_1 = fitSingleHisto( h1_cef3_pedSubtracted_corr_rebin_1, 0., 0., lowerFitBoundary[1]-3-pedestals[1].first, 177.-pedestals[1].first );
+  FitResults fr_pedSubtracted_corr_rebin_2 = fitSingleHisto( h1_cef3_pedSubtracted_corr_rebin_2, 0., 0., lowerFitBoundary[2]+1-pedestals[2].first, 181.-pedestals[2].first );
+  FitResults fr_pedSubtracted_corr_rebin_3 = fitSingleHisto( h1_cef3_pedSubtracted_corr_rebin_3, 0., 0., lowerFitBoundary[3]+1-pedestals[3].first, 196.-pedestals[3].first );
+
 
 
 
