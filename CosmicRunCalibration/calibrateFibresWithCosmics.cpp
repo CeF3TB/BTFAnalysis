@@ -233,7 +233,7 @@ FitResults fitSingleHisto( TH1D* histo, double pedMin, double pedMax, double xMi
 
   histo->Fit( f1, "RN+" );
   TString histoName(histo->GetName());
-  if(histoName=="cef3_pedSubtracted_corr_rebin_2")  f1->SetRange(xMin, xMax+5); //plot for the paper
+  if(histoName=="cef3_pedSubtracted_corr_rebin_2")  f1->SetRange(xMin, xMax+3); //plot for the paper
   f1->SetLineColor(kRed);
 
 
@@ -248,8 +248,8 @@ FitResults fitSingleHisto( TH1D* histo, double pedMin, double pedMax, double xMi
   }else{
     h2_axes= new TH2D("axes", "", 10, 0., 150., 10, 9., 1.2*histo->GetMaximum() );
   }
-  h2_axes->SetXTitle( "ADC Counts" );
-  h2_axes->SetYTitle( "Events / 2" );
+  h2_axes->SetXTitle( "ADC Channel" );
+  h2_axes->SetYTitle( "Entries / (2 ADC Channels)" );
   h2_axes->Draw();
 
   histo->SetLineWidth(2);
@@ -263,23 +263,32 @@ FitResults fitSingleHisto( TH1D* histo, double pedMin, double pedMax, double xMi
 
 
   float N, mu, Q1, sigma;
+  float N_err, mu_err, Q1_err, sigma_err;
   N=f1->GetParameter(0);
   mu=f1->GetParameter(1);
   Q1=f1->GetParameter(2);
   sigma=f1->GetParameter(3);
 
-  TPaveText* label_fit = new TPaveText(0.88,0.75,0.68,0.92, "brNDC");
+  N_err=f1->GetParError(0);
+  mu_err=f1->GetParError(1);
+  Q1_err=f1->GetParError(2);
+  sigma_err=f1->GetParError(3);
+
+
+  //longer version
+  TPaveText* label_fit = new TPaveText(0.52,0.70,0.8,0.85, "brNDC");
   label_fit->SetFillColor(kWhite);
-  label_fit->SetTextSize(0.038);
-  //  label_fit->SetTextAlign(31); // align right
+  label_fit->SetTextSize(0.035);
+  label_fit->SetTextAlign(10); // align right
   label_fit->SetTextFont(62);
-  std::string N_str=Form("N=%4.0f", N);
-  label_fit->AddText(N_str.c_str());
-  std::string mu_str=Form("#mu=%.2f", mu);
-  label_fit->AddText(mu_str.c_str());
-  std::string Q_1_str=Form("Q_{1}=%.2f", Q1);
+  label_fit->AddText("Single photoelectron fit");
+  std::string N_str=Form("N=%4.0f #pm %2.0f", N,N_err);
+  //  label_fit->AddText(N_str.c_str());
+  std::string mu_str=Form("#mu=%.2f #pm %.2f", mu,mu_err);
+  //  label_fit->AddText(mu_str.c_str());
+  std::string Q_1_str=Form("Q_{1} = %.1f #pm %.1f", Q1,Q1_err);
   label_fit->AddText(Q_1_str.c_str());
-  std::string sigma_str=Form("#sigma=%.2f", sigma);
+  std::string sigma_str=Form("#sigma_{1} = %.1f #pm %.1f", sigma, sigma_err);
   label_fit->AddText(sigma_str.c_str());
 
 
@@ -291,13 +300,14 @@ FitResults fitSingleHisto( TH1D* histo, double pedMin, double pedMax, double xMi
   c1->SaveAs( histoName + ".eps" );
   c1->SaveAs( histoName + ".png" );
   c1->SaveAs( histoName + ".C" );
+  c1->SaveAs( histoName + ".pdf" );
 
   c1->SetLogy();
 
   c1->SaveAs( histoName + "_log.eps" );
   c1->SaveAs( histoName + "_log.png" );
   c1->SaveAs( histoName + "_log.C" );
-
+  c1->SaveAs( histoName + "_log.pdf" );
 
   FitResults fr;
   fr.ped_mu = f1_ped->GetParameter(1);
