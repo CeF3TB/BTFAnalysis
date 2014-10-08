@@ -164,12 +164,17 @@ int main( int argc, char* argv[] ) {
   TStyle* style = DrawTools::setStyle();
   //  tree->Print();
 
-  TH1F* cef3SpectrumTotal=new TH1F("cef3SpectrumTotal","cef3SpectrumTotal",600,0,11999/1000.);
-  TH1F* cef3SpectrumSingleEle=new TH1F("cef3SpectrumSingleEle","cef3SpectrumSingleEle",600,0,11999/1000.);
-  TH1F* cef3SpectrumSingleEleHodo=new TH1F("cef3SpectrumSingleEleHodo","cef3SpectrumSingleEleHodo",600,0,11999/1000.);
+  TH1F* cef3SpectrumTotal=new TH1F("cef3SpectrumTotal","cef3SpectrumTotal",300,0,11999/1000.);
+  TH1F* cef3SpectrumSingleEle=new TH1F("cef3SpectrumSingleEle","cef3SpectrumSingleEle",300,0,11999/1000.);
+  TH1F* cef3SpectrumSingleEleHodo=new TH1F("cef3SpectrumSingleEleHodo","cef3SpectrumSingleEleHodo",300,0,11999/1000.);
 
-  TH2F* cef3VsScintFront= new TH2F("cef3VsScintFront","cef3VsScintFront",40,0.,4000./1000.,40,0.,12000.);
-  TH2F* cef3TopVsBottom= new TH2F("cefTopVsBottom","cefTopVsBottom",40,0.,8000./1000.,40,0.,8000./1000.);
+  cef3SpectrumTotal->SetLineWidth(2);
+  cef3SpectrumSingleEle->SetLineWidth(2);
+  cef3SpectrumSingleEleHodo->SetLineWidth(2);
+
+  //  TH2F* cef3VsScintFront= new TH2F("cef3VsScintFront","cef3VsScintFront",40,0.,4000./1000.,40,0.,12000.);
+  TH2F* cef3VsScintFront= new TH2F("cef3VsScintFront","cef3VsScintFront",100,0.,4000./1000.,100,0.,12000.);
+  TH2F* cef3TopVsBottom= new TH2F("cefTopVsBottom","cefTopVsBottom",100,0.,8000./1000.,100,0.,8000./1000.);
 
 
   for( unsigned iEntry=0; iEntry<nentries; ++iEntry ) {
@@ -180,14 +185,17 @@ int main( int argc, char* argv[] ) {
       if(isSingleEle_scintFront)      cef3SpectrumSingleEle->Fill((cef3_corr[0]+cef3_corr[1]+cef3_corr[2]+cef3_corr[3])/1000.);
       if(isSingleEle_scintFront*(nHodoClustersX==1 && nHodoClustersY==1))      cef3SpectrumSingleEleHodo->Fill((cef3_corr[0]+cef3_corr[1]+cef3_corr[2]+cef3_corr[3])/1000.);
     }
-    if(cuts=="hodo"){
-      if(!(nHodoClustersX>=1 && nHodoClustersY>=1))continue;
-    }else if (cuts=="signalFibers"){
-      if(!(cef3_corr[0]>10 || cef3_corr[1]>10 || cef3_corr[2]>10 || cef3_corr[3]>0))continue;
-    }else if (cuts=="bgo"){
-      if(!((bgo_corr[0]+bgo_corr[1]+bgo_corr[2]+bgo_corr[3]+bgo_corr[4]+bgo_corr[5]+bgo_corr[6]+bgo_corr[7])<1000))continue;
-    }
+
+      if(cuts=="hodo"){
+	if(!(nHodoClustersX>=1 && nHodoClustersY>=1))continue;
+      }else if (cuts=="signalFibers"){
+	if(!(cef3_corr[0]>10 || cef3_corr[1]>10 || cef3_corr[2]>10 || cef3_corr[3]>0))continue;
+      }else if (cuts=="bgo"){
+	if(!((bgo_corr[0]+bgo_corr[1]+bgo_corr[2]+bgo_corr[3]+bgo_corr[4]+bgo_corr[5]+bgo_corr[6]+bgo_corr[7])<1000))continue;
+      }
+
     if(cuts!=""){if(scintFront<150.) continue;}
+    if(scintFront<0.5 ||(cef3[0]+cef3[1]+cef3[2]+cef3[3])<1.5*1000. ) continue;
     cef3VsScintFront->Fill(scintFront/1000.,(cef3[0]+cef3[1]+cef3[2]+cef3[3]));
     cef3TopVsBottom->Fill((cef3_corr[2]+cef3_corr[3])/1000.,(cef3_corr[0]+cef3_corr[1])/1000.);
   }
@@ -202,18 +210,26 @@ int main( int argc, char* argv[] ) {
 
 
 
-  cef3VsScintFront->SetYTitle("CeF_{3} [kilo ADC Channel]");
+  cef3VsScintFront->SetYTitle("CeF_{3} [ADC Channel / 1000]");
   //  cef3VsScintFront->SetTitleOffset(1.7,"Y");
   
   ((TGaxis*)cef3VsScintFront->GetXaxis())->SetMaxDigits(3);
-  //  ((TGaxis*)cef3VsScintFront->GetYaxis())->SetMaxDigits(6);  
 
-//((TGaxis*)cef3VsScintFront->GetXaxis())-> SetExponentOffset(-0.05, 0.01, "x");
   //  cef3VsScintFront->SetAxisRange(10,cef3VsScintFront->GetMaximum(),"Z");
-  cef3VsScintFront->SetXTitle("Front Scintillator [kilo ADC Channel]");
-  cef3VsScintFront->SetAxisRange(9.99,10000.,"Z");
+  //  cef3VsScintFront->SetXTitle("Front Scintillator [ADC Channel / 1000]");
+  TPaveText* labelXaxis= new TPaveText(0.1,0.05,0.965,0., "brNDC"); 
+  labelXaxis->SetFillColor(kWhite);
+  labelXaxis->SetTextSize(cef3VsScintFront->GetXaxis()->GetTitleSize());
+  labelXaxis->SetTextAlign(31); // align right
+  labelXaxis->SetTextFont(cef3VsScintFront->GetXaxis()->GetTitleFont());
+  labelXaxis->AddText("Front Scintillator [ADC Channel / 1000]");
+  //  cef3VsScintFront->SetAxisRange(9.99,10000.,"Z");
+
+//  cef3VsScintFront->SetAxisRange(0.5,3.9,"X");
+//  cef3VsScintFront->SetAxisRange(1.5*1000,10.*1000,"Y");
   cef3VsScintFront->Draw("colz");  
 
+  labelXaxis->Draw("same");
   ((TGaxis*)cef3VsScintFront->GetYaxis())->Draw("same");
   gPad->Update();
   TPaletteAxis *palette = (TPaletteAxis*)cef3VsScintFront->GetListOfFunctions()->FindObject("palette");
@@ -228,22 +244,30 @@ int main( int argc, char* argv[] ) {
 
   TPaveText* labelTop = DrawTools::getLabelTop_2D();
   labelTop->Draw("same");
-  c1->SetLogz();
+  //   c1->SetLogz();
   
   c1->SaveAs("cef3VsScintFront_"+cuts_tstr+".png");
   c1->SaveAs("cef3VsScintFront_"+cuts_tstr+".eps");
+  c1->SaveAs("cef3VsScintFront_"+cuts_tstr+".pdf");
 
   c1->Clear();
   c1->cd();
-  cef3TopVsBottom->SetYTitle("CeF_{3} Top Fibres [kilo ADC Channel]");
+  cef3TopVsBottom->SetYTitle("CeF_{3} Top Fibres [ADC Channel / 1000]");
   //  cef3TopVsBottom->SetTitleOffset(1.7,"Y");
-  cef3TopVsBottom->SetXTitle("CeF_{3} Bottom Fibres [kilo ADC Channel]");
-  cef3TopVsBottom->SetAxisRange(9.99,10000.,"Z");
+  //  cef3TopVsBottom->SetXTitle("CeF_{3} Bottom Fibres [ADC Channel / 1000]");
+  //  cef3TopVsBottom->SetAxisRange(9.99,10000.,"Z");
   cef3TopVsBottom->Draw("colz");  
+  TPaveText* labelXaxisTop= new TPaveText(0.1,0.05,0.965,0., "brNDC"); 
+  labelXaxisTop->SetFillColor(kWhite);
+  labelXaxisTop->SetTextSize(cef3VsScintFront->GetXaxis()->GetTitleSize());
+  labelXaxisTop->SetTextAlign(31); // align right
+  labelXaxisTop->SetTextFont(cef3VsScintFront->GetXaxis()->GetTitleFont());
+  labelXaxisTop->AddText("CeF_{3} Bottom Fibres [ADC Channel / 1000]");
+  labelXaxisTop->Draw("same");
 
   labelTop->Draw("same");
   gPad->Update();
-  TPaletteAxis *palette2 = (TPaletteAxis*)cef3TopVsBottom->GetListOfFunctions()->FindObject("palette");
+  //  TPaletteAxis *palette2 = (TPaletteAxis*)cef3TopVsBottom->GetListOfFunctions()->FindObject("palette");
 //  palette2->SetX1NDC(0.88);
 //  palette2->SetX2NDC(0.92);
 //  palette2->SetY1NDC(0.13);
@@ -253,29 +277,45 @@ int main( int argc, char* argv[] ) {
   gPad->Update();
 
 
-  c1->SetLogz();
+  //  c1->SetLogz();
   
   c1->SaveAs("cef3TopVsBottom_"+cuts_tstr+".png");
   c1->SaveAs("cef3TopVsBottom_"+cuts_tstr+".eps");
+  c1->SaveAs("cef3TopVsBottom_"+cuts_tstr+".pdf");
 
   c1->Clear();
   c1->cd();
   cef3SpectrumTotal->Draw();
-  cef3SpectrumTotal->SetXTitle("kilo ADC Channel");
-  cef3SpectrumTotal->SetYTitle("Entries");
+  cef3SpectrumTotal->SetXTitle("ADC Channel / 1000");
+  cef3SpectrumTotal->SetYTitle("Entries / (40 ADC Channels)");
+  //  TPaveText *l1 = new  TPaveText(0.1,0.1,0.3,0.3,"brNDC");
+
+  bool drawAuthors=false;
+  TText *l1 = new TText(12.8,1.0,"P. Meridiani et al., to be publ. in Proc. IEEE NSS 2014");
+  //  l1->AddText(
+  //  l1->SetFillColor(kWhite);
+  l1->SetTextSize(0.035);
+  //  l1->SetTextAlign(11); // align right
+  l1->SetTextFont(42);
+  
+  l1->SetTextAngle(90);
+  //  l1->SetTextAlign(22);
+  if(drawAuthors)  l1->Draw("same");
   TPaveText* labelTop2 = DrawTools::getLabelTop_2D();
   labelTop2->Draw("same");
   TLegend* legend = new TLegend(0.50, 0.80, 0.85, 0.85,"W-CeF_{3} single tower");
-  legend->SetTextSize(0.035);
+  legend->SetTextSize(0.036);
   legend->SetFillColor(kWhite);
   legend->SetLineColor(kWhite);
   legend->SetFillStyle(0);
-    legend->Draw("same");
+  legend->Draw("same");
   c1->SaveAs("cef3SpectrumTotal.png");
   c1->SaveAs("cef3SpectrumTotal.eps");
+  c1->SaveAs("cef3SpectrumTotal.pdf");
   c1->SetLogy();
   c1->SaveAs("cef3SpectrumTotal_log.png");
   c1->SaveAs("cef3SpectrumTotal_log.eps");
+  c1->SaveAs("cef3SpectrumTotal_log.pdf");
   c1->SetLogy(0);
 
 
@@ -283,40 +323,43 @@ int main( int argc, char* argv[] ) {
   c1->Clear();
   c1->cd();
   cef3SpectrumSingleEle->Draw();
-  cef3SpectrumSingleEle->SetXTitle("kilo ADC Channel");
-  cef3SpectrumSingleEle->SetYTitle("Entries");
+  cef3SpectrumSingleEle->SetXTitle("ADC Channel / 1000");
+  cef3SpectrumSingleEle->SetYTitle("Entries / (40 ADC Channels)");
   legend->Draw("same");
   labelTop2->Draw("same");
   c1->SaveAs("cef3SpectrumSingleEle.png");
   c1->SaveAs("cef3SpectrumSingleEle.eps");
+  c1->SaveAs("cef3SpectrumSingleEle.pdf");
   c1->SetLogy();
   c1->SaveAs("cef3SpectrumSingleEle_log.png");
   c1->SaveAs("cef3SpectrumSingleEle_log.eps");
-
+  c1->SaveAs("cef3SpectrumSingleEle_log.pdf");
 
   c1->Clear();
   c1->SetLogy(0);
   c1->cd();
   cef3SpectrumSingleEleHodo->Draw();
   legend->Draw("same");
-  cef3SpectrumSingleEleHodo->SetXTitle("kilo ADC Channel");
-  cef3SpectrumSingleEleHodo->SetYTitle("Entries");
+  cef3SpectrumSingleEleHodo->SetXTitle("ADC Channel / 1000");
+  cef3SpectrumSingleEleHodo->SetYTitle("Entries / (40 ADC Channels)");
   labelTop2->Draw("same");
   c1->SaveAs("cef3SpectrumSingleEleHodo.png");
   c1->SaveAs("cef3SpectrumSingleEleHodo.eps");
+  c1->SaveAs("cef3SpectrumSingleEleHodo.pdf");
   c1->SetLogy();
   c1->SaveAs("cef3SpectrumSingleEleHodo_log.png");
   c1->SaveAs("cef3SpectrumSingleEleHodo_log.eps");
+  c1->SaveAs("cef3SpectrumSingleEleHodo_log.pdf");
   c1->SetLogy(0);
 
   c1->Clear();
   TLegend* legend2 = new TLegend(0.50, 0.60, 0.85, 0.85,"W-CeF_{3} single tower");
-  legend2->SetTextSize(0.035);
+  legend2->SetTextSize(0.034);
   legend2->SetFillColor(kWhite);
   legend2->SetLineColor(0);
   legend2->SetFillStyle(0);
 
-  TLegend* legend3 = new TLegend(0.50, 0.70, 0.85, 0.90,"W-CeF_{3} single tower");
+  TLegend* legend3 = new TLegend(0.50, 0.72, 0.85, 0.92,"W-CeF_{3} single tower");
   legend3->SetTextSize(0.029);
   legend3->SetFillColor(kWhite);
   legend3->SetLineColor(0);
@@ -329,23 +372,28 @@ int main( int argc, char* argv[] ) {
   cef3SpectrumSingleEle->Draw("same");
   cef3SpectrumSingleEleHodo->SetLineColor(kBlue);
   legend2->AddEntry(cef3SpectrumTotal,"All Events","l");
-  legend2->AddEntry(cef3SpectrumSingleEle,"Single Electron","l");
-  legend2->AddEntry(cef3SpectrumSingleEleHodo,"Hodoscope","l");
+  legend2->AddEntry(cef3SpectrumSingleEle,"Single e^{-} selection","l");
+  legend2->AddEntry(cef3SpectrumSingleEleHodo,"Central 8x8 mm^{2}","l");
+  if(drawAuthors)  l1->Draw("same");
   legend2->Draw("same");
   labelTop2->Draw("same");
   cef3SpectrumSingleEleHodo->Draw("same");
   gPad->RedrawAxis();
   c1->SaveAs("cef3SpectrumSuperimposed.png");
   c1->SaveAs("cef3SpectrumSuperimposed.eps");
+  c1->SaveAs("cef3SpectrumSuperimposed.pdf");
   c1->SetLogy();
-  cef3SpectrumTotal->GetYaxis()->SetRangeUser(1,4.5*cef3SpectrumTotal->GetMaximum());
+  cef3SpectrumTotal->GetYaxis()->SetRangeUser(1,5.*cef3SpectrumTotal->GetMaximum());
   legend2->Clear();
   legend3->AddEntry(cef3SpectrumTotal,"All Events","l");
-  legend3->AddEntry(cef3SpectrumSingleEle,"Single Electron","l");
-  legend3->AddEntry(cef3SpectrumSingleEleHodo,"Hodoscope","l");
+  legend3->AddEntry(cef3SpectrumSingleEle,"Single e^{-} selection","l");
+  legend3->AddEntry(cef3SpectrumSingleEleHodo,"Central 8x8 mm^{2}","l");
   legend3->Draw("same");
+  cef3SpectrumTotal->Draw("same");
+  if(drawAuthors)  l1->Draw("same");
   c1->SaveAs("cef3SpectrumSuperimposed_log.png");
   c1->SaveAs("cef3SpectrumSuperimposed_log.eps");
+  c1->SaveAs("cef3SpectrumSuperimposed_log.pdf");
   c1->SetLogy(0);
 
 

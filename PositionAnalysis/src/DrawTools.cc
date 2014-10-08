@@ -126,7 +126,7 @@ TStyle* DrawTools::setStyle() {
   style->SetTitleFont(42, "XYZ");
   style->SetTitleSize(0.05, "XYZ");
   style->SetTitleXOffset(1.15);//0.9);
-  style->SetTitleYOffset(1.4); // => 1.15 if exponents
+  style->SetTitleYOffset(1.3); // => 1.15 if exponents
 
   // For the axis labels:
 
@@ -154,7 +154,7 @@ TStyle* DrawTools::setStyle() {
 //  Double_t blue[NRGBs]   = { 0.00, 0.00};
 
   const Int_t NRGBs = 5;
-  const Int_t NCont = 20;
+  const Int_t NCont = 255;
 
   Float_t r[5];
   Float_t g[5];
@@ -169,7 +169,8 @@ TStyle* DrawTools::setStyle() {
   }
 
 
-  Double_t stops[NRGBs] = { 0.00, 0.40, 0.50, 0.80, 1.00};
+  //  Double_t stops[NRGBs] = { 0.00, 0.40, 0.50, 0.80, 1.00}; original
+  Double_t stops[NRGBs] = { 0.00, 0.15, 0.50, 0.80, 1.00};
   Double_t red[NRGBs]   = {r[4],r[3],r[2],r[1],r[0] };
   Double_t green[NRGBs]   = {g[4],g[3],g[2],g[1],g[0] };
   Double_t blue[NRGBs]   = {b[4],b[3],b[2],b[1],b[0] };
