@@ -173,7 +173,7 @@ int main( int argc, char* argv[] ) {
   cef3SpectrumSingleEleHodo->SetLineWidth(2);
 
   //  TH2F* cef3VsScintFront= new TH2F("cef3VsScintFront","cef3VsScintFront",40,0.,4000./1000.,40,0.,12000.);
-  TH2F* cef3VsScintFront= new TH2F("cef3VsScintFront","cef3VsScintFront",100,0.,4000./1000.,100,0.,12000.);
+  TH2F* cef3VsScintFront= new TH2F("cef3VsScintFront","cef3VsScintFront",100,0.,4000./1000.,100,0.,12000./1000.);
   TH2F* cef3TopVsBottom= new TH2F("cefTopVsBottom","cefTopVsBottom",100,0.,8000./1000.,100,0.,8000./1000.);
 
 
@@ -196,7 +196,7 @@ int main( int argc, char* argv[] ) {
 
     if(cuts!=""){if(scintFront<150.) continue;}
     if(scintFront<0.5 ||(cef3[0]+cef3[1]+cef3[2]+cef3[3])<1.5*1000. ) continue;
-    cef3VsScintFront->Fill(scintFront/1000.,(cef3[0]+cef3[1]+cef3[2]+cef3[3]));
+    cef3VsScintFront->Fill(scintFront/1000.,(cef3[0]+cef3[1]+cef3[2]+cef3[3])/1000.);
     cef3TopVsBottom->Fill((cef3_corr[2]+cef3_corr[3])/1000.,(cef3_corr[0]+cef3_corr[1])/1000.);
   }
 
