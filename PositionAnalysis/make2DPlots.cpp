@@ -245,7 +245,7 @@ int main( int argc, char* argv[] ) {
   TPaveText* labelTop = DrawTools::getLabelTop_2D();
   labelTop->Draw("same");
   //   c1->SetLogz();
-  
+  c1->SaveAs("cef3VsScintFront_"+cuts_tstr+".C");  
   c1->SaveAs("cef3VsScintFront_"+cuts_tstr+".png");
   c1->SaveAs("cef3VsScintFront_"+cuts_tstr+".eps");
   c1->SaveAs("cef3VsScintFront_"+cuts_tstr+".pdf");
@@ -282,7 +282,7 @@ int main( int argc, char* argv[] ) {
 
 
   //  c1->SetLogz();
-  
+  c1->SaveAs("cef3TopVsBottom_"+cuts_tstr+".C");  
   c1->SaveAs("cef3TopVsBottom_"+cuts_tstr+".png");
   c1->SaveAs("cef3TopVsBottom_"+cuts_tstr+".eps");
   c1->SaveAs("cef3TopVsBottom_"+cuts_tstr+".pdf");
@@ -313,10 +313,12 @@ int main( int argc, char* argv[] ) {
   legend->SetLineColor(kWhite);
   legend->SetFillStyle(0);
   legend->Draw("same");
+  c1->SaveAs("cef3SpectrumTotal.C");
   c1->SaveAs("cef3SpectrumTotal.png");
   c1->SaveAs("cef3SpectrumTotal.eps");
   c1->SaveAs("cef3SpectrumTotal.pdf");
   c1->SetLogy();
+  c1->SaveAs("cef3SpectrumTotal_log.C");
   c1->SaveAs("cef3SpectrumTotal_log.png");
   c1->SaveAs("cef3SpectrumTotal_log.eps");
   c1->SaveAs("cef3SpectrumTotal_log.pdf");
@@ -357,13 +359,19 @@ int main( int argc, char* argv[] ) {
   c1->SetLogy(0);
 
   c1->Clear();
-  TLegend* legend2 = new TLegend(0.50, 0.60, 0.85, 0.85,"W-CeF_{3} single tower");
+
+
+  TStyle* style2 = DrawTools::setStyle();
+  TCanvas* c2= new TCanvas("c2"," ", 600,600);
+  c2->cd();
+
+  TLegend* legend2 = new TLegend(0.50, 0.60, 0.85, 0.85,"W-CeF_{3} Single Tower");
   legend2->SetTextSize(0.034);
   legend2->SetFillColor(kWhite);
   legend2->SetLineColor(0);
   legend2->SetFillStyle(0);
 
-  TLegend* legend3 = new TLegend(0.50, 0.72, 0.85, 0.92,"W-CeF_{3} single tower");
+  TLegend* legend3 = new TLegend(0.58, 0.72, 0.85, 0.92,"W-CeF_{3} Single Tower");
   legend3->SetTextSize(0.029);
   legend3->SetFillColor(kWhite);
   legend3->SetLineColor(0);
@@ -383,22 +391,24 @@ int main( int argc, char* argv[] ) {
   labelTop2->Draw("same");
   cef3SpectrumSingleEleHodo->Draw("same");
   gPad->RedrawAxis();
-  c1->SaveAs("cef3SpectrumSuperimposed.png");
-  c1->SaveAs("cef3SpectrumSuperimposed.eps");
-  c1->SaveAs("cef3SpectrumSuperimposed.pdf");
-  c1->SetLogy();
+//  c2->SaveAs("cef3SpectrumSuperimposed.C");
+//  c2->SaveAs("cef3SpectrumSuperimposed.png");
+//  c2->SaveAs("cef3SpectrumSuperimposed.eps");
+//  c2->SaveAs("cef3SpectrumSuperimposed.pdf");
+  c2->SetLogy();
   cef3SpectrumTotal->GetYaxis()->SetRangeUser(1,5.*cef3SpectrumTotal->GetMaximum());
   legend2->Clear();
-  legend3->AddEntry(cef3SpectrumTotal,"All Events","l");
+  legend3->AddEntry(cef3SpectrumTotal,"All events","l");
   legend3->AddEntry(cef3SpectrumSingleEle,"Single e^{-} selection","l");
   legend3->AddEntry(cef3SpectrumSingleEleHodo,"Central 8x8 mm^{2}","l");
   legend3->Draw("same");
   cef3SpectrumTotal->Draw("same");
   if(drawAuthors)  l1->Draw("same");
-  c1->SaveAs("cef3SpectrumSuperimposed_log.png");
-  c1->SaveAs("cef3SpectrumSuperimposed_log.eps");
-  c1->SaveAs("cef3SpectrumSuperimposed_log.pdf");
-  c1->SetLogy(0);
+  c2->SaveAs("cef3SpectrumSuperimposed_log.C");
+  c2->SaveAs("cef3SpectrumSuperimposed_log.png");
+  c2->SaveAs("cef3SpectrumSuperimposed_log.eps");
+  c2->SaveAs("cef3SpectrumSuperimposed_log.pdf");
+  c2->SetLogy(0);
 
 
 }

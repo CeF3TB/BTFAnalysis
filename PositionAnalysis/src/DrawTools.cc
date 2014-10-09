@@ -62,14 +62,14 @@ TPaveText* DrawTools::getLabelRun( const std::string& runName, bool top ) {
 TPaveText* DrawTools::getCef3LabelLeft() {
 
   float xMin = 0.22;
-  float yMin = 0.87;
+  float yMin = 0.92;
   float xMax = 0.30;
   float yMax = 0.8;
   TPaveText* label_cef3 = new TPaveText(xMin,yMin,xMax,yMax, "brNDC");
   label_cef3->SetFillColor(kWhite);
   label_cef3->SetTextSize(0.035);
   label_cef3->SetTextAlign(11); // align right
-  label_cef3->SetTextFont(42);
+  label_cef3->SetTextFont(62);
   label_cef3->AddText("W-CeF_{3} Single Tower");
 
   return label_cef3;
