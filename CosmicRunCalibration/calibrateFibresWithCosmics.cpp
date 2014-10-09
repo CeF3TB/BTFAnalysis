@@ -276,11 +276,12 @@ FitResults fitSingleHisto( TH1D* histo, double pedMin, double pedMax, double xMi
 
 
   //longer version
-  TPaveText* label_fit = new TPaveText(0.52,0.70,0.8,0.85, "brNDC");
+  TPaveText* label_fit = new TPaveText(0.52,0.67,0.8,0.85, "brNDC");
   label_fit->SetFillColor(kWhite);
   label_fit->SetTextSize(0.035);
   label_fit->SetTextAlign(10); // align right
   label_fit->SetTextFont(62);
+  label_fit->AddText("W-CeF_{3} Single Tower");
   label_fit->AddText("Single photoelectron fit");
   std::string N_str=Form("N=%4.0f #pm %2.0f", N,N_err);
   //  label_fit->AddText(N_str.c_str());

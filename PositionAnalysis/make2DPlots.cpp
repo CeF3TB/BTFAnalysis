@@ -252,7 +252,7 @@ int main( int argc, char* argv[] ) {
 
   c1->Clear();
   c1->cd();
-  cef3TopVsBottom->SetYTitle("CeF_{3} Top Fibres [ADC Channel / 1000]");
+  cef3TopVsBottom->SetYTitle("Top Fibres [ADC Channel / 1000]");
   //  cef3TopVsBottom->SetTitleOffset(1.7,"Y");
   //  cef3TopVsBottom->SetXTitle("CeF_{3} Bottom Fibres [ADC Channel / 1000]");
   //  cef3TopVsBottom->SetAxisRange(9.99,10000.,"Z");
@@ -262,10 +262,14 @@ int main( int argc, char* argv[] ) {
   labelXaxisTop->SetTextSize(cef3VsScintFront->GetXaxis()->GetTitleSize());
   labelXaxisTop->SetTextAlign(31); // align right
   labelXaxisTop->SetTextFont(cef3VsScintFront->GetXaxis()->GetTitleFont());
-  labelXaxisTop->AddText("CeF_{3} Bottom Fibres [ADC Channel / 1000]");
+  labelXaxisTop->AddText("Bottom Fibres [ADC Channel / 1000]");
   labelXaxisTop->Draw("same");
 
   labelTop->Draw("same");
+
+  TPaveText* additional_palette=DrawTools::getCef3LabelLeft();
+  additional_palette->Draw("same");
+
   gPad->Update();
   //  TPaletteAxis *palette2 = (TPaletteAxis*)cef3TopVsBottom->GetListOfFunctions()->FindObject("palette");
 //  palette2->SetX1NDC(0.88);
@@ -303,7 +307,7 @@ int main( int argc, char* argv[] ) {
   if(drawAuthors)  l1->Draw("same");
   TPaveText* labelTop2 = DrawTools::getLabelTop_2D();
   labelTop2->Draw("same");
-  TLegend* legend = new TLegend(0.50, 0.80, 0.85, 0.85,"W-CeF_{3} single tower");
+  TLegend* legend = new TLegend(0.50, 0.80, 0.85, 0.85,"W-CeF_{3} Single Tower");
   legend->SetTextSize(0.036);
   legend->SetFillColor(kWhite);
   legend->SetLineColor(kWhite);
@@ -371,7 +375,7 @@ int main( int argc, char* argv[] ) {
   cef3SpectrumSingleEle->SetLineColor(kRed);
   cef3SpectrumSingleEle->Draw("same");
   cef3SpectrumSingleEleHodo->SetLineColor(kBlue);
-  legend2->AddEntry(cef3SpectrumTotal,"All Events","l");
+  legend2->AddEntry(cef3SpectrumTotal,"All events","l");
   legend2->AddEntry(cef3SpectrumSingleEle,"Single e^{-} selection","l");
   legend2->AddEntry(cef3SpectrumSingleEleHodo,"Central 8x8 mm^{2}","l");
   if(drawAuthors)  l1->Draw("same");
