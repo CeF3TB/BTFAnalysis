@@ -134,6 +134,9 @@ int main( int argc, char* argv[] ) {
   TGraphErrors* gr_sigmaSimul = new TGraphErrors(0);
   TGraphErrors* gr_sigmaSimulPS = new TGraphErrors(0);
 
+  TGraphErrors* gr_resp_vs_energy_dev = new TGraphErrors(0);
+  TGraphErrors* gr_resp_vs_energy_simul_dev = new TGraphErrors(0);
+
 
   TFile* fileMean = TFile::Open(Form("analysisTrees_%s/Reco_%s.root", tag.c_str(), runs[4].c_str()));
   TTree* treeMean = (TTree*)fileMean->Get("recoTree");
@@ -179,8 +182,8 @@ int main( int argc, char* argv[] ) {
 
 
   //for the simulated Cef3:
-  TFile* energyfileS = TFile::Open(Form("OriginalSimulationData/XOffset/Reco_%s.root", simulation[4].c_str()));
-  //   TFile* energyfileS = TFile::Open(Form("OriginalSimulationData/newReal/Reco_%s.root", simulation[4].c_str()));
+  //TFile* energyfileS = TFile::Open(Form("OriginalSimulationData/XOffset/Reco_%s.root", simulation[4].c_str()));
+  TFile* energyfileS = TFile::Open(Form("OriginalSimulationData/newReal/Reco_%s.root", simulation[4].c_str()));
   
   TTree* energytreeS = (TTree*)energyfileS->Get("recoTree");
     
@@ -338,10 +341,12 @@ for( unsigned i=0; i<runs.size(); ++i ) {
     gr_sigmaData->SetPoint( i, energy, rms);
     gr_sigmaData->SetPointError( i, energyErr, rmsErr);
 
+    gr_resp_vs_energy_dev->SetPoint(i, energy, mean/adcEnergyC*energy491S /energy);
+
 
     ///////////////// (1x1) Shashlik ("real setup") //////////////////////////////
-    //  TFile* fileS = TFile::Open(Form("OriginalSimulationData/newReal/Reco_%s.root", simulation[i].c_str()));
-    TFile* fileS = TFile::Open(Form("OriginalSimulationData/XOffset/Reco_%s.root", simulation[i].c_str()));
+    TFile* fileS = TFile::Open(Form("OriginalSimulationData/newReal/Reco_%s.root", simulation[i].c_str()));
+    //  TFile* fileS = TFile::Open(Form("OriginalSimulationData/XOffset/Reco_%s.root", simulation[i].c_str()));
 
     TTree* treeS = (TTree*)fileS->Get("recoTree");
 
@@ -353,6 +358,8 @@ for( unsigned i=0; i<runs.size(); ++i ) {
 
     gr_resp_vs_energy_simul->SetPoint( i, beamEnergySimulation[i], rs.resp * adcEnergyC/energy491S );
     gr_resp_vs_energy_simul->SetPointError( i,0, 0);
+
+    gr_resp_vs_energy_simul_dev->SetPoint(i, beamEnergySimulation[i], rs.resp /beamEnergySimulation[i] );
 
     gr_reso_vs_energy_simul->SetPoint( i, beamEnergySimulation[i], rs_ps.reso );
     gr_reso_vs_energy_simul->SetPointError( i,0,  rs_ps.reso_error );
@@ -445,8 +452,8 @@ for( unsigned i=0; i<runs.size(); ++i ) {
   label_top->Draw("same");
 
 
-  if(withHodo==0){  c1->SaveAs( Form( "%s/resp_vs_energyWOHodoX.pdf", outputdir.c_str() ) );}
-  else if(withHodo==1){  c1->SaveAs( Form( "%s/resp_vs_energyWHodoX.pdf", outputdir.c_str() ) );}
+  if(withHodo==0){  c1->SaveAs( Form( "%s/resp_vs_energyWOHodo.pdf", outputdir.c_str() ) );}
+  else if(withHodo==1){  c1->SaveAs( Form( "%s/resp_vs_energyWHodo.pdf", outputdir.c_str() ) );}
 
   c1->Clear();
 
@@ -566,8 +573,8 @@ for( unsigned i=0; i<runs.size(); ++i ) {
 
   label_top->Draw("same");
 
-  if(withHodo==1) c1->SaveAs( Form( "%s/reso_vs_energySWHodoX.pdf", outputdir.c_str() ) );
-  else  c1->SaveAs( Form( "%s/reso_vs_energySWOHodoX.pdf", outputdir.c_str() ) );
+  if(withHodo==1) c1->SaveAs( Form( "%s/reso_vs_energySWHodo.pdf", outputdir.c_str() ) );
+  else  c1->SaveAs( Form( "%s/reso_vs_energySWOHodo.pdf", outputdir.c_str() ) );
 
 
   /*
@@ -655,8 +662,8 @@ for( unsigned i=0; i<runs.size(); ++i ) {
   leg->Draw("same");
   label_top->Draw("same");
 
-  if(withHodo==1) c1->SaveAs( Form( "%s/sigmasWHodoX.pdf", outputdir.c_str() ) );
-  else  c1->SaveAs( Form( "%s/sigmasWOHodoX.pdf", outputdir.c_str() ) );
+  if(withHodo==1) c1->SaveAs( Form( "%s/sigmasWHodo.pdf", outputdir.c_str() ) );
+  else  c1->SaveAs( Form( "%s/sigmasWOHodo.pdf", outputdir.c_str() ) );
 
 
 
@@ -695,6 +702,44 @@ c1->Clear();
 
    c1->SaveAs( Form( "%s/BGO_asym.pdf", outputdir.c_str() ) );
   */
+
+
+
+
+
+  c1->Clear();
+
+  //////////Linearity Deviation Plots ///////////////////////////////
+  TH2D* h2_axes5 = new TH2D( "axes5", "", 10, 0., xMax, 10, 0.,0.5 );
+  h2_axes5->SetXTitle("Electron Beam Energy [MeV]");
+  h2_axes5->SetYTitle("E_{rec}/E_{beam}");
+  h2_axes5->Draw("");
+
+  gr_resp_vs_energy_dev->SetMarkerStyle(20);
+  gr_resp_vs_energy_dev->SetMarkerSize(1.4);
+  gr_resp_vs_energy_dev->SetMarkerColor(46);
+  gr_resp_vs_energy_dev->Draw("p same");
+
+  gr_resp_vs_energy_simul_dev->SetMarkerStyle(20);
+  gr_resp_vs_energy_simul_dev->SetMarkerSize(1.4);
+  gr_resp_vs_energy_simul_dev->SetMarkerColor(38);
+  gr_resp_vs_energy_simul_dev->Draw("p same");
+
+  
+  TLegend* legd = new TLegend(0.60, 0.4, 0.75, 0.2);
+  legd->SetTextSize(0.038);
+  legd->AddEntry(gr_resp_vs_energy_dev,"Data","p");
+  legd->AddEntry(gr_resp_vs_energy_simul_dev,"MC","p");
+
+  legd->SetFillColor(0);
+  legd->Draw("same");
+  label_top->Draw("same");
+
+  if(withHodo==1) c1->SaveAs( Form( "%s/deviationWHodo.pdf", outputdir.c_str() ) );
+  else  c1->SaveAs( Form( "%s/deviationWOHodo.pdf", outputdir.c_str() ) );
+
+
+
 
 
   return 0;

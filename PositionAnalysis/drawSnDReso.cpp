@@ -369,7 +369,7 @@ int main( int argc, char* argv[] ) {
  // Data (1x1)
  gr_reso_data->SetMarkerStyle(20);
  gr_reso_data->SetMarkerSize(1.6);
- gr_reso_data->SetMarkerColor(46);
+ gr_reso_data->SetMarkerColor(kBlue);
  gr_reso_data->Draw("p same");
  
  //TF1 *fun= new TF1("fun", "sqrt([0]*[0]/(x))",50, xMax);
@@ -382,8 +382,8 @@ int main( int argc, char* argv[] ) {
  
  // MC (1x1)
  gr_reso_simul->SetMarkerStyle(24);
- gr_reso_simul->SetMarkerSize(1.6);
- gr_reso_simul->SetMarkerColor(46);
+ gr_reso_simul->SetMarkerSize(1.5);
+ gr_reso_simul->SetMarkerColor(kBlue);
  gr_reso_simul->Draw("p same");
  
  TF1 *fun1= new TF1("fun1",  "sqrt([0]*[0]/x+[1]*[1]/(x*x))",50, xMax);
