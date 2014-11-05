@@ -13,6 +13,8 @@
 
 #include "interface/DrawTools.h"
 
+#include "TApplication.h"
+
 
 
 //TH1D* fitSingleChannel( const std::string& outputdir, const std::string& name, const std::string& runName, int iChannel, float calibConst=1. );
@@ -27,8 +29,10 @@ float sumVector( std::vector<float> v );
 
 int main() {
 
+  TApplication* a = new TApplication("a",0,0);
 
-  std::string tag = "V02";
+
+  std::string tag = "V03";
 
 
   DrawTools::setStyle();

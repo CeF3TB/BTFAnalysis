@@ -12,7 +12,7 @@ EXTRALIBS := -L$(ROOTSYS)/lib  -lHtml -lMathCore -lGenVector -lMinuit -lTMVA
 
 
 
-all: positionAnalysis drawPositionAnalysis hodoscopeAnalysis calibrateCeF3 drawHodoClustersVsEnergy drawShitVsDiagonal calibrateBGO drawEnergyScan calibrateCaloPositioning drawCaloPositioning calibrateCeF3Positioning makePedestalFile makeAnalysisTree drawPedestalsVsRun drawResolutionStudies calibrateBGOPositioning checkBGOPositioning drawAngularStudies singleElectronSelection drawCalibComparison drawCeF3Intercalibration drawEnergyCheck drawCeF3BGOcorrel draw0Corrected makeSimulationToAnalysisTree drawEnergyScanWSimulation drawResoChain simulationAbsAct ResoCorrection drawSnDReso drawH4Test
+all: positionAnalysis drawPositionAnalysis hodoscopeAnalysis calibrateCeF3 drawHodoClustersVsEnergy drawShitVsDiagonal calibrateBGO drawEnergyScan calibrateCaloPositioning drawCaloPositioning calibrateCeF3Positioning makePedestalFile makeAnalysisTree drawPedestalsVsRun drawResolutionStudies calibrateBGOPositioning checkBGOPositioning drawAngularStudies singleElectronSelection drawCalibComparison drawCeF3Intercalibration drawEnergyCheck drawCeF3BGOcorrel draw0Corrected makeSimulationToAnalysisTree drawEnergyScanWSimulation drawResoChain simulationAbsAct ResoCorrection drawSnDReso drawH4Test drawAngularStudies2
 
 
 
@@ -116,6 +116,9 @@ drawSnDReso: drawSnDReso.cpp DrawTools.o FitTools.o
 
 drawH4Test: drawH4Test.cpp DrawTools.o FitTools.o
 	$(CC) -Wall $(INCLUDES) -o drawH4Test drawH4Test.cpp DrawTools.o FitTools.o $(ROOTFLAG) $(EXTRALIBS)
+
+drawAngularStudies2: drawAngularStudies2.cpp DrawTools.o FitTools.o
+	$(CC) -Wall $(INCLUDES) -o drawAngularStudies2 drawAngularStudies2.cpp DrawTools.o FitTools.o $(ROOTFLAG) $(EXTRALIBS)
 
 
 

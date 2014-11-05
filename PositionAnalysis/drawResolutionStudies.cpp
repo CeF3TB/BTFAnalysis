@@ -12,6 +12,9 @@
 #include "interface/FitTools.h"
 
 
+#include "TApplication.h"
+
+
 
 struct ResoStruct {
 
@@ -55,6 +58,8 @@ ResoStruct addPhotoStatistics( ResoStruct rs );
 
 int main( int argc, char* argv[]) {
 
+  TApplication* a = new TApplication("a",0,0);
+
 
   std::string tag = "V00";
   if( argc>1 ) {
@@ -63,13 +68,15 @@ int main( int argc, char* argv[]) {
   }
 
   DrawTools::setStyle();
-
-  TFile* file_mc = TFile::Open("EEShash_491MeV_1000ev_smear_bgo.root");
+    TFile* file_mc = TFile::Open("OriginalSimulationData/RealWHodo/EEShash98.root");
+    // TFile* file_mc = TFile::Open("OriginalSimulationData/RealWHodo/EEShash491.root");
+    //TFile* file_mc = TFile::Open("EEShash_491MeV_1000ev_smear_bgo.root");
   //TFile* file_mc = TFile::Open("EEShash_491MeV_10000ev_smear.root");
 
   //TFile* file_data = TFile::Open(Form("analysisTrees_%s/Reco_BTF_246_20140501-212512_beam.root", tag.c_str()));
   //TFile* file_data = TFile::Open(Form("analysisTrees_%s/Reco_BTF_259_20140502-012847_beam.root", tag.c_str()));
-  TFile* file_data = TFile::Open(Form("analysisTrees_%s/Reco_BTF_321_20140503-053105_beam.root", tag.c_str()));
+  TFile* file_data = TFile::Open(Form("analysisTrees_%s/Reco_BTF_314_20140503-024715_beam.root", tag.c_str()));
+  //TFile* file_data = TFile::Open(Form("analysisTrees_%s/Reco_BTF_321_20140503-053105_beam.root", tag.c_str()));
 
   TTree* tree_data = (TTree*)file_data->Get("recoTree");
   TTree* tree_mc = (TTree*)file_mc->Get("EEShash");
@@ -78,9 +85,9 @@ int main( int argc, char* argv[]) {
   std::string mkdir_command = "mkdir -p " + outputdir;
   std::system( mkdir_command.c_str() );
   
-  TF1* f1_data = FitTools::fitSingleElectronPeak( outputdir, "data", tree_data );
+TF1* f1_data = FitTools::fitSingleElectronPeak( outputdir, "data", tree_data,5.,1.5 );
 
-  ResoStruct rs_data = getRespAndReso(f1_data, 0.01);
+ResoStruct rs_data = getRespAndReso(f1_data, 0.01); //function and energy error=0.01
 
 
 
@@ -137,7 +144,7 @@ int main( int argc, char* argv[]) {
 
   
 
-
+  /*
 
   // FIRST: DIAGONAL13 SCAN
 
@@ -317,6 +324,7 @@ int main( int argc, char* argv[]) {
 
   drawLateralScan( outputdir, "vert", lss_vert, "Vertical", fullVarName_mc );
 
+  */
   return 0;
 
 }
@@ -328,15 +336,17 @@ ResoStruct getResponseResolutionMC( const std::string& outputdir, TTree* tree, f
 
   std::string fullVarName = getVarName(LYSF);
   //fullVarName += " + Ebgo";
-  fullVarName = "Ebgo";
+  //fullVarName = "Ebgo";
+  //fullVarName = "Eact";
 
   TH1D* h1 = new TH1D( name.c_str(), "", 500, 0., 500. );
 
-  tree->Project( name.c_str(), fullVarName.c_str() );
+  //tree->Project( name.c_str(), fullVarName.c_str(), "Escint>0.2");
+  tree->Project( name.c_str(), fullVarName.c_str(), "Escint>0.2 && Ehodo >0.1" );
 
-  TF1* f1 = new TF1( Form("f1_%s", name.c_str()), "gaus", 100., 500.);
+  TF1* f1 = new TF1( Form("f1_%s", name.c_str()), "gaus", 50., 500.);
 
-  FitTools::doSingleFit( h1, f1, outputdir, name );
+  FitTools::doSingleFit( h1, f1, outputdir, name,5.,1.5 );
 
 
   ResoStruct rs = getRespAndReso( f1, 0. );
@@ -546,8 +556,10 @@ ResoStruct addPhotoStatistics( ResoStruct rs ) {
 
   // MC response is already in MeV, 0.49 is the number of p.e. per MeV
   // RM = 90% of energy, so assume 90% of energy (0.9*491) is deposited in central channel
-  float nADC = rs.resp/185.*3200.;
-  float nPhotoElectrons = nADC/35.;
+  //float nADC = rs.resp/185.*3200.;
+  float nADC = rs.resp/173.097*3235.76;
+  //float nPhotoElectrons = nADC/35.;
+  float nPhotoElectrons = nADC/27.3;
 
   float poissonError = 100./sqrt( nPhotoElectrons ); // in percent
 

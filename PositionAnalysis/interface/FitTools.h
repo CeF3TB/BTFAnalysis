@@ -18,6 +18,8 @@ class FitTools {
 
   static TF1* fitSingleElectronPeak( const std::string& outputdir, const std::string& name, TTree* tree, int niter=4, float nSigma=1.5 );
 
+  static TF1* fitSingleElectronPeak1Chan( const std::string& outputdir, const std::string& name, TTree* tree, int niter=4, float nSigma=1.5, int chanNr=0 );
+
 
  private:
 
