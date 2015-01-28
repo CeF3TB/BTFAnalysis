@@ -119,7 +119,24 @@ void drawPedestals( TFile* file, const std::string& name ) {
   }
 
   h2_axes->Draw();
-  for(unsigned i=0; i<histos.size(); ++i ) histos[i]->Draw("p same");
+
+
+  for(unsigned i=0; i<histos.size(); ++i ) {
+    TH1D* pedDistrib = new TH1D( Form("pedDistrib_%s", histos[i]->GetName()), "", 1000, 0., 1000.);
+    for( unsigned ibin=1; ibin<histos[i]->GetNbinsX()+1; ++ibin ) {
+      if( histos[i]->GetBinContent(ibin)>10. ) {
+        pedDistrib->Fill( histos[i]->GetBinContent(ibin) );
+      }
+    }
+    std::cout << std::endl;
+    std::cout << histos[i]->GetName() << std::endl;
+    std::cout << "  Pedestal mean: " << pedDistrib->GetMean() << std::endl;
+    std::cout << "  Pedestal RMS: " << pedDistrib->GetRMS() << std::endl;
+    std::cout << "  RMS/mean: " << pedDistrib->GetRMS()/pedDistrib->GetMean() << std::endl;
+    delete pedDistrib;
+    histos[i]->Draw("p same");
+  }
+
 
   legend->Draw("same");
 
