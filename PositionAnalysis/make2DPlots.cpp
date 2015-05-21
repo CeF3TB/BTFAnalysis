@@ -305,7 +305,7 @@ int main( int argc, char* argv[] ) {
   l1->SetTextAngle(90);
   //  l1->SetTextAlign(22);
   if(drawAuthors)  l1->Draw("same");
-  TPaveText* labelTop2 = DrawTools::getLabelTop_2D();
+  TPaveText* labelTop2 = DrawTools::getLabelTop();
   labelTop2->Draw("same");
   TLegend* legend = new TLegend(0.50, 0.80, 0.85, 0.85,"W-CeF_{3} Single Tower");
   legend->SetTextSize(0.036);
