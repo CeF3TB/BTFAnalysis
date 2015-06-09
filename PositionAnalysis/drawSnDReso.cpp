@@ -133,7 +133,7 @@ int main( int argc, char* argv[] ) {
  
  TGraphErrors* gr_effsXOffset = new TGraphErrors(0);
   
- gStyle->SetOptFit(1);
+ // gStyle->SetOptFit(1);
 
 
  TFile* fileMean = TFile::Open(Form("analysisTrees_V03/Reco_%s.root",  runs[4].c_str()));
@@ -158,7 +158,7 @@ int main( int argc, char* argv[] ) {
     TFile* file = TFile::Open(Form("analysisTrees_V03/Reco_%s.root", runs[i].c_str()));
     TTree* tree = (TTree*)file->Get("recoTree");
 
-    TF1* thisFunc = fitSingleElectronPeak( outputdir, runs[i], tree,5,1.4,withHodo );
+    TF1* thisFunc = fitSingleElectronPeak( outputdir, runs[i], tree,5, 1.4, withHodo );
 
     float energy = beamEnergy[i];
     float energyErr = 5.;
@@ -619,10 +619,21 @@ ResoStruct addPhotoStatistics( ResoStruct rs, bool withHodo  ) {
 
 TF1* fitSingleElectronPeak( const std::string& outputdir, const std::string& name, TTree* tree, int niter, float nSigma, bool withHodo  ) {
 
-  TH1D* h1 = new TH1D(name.c_str(), "", 200, 0., 6000.);
-  h1 =  projectHodo(tree, name.c_str(), withHodo);
 
-  gStyle->SetOptFit(1);
+  //  TH1D* h1 = new TH1D(name.c_str(), "", 200, 0., 6000.);
+  TH1D* h1 ;
+  if(name == "BTF_314_20140503-024715_beam")
+    h1 = new TH1D(name.c_str(), "", 200, 0., 1500.);
+  else if( name == "259_20140502-012847_beam")
+    h1 = new TH1D(name.c_str(), "", 200, 1000., 6000.);
+  else 
+    h1 = new TH1D(name.c_str(), "", 200, 0., 60000.);
+
+
+  h1 =  projectHodo(tree, name.c_str(), withHodo );
+
+
+  // gStyle->SetOptFit(1);
 
   TF1* f1 = new TF1( Form("gaus_%s", name.c_str()), "gaus", 300., 5000.);
   f1->SetParameter(0, h1->Integral() );
@@ -632,7 +643,8 @@ TF1* fitSingleElectronPeak( const std::string& outputdir, const std::string& nam
   f1->SetParError(1, h1->GetMeanError() );
   f1->SetParError(2, h1->GetRMSError() );
 
-  FitTools::doSingleFit( h1, f1, outputdir, name, niter, nSigma );
+  doSingleFit( h1, f1, outputdir, name, niter, nSigma );
+  //  FitTools::doSingleFit( h1, f1, outputdir, name, niter, nSigma );
 
   return f1;
 
@@ -658,7 +670,16 @@ TH1D* projectHodoMC ( TTree* tree, const std::string& name , bool withHodo){
 
 TH1D* projectHodo ( TTree* tree, const std::string& name , bool withHodo){
 
-  TH1D* h1 = new TH1D(name.c_str(), "", 200, 100., 6000.);
+
+  TH1D* h1 ;
+  if(name == "BTF_314_20140503-024715_beam")
+    h1 = new TH1D(name.c_str(), "", 100, 75., 1275.);
+  else if( name == "BTF_259_20140502-012847_beam")
+    h1 = new TH1D(name.c_str(), "", 100, 1500., 6600.);
+  else 
+    h1 = new TH1D(name.c_str(), "", 100, 100., 4000.);
+
+  //  TH1D* h1 = new TH1D(name.c_str(), "", 200, 100., 6000.);
   
   if(withHodo==1){
     tree->Project( name.c_str() ,"cef3_corr[0]+cef3_corr[1]+cef3_corr[2]+cef3_corr[3]", "(isSingleEle_scintFront && nHodoClustersX==1 && nHodoClustersY==1 )");}
@@ -681,14 +702,15 @@ TH1D* projectHodo ( TTree* tree, const std::string& name , bool withHodo){
 
 
 
-/*
 void doSingleFit( TH1D* h1, TF1* f1, const std::string& outputdir, const std::string& name, int niter, float nSigma ) {
- gStyle->SetOptFit(1);
+  
+  //gStyle->SetOptFit(1);
 
   h1->Fit( f1, "RQN" );
-   f1->SetLineColor(kRed);
-   f1->SetParLimits(1,2.,5000);
-   f1->SetParLimits(2,2.,1000.);
+  f1->SetLineColor(kRed);
+  f1->SetLineWidth(3);
+  f1->SetParLimits(1,2.,5000);
+  f1->SetParLimits(2,2.,1000.);
 
   for( int iter=0; iter<niter; iter++ ) {
 
@@ -700,15 +722,64 @@ void doSingleFit( TH1D* h1, TF1* f1, const std::string& outputdir, const std::st
     float fitMax = mean + nSigma*sigma;
     f1->SetRange( fitMin, fitMax );
     if( iter==(niter-1) ){
-     h1->Fit( f1, "RQ+" );
-      }
+      h1->Fit( f1, "RQ+" );
+    }
     else{
       h1->Fit( f1, "RQN" ); }
-   }
+  }
+  h1->SetLineWidth(2);
+
+  int nBins = h1->GetNbinsX();
+  float lowerEdge = h1->GetMinimum();
+  float upperEdge = h1->GetMaximum();
   TCanvas* c1 = new TCanvas("cX", "", 600, 600);
   c1->cd();
-   h1->Draw();
+  h1->GetXaxis()->SetTitle("ADC Channel");
+  h1->GetYaxis()->SetTitle(Form("Events / (%.0f ADC Channel)", (upperEdge-lowerEdge)/nBins));
+  h1->Draw();
+
+  TPaveText* label_fit = new TPaveText(0.52,0.89-0.06*3,0.89,0.89, "brNDC");
+  label_fit->SetFillColor(kWhite);
+  label_fit->SetTextSize(0.038);
+  label_fit->SetTextAlign(10); // align right
+  label_fit->SetTextFont(62);
+  label_fit->AddText("W-CeF_{3} Single Tower");
+
+  std::string mu_str = Form("#mu = %.0f #pm %.0f ", f1->GetParameter(1), f1->GetParError(1) );
+  label_fit->AddText(mu_str.c_str());
+  std::string sigma_str = Form("#sigma = %.0f #pm %.0f ", f1->GetParameter(2), f1->GetParError(2) );
+  label_fit->AddText(sigma_str.c_str());
+  label_fit->Draw("same");
+
+  gPad->SetLeftMargin(0.15);
+  gPad->SetRightMargin(0.09);
+  gPad->SetBottomMargin(0.15);
+  //  gStyle->SetTitleYOffset(0.7); // => 1.15 if exponents
+  
+
+  
+  TPaveText* label_top =  new TPaveText(0.3,0.953,0.945,0.975, "brNDC");
+  label_top->SetFillColor(kWhite);
+  label_top->SetTextSize(0.038);
+  label_top->SetTextAlign(31); // align right
+  label_top->SetTextFont(62);
+
+  if(name == "BTF_314_20140503-024715_beam")
+    label_top->AddText("98 MeV Electron Beam");
+  else if( name == "BTF_259_20140502-012847_beam")
+    label_top->AddText("491 MeV Electron Beam");
+  else 
+    label_top->AddText("Electron Beam");
+  
+
+  //  label_top->AddText("Electron Beam");
+  label_top->Draw("same");
+  
+
+  c1->SaveAs( Form("%s/fit_%s.png", outputdir.c_str(), name.c_str()) );
   c1->SaveAs( Form("%s/fit_%s.pdf", outputdir.c_str(), name.c_str()) );
+  c1->SaveAs( Form("%s/fit_%s.eps", outputdir.c_str(), name.c_str()) );
   delete c1;
+
 }
-*/
+
